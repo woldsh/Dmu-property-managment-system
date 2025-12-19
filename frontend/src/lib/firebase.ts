@@ -16,16 +16,15 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely
+const app = firebaseConfig.apiKey ? initializeApp(firebaseConfig) : null;
 
-// Initialize Firebase services
-// Note: Firebase Storage is not used - Cloudinary is used for image storage instead
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Initialize Firebase services with null safety
+export const auth = app ? getAuth(app) : null as any;
+export const db = app ? getFirestore(app) : null as any;
 
-// Initialize Analytics only in browser environment
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+// Initialize Analytics only in browser environment and if app is initialized
+export const analytics = (typeof window !== 'undefined' && app) ? getAnalytics(app) : null;
 
 export default app;
 
