@@ -1,6 +1,10 @@
 {
     "name": "property-management-system-root",
     "private": true,
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
     "devDependencies": {
         "next": "16.1.0"
     },
