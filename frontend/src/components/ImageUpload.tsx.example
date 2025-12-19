@@ -1,0 +1,73 @@
+'use client';
+
+import { useState } from 'react';
+import { uploadImageToCloudinary } from '../lib/cloudinary';
+
+/**
+ * Example component for uploading images to Cloudinary
+ * This is an example - adapt it to your needs
+ */
+export default function ImageUpload({ onUploadComplete }: { onUploadComplete?: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (e.g., 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const result = await uploadImageToCloudinary(file, 'property-images');
+      setImageUrl(result.secure_url);
+      onUploadComplete?.(result.secure_url);
+    } catch (err) {
+      setError('Failed to upload image. Please try again.');
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="image-upload">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        disabled={uploading}
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+      />
+      
+      {uploading && <p className="mt-2 text-sm text-gray-600">Uploading...</p>}
+      
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      
+      {imageUrl && (
+        <div className="mt-4">
+          <img
+            src={imageUrl}
+            alt="Uploaded"
+            className="max-w-xs rounded-lg shadow-md"
+          />
+          <p className="mt-2 text-sm text-gray-600">Upload successful!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
