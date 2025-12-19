@@ -1,6 +1,9 @@
 {
     "name": "property-management-system-root",
     "private": true,
+    "devDependencies": {
+        "next": "16.1.0"
+    },
     "scripts": {
         "dev": "npm run dev --prefix frontend",
         "build": "npm run build --prefix frontend",
