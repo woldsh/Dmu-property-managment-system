@@ -1,0 +1,101 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { Loader2 } from 'lucide-react';
+
+// Import all possible dashboard components
+import dynamic from 'next/dynamic';
+
+// Dynamically import components to reduce initial bundle size
+const TeachersPage = dynamic(() => import('../academic-staff/teachers/page'), { ssr: false });
+const DepartmentHeadPage = dynamic(() => import('../academic-staff/department-head/page'), { ssr: false });
+const AcademicCoordinatorPage = dynamic(() => import('../academic-staff/academic-coordinator/page'), { ssr: false });
+
+export default function DashboardPage() {
+    const { user } = useAuth();
+    const router = useRouter();
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserRole = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    setUserRole(userData.userRole);
+                } else {
+                    router.push('/');
+                }
+            } catch (error) {
+                console.error('Error fetching user role:', error);
+                router.push('/login');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserRole();
+    }, [user, router]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#020205] flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto" />
+                    <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
+                        Loading Dashboard...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // Render appropriate component based on user role
+    const renderDashboard = () => {
+        if (!userRole) return null;
+
+        // Academic Coordinator
+        if (userRole === 'academic_coordinator') {
+            return <AcademicCoordinatorPage />;
+        }
+
+        // Department Heads
+        if (userRole.endsWith('_head')) {
+            return <DepartmentHeadPage />;
+        }
+
+        // Teachers
+        if (userRole.endsWith('_teacher')) {
+            return <TeachersPage />;
+        }
+
+        // Default fallback
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                    <p className="text-gray-600 mt-2">Welcome to your dashboard</p>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <ProtectedRoute>
+            {renderDashboard()}
+        </ProtectedRoute>
+    );
+}

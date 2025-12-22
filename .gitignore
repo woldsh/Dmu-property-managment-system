@@ -1,31 +1,42 @@
-# Root gitignore
-node_modules/
-.next/
-dist/
-build/
-.env
-.env.local
-.env.production
-*.log
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+_backup_root
+
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Firebase and Secret Keys
-serviceAccountKey.json
-*serviceAccount*.json
-*.pem
+# env files (can opt-in for committing if needed)
+.env*
 
-# IDEs
-.vscode/
-.idea/
+# vercel
+.vercel
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-frontend/.next/
-frontend/node_modules/
-backend/node_modules/
-backend/dist/
+# typescript
+*.tsbuildinfo
+next-env.d.ts

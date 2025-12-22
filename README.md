@@ -1,174 +1,36 @@
-# Property Management System
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A full-stack property management system built with Next.js frontend and Express.js backend, integrated with Firebase.
+## Getting Started
 
-## Project Structure
+First, run the development server:
 
-```
-property-management-system/
-├── frontend/          # Next.js frontend application
-│   ├── app/          # Next.js app router pages
-│   ├── src/          # Source files
-│   │   └── lib/      # Firebase configuration
-│   └── package.json  # Frontend dependencies
-│
-└── backend/          # Express.js backend server
-    ├── src/          # Backend source code
-    │   ├── config/   # Configuration files
-    │   └── index.ts  # Entry point
-    └── package.json  # Backend dependencies
-```
-
-## Firebase Integration
-
-This project uses Firebase for:
-- Authentication (Firebase Auth)
-- Database (Cloud Firestore)
-- Analytics (Firebase Analytics)
-
-**Note**: Image storage is handled by Cloudinary, not Firebase Storage.
-
-### Firebase Configuration
-
-The Firebase configuration is integrated in:
-- **Frontend**: `frontend/src/lib/firebase.ts` - Firebase Client SDK
-- **Backend**: `backend/src/config/firebase-admin.ts` - Firebase Admin SDK
-
-## Cloudinary Integration
-
-This project uses Cloudinary for:
-- Image storage and management
-- Image optimization and transformations
-
-### Cloudinary Configuration
-
-The Cloudinary configuration is integrated in:
-- **Frontend**: `frontend/src/lib/cloudinary.ts` - Cloudinary Client SDK (with upload preset)
-- **Backend**: `backend/src/config/cloudinary.ts` - Cloudinary Server SDK
-
-### Image Upload Methods
-
-**Frontend:**
-- Direct upload using upload preset (recommended for client-side)
-- Upload via backend API (`/api/images/upload`)
-
-**Backend:**
-- Upload endpoint: `POST /api/images/upload`
-- Delete endpoint: `DELETE /api/images/delete`
-
-## Setup Instructions
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Firebase project account
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Set up environment variables:
-   - Copy `.env.local.example` to `.env.local`
-   - The Cloudinary credentials are already configured in the example file
-
-4. Run the development server:
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The frontend will be available at `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Backend Setup
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-1. Navigate to the backend directory:
-```bash
-cd backend
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Learn More
 
-3. Set up environment variables:
-   - Copy `env.example` to `.env`
-   - Cloudinary credentials are already configured in the example file
+To learn more about Next.js, take a look at the following resources:
 
-4. Set up Firebase Admin SDK credentials:
-   - Download your Firebase service account key from [Firebase Console](https://console.firebase.google.com/)
-   - Go to Project Settings > Service Accounts
-   - Click "Generate New Private Key"
-   - Save the JSON file securely (do NOT commit it to git)
-   - Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable:
-     ```bash
-     # Windows PowerShell
-     $env:GOOGLE_APPLICATION_CREDENTIALS="path\to\service-account-key.json"
-     
-     # Windows CMD
-     set GOOGLE_APPLICATION_CREDENTIALS=path\to\service-account-key.json
-     
-     # Linux/Mac
-     export GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account-key.json
-     ```
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-5. Run the development server:
-```bash
-npm run dev
-```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-The backend will be available at `http://localhost:5000`
+## Deploy on Vercel
 
-## Firebase Project Details
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-- **Project ID**: `property-management-syst-1c6c0`
-- **Auth Domain**: `property-management-syst-1c6c0.firebaseapp.com`
-- **Storage Bucket**: `property-management-syst-1c6c0.firebasestorage.app`
-
-## Development
-
-- Frontend runs on port 3000 (default Next.js port)
-- Backend runs on port 5000 (configurable via PORT environment variable)
-
-## Cloudinary Project Details
-
-- **Cloud Name**: `dsfzkdwre`
-- **Upload Preset**: `Property-images`
-- Image folders: `property-images/`, `user-profiles/`
-
-## Security Notes
-
-- Never commit Firebase service account keys or `.env` files to version control
-- Keep your Firebase API keys secure
-- Keep your Cloudinary API secret secure (backend only)
-- Use environment variables for sensitive configuration
-- The Cloudinary upload preset is safe to expose on the frontend
-
-## API Endpoints
-
-### Image Endpoints
-
-- `POST /api/images/upload` - Upload image to Cloudinary
-  - Body: `FormData` with `image` file and optional `folder` parameter
-  - Returns: Image URL and metadata
-  
-- `DELETE /api/images/delete` - Delete image from Cloudinary
-  - Body: `{ publicId: string }`
-  - Returns: Success message
-
-## Next Steps
-
-1. Set up Firebase Authentication rules
-2. Configure Firestore security rules
-3. Implement API routes in the backend
-4. Connect frontend components to Firebase services
-5. Use Cloudinary utilities for image uploads in your components
-
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
