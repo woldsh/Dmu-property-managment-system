@@ -3,26 +3,28 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaChartPie, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaClock, FaCog, FaChalkboardTeacher } from 'react-icons/fa';
 
 export default function TeacherSidebar() {
     const pathname = usePathname();
     const basePath = '/dashboard';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'AC Decision', href: `${basePath}/ac-decision`, icon: FaClock },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('ac_decisions'), href: `${basePath}/ac-decision`, icon: FaClock },
     ];
 
     return (
@@ -52,10 +54,10 @@ export default function TeacherSidebar() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">Teacher</h2>
+                                <h2 className="text-lg font-black text-white tracking-tight">{t('teacher')}</h2>
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse shadow-lg shadow-purple-400/50" />
-                                    <p className="text-xs font-bold text-purple-400/80 uppercase tracking-[0.2em]">Academic Staff</p>
+                                    <p className="text-xs font-bold text-purple-400/80 uppercase tracking-[0.2em]">{t('academic_staff')}</p>
                                 </div>
                             </div>
                         </div>
@@ -113,8 +115,8 @@ export default function TeacherSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">Teacher</p>
-                                <p className="text-xs text-purple-400/60 truncate">Academic Staff</p>
+                                <p className="text-sm font-bold text-white truncate">{t('teacher')}</p>
+                                <p className="text-xs text-purple-400/60 truncate italic font-medium tracking-wide">{t('academic_staff')}</p>
                             </div>
                         </div>
                     </div>

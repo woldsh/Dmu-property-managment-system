@@ -54,11 +54,11 @@ export default function MeetingNotificationBanner() {
                     <div>
                         <div className="flex items-center gap-2 mb-0.5">
                             <span className="text-[10px] font-black bg-white text-indigo-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">Urgent</span>
-                            <h3 className="text-white font-black text-lg tracking-tight">Managing Director wants you in a meeting</h3>
+                            <h3 className="text-white font-black text-lg tracking-tight">Urgent Chief invite you to meeting</h3>
                         </div>
                         <p className="text-indigo-100 text-sm font-medium flex items-center gap-2">
                             <span className="w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
-                            Emergency executive session is now live. Please join immediately.
+                            The Institution Head is requesting your presence in the executive session.
                         </p>
                     </div>
                 </div>

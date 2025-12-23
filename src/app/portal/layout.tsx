@@ -15,42 +15,15 @@ export default function PortalLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user } = useAuth();
-    const [userRole, setUserRole] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setUserRole(userData.userRole);
-                }
-            } catch (error) {
-                console.error('Error fetching user data for portal layout:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUserData();
-    }, [user]);
+    const { userRole, loading } = useAuth();
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="min-h-screen bg-[#020205] flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto" />
                     <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
-                        Loading Portal...
+                        Loading Executive Portal...
                     </p>
                 </div>
             </div>

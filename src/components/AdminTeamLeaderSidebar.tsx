@@ -3,28 +3,30 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaUserShield } from 'react-icons/fa';
 
 export default function AdminTeamLeaderSidebar() {
     const pathname = usePathname();
     const basePath = '/admin-panel';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaUsers },
-        { label: 'Messages to MD', href: `${basePath}/messages-md`, icon: FaEnvelope },
-        { label: 'Approve & Send', href: `${basePath}/approve-decisions`, icon: FaCheckDouble },
-        { label: 'Request to MD', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaUsers },
+        { label: t('messages_md'), href: `${basePath}/messages-md`, icon: FaEnvelope },
+        { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckDouble },
+        { label: t('request_to_md'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
     ];
 
     return (
@@ -54,10 +56,10 @@ export default function AdminTeamLeaderSidebar() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">Admin Team Leader</h2>
+                                <h2 className="text-lg font-black text-white tracking-tight">{t('admin_lead')}</h2>
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
-                                    <p className="text-xs font-bold text-emerald-400/80 uppercase tracking-[0.2em]">Administration</p>
+                                    <p className="text-xs font-bold text-emerald-400/80 uppercase tracking-[0.2em]">{t('administration_label')}</p>
                                 </div>
                             </div>
                         </div>
@@ -115,8 +117,8 @@ export default function AdminTeamLeaderSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">Admin Team Leader</p>
-                                <p className="text-xs text-emerald-400/60 truncate italic font-medium tracking-wide">Administrative Staff</p>
+                                <p className="text-sm font-bold text-white truncate">{t('admin_lead')}</p>
+                                <p className="text-xs text-emerald-400/60 truncate italic font-medium tracking-wide">{t('admin_staff_label')}</p>
                             </div>
                         </div>
                     </div>

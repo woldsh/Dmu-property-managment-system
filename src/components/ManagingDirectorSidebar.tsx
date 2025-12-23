@@ -3,28 +3,29 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaChartPie, FaClipboardList, FaEnvelope, FaFileAlt, FaCog, FaVideo, FaTruckLoading, FaUndo, FaCar, FaShieldAlt, FaPlusCircle } from 'react-icons/fa';
 
 export default function ManagingDirectorSidebar() {
     const pathname = usePathname();
     const basePath = '/portal';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaClipboardList },
-        { label: 'Start Meeting', href: `${basePath}/start-meeting`, icon: FaVideo },
-        { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaPlusCircle },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'View AC Report', href: `${basePath}/reports`, icon: FaFileAlt },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
-        { label: 'Messages', href: `${basePath}/messages`, icon: FaEnvelope },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaPlusCircle },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('view_ac_report'), href: `${basePath}/reports`, icon: FaFileAlt },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('messages'), href: `${basePath}/messages`, icon: FaEnvelope },
     ];
 
     return (
@@ -55,10 +56,10 @@ export default function ManagingDirectorSidebar() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">Managing Director</h2>
+                                <h2 className="text-lg font-black text-white tracking-tight">{t('managing_director')}</h2>
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shadow-lg shadow-indigo-400/50" />
-                                    <p className="text-xs font-bold text-indigo-400/80 uppercase tracking-[0.2em]">Executive</p>
+                                    <p className="text-xs font-bold text-indigo-400/80 uppercase tracking-[0.2em]">{t('executive_label')}</p>
                                 </div>
                             </div>
                         </div>
@@ -118,8 +119,8 @@ export default function ManagingDirectorSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">Managing Director</p>
-                                <p className="text-xs text-indigo-400/60 truncate italic font-medium tracking-wide">Executive Access</p>
+                                <p className="text-sm font-bold text-white truncate">{t('managing_director')}</p>
+                                <p className="text-xs text-indigo-400/60 truncate italic font-medium tracking-wide">{t('executive_access')}</p>
                             </div>
                         </div>
                     </div>

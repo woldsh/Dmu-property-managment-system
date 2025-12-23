@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
     FaBox,
     FaUsers,
@@ -31,6 +32,7 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
     const isFixed = storeType === 'fixed';
     const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) {
@@ -39,20 +41,20 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/requests`, icon: FaBox },
-        { label: 'Search Materials', href: `${basePath}/search-material`, icon: FaSearch },
-        { label: 'Employee Data', href: `${basePath}/employee-data`, icon: FaUsers },
-        { label: isFixed ? 'Register Asset' : 'Register Item', href: `${basePath}/add-items`, icon: FaPlusCircle },
-        { label: 'Materials List', href: `${basePath}/materials-list`, icon: FaList },
-        { label: 'Report Data', href: `${basePath}/report-data`, icon: FaChartBar },
-        { label: 'Messages', href: `${basePath}/messages`, icon: FaEnvelope },
-        { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/requests`, icon: FaBox },
+        { label: t('search_materials'), href: `${basePath}/search-material`, icon: FaSearch },
+        { label: t('employee_data'), href: `${basePath}/employee-data`, icon: FaUsers },
+        { label: isFixed ? t('register_asset') : t('register_item'), href: `${basePath}/add-items`, icon: FaPlusCircle },
+        { label: t('materials_list'), href: `${basePath}/materials-list`, icon: FaList },
+        { label: t('report_data'), href: `${basePath}/report-data`, icon: FaChartBar },
+        { label: t('messages'), href: `${basePath}/messages`, icon: FaEnvelope },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
     ];
 
     return (
@@ -81,9 +83,9 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
                             <FaStore className="text-xl" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white tracking-tight">Store Keeper</h2>
+                            <h2 className="text-lg font-bold text-white tracking-tight">{t('store_keeper')}</h2>
                             <p className={`text-xs font-medium ${isFixed ? 'text-emerald-400' : 'text-blue-400'} uppercase tracking-wider`}>
-                                {isFixed ? 'Fixed Assets' : 'Consumable Items'}
+                                {isFixed ? t('fixed_assets') : t('consumable_items')}
                             </p>
                         </div>
                     </div>
@@ -140,7 +142,7 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
                                 <span className="text-xs font-bold text-slate-400">SK</span>
                             </div>
                             <div className="overflow-hidden">
-                                <p className="text-sm font-medium text-white truncate">Store Keeper</p>
+                                <p className="text-sm font-medium text-white truncate">{t('store_keeper')}</p>
                                 <p className="text-xs text-slate-500 truncate">{isFixed ? 'store@fixed' : 'store@consumable'}</p>
                             </div>
                         </div>

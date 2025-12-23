@@ -36,7 +36,6 @@ export function middleware(request: NextRequest) {
         '/academic-staff',
         '/managing-director',
         '/general-service',
-        '/chief',
         '/admin-staff'
     ];
 

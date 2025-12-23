@@ -16,41 +16,16 @@ export default function WorkspaceLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user } = useAuth();
-    const [userRole, setUserRole] = useState<string | null>(null);
-    const [stockType, setStockType] = useState<'fixed' | 'consumable'>('fixed');
-    const [loading, setLoading] = useState(true);
+    const { userRole, loading } = useAuth();
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
+    // Determine stock type based on role
+    const getStockType = () => {
+        if (userRole?.includes('fixed_asset')) return 'fixed';
+        if (userRole?.includes('consumable')) return 'consumable';
+        return 'fixed'; // Default
+    };
 
-            try {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setUserRole(userData.userRole);
-                    // Determine stock type based on role
-                    if (userData.userRole?.includes('fixed_asset') || userData.stockType === 'fixed_assets') {
-                        setStockType('fixed');
-                    } else if (userData.userRole?.includes('consumable') || userData.stockType === 'consumable_items') {
-                        setStockType('consumable');
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUserData();
-    }, [user]);
+    const stockType = getStockType();
 
     if (loading) {
         return (

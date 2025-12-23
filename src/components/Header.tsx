@@ -5,8 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FiUser, FiSettings, FiLogOut, FiBox, FiLock, FiChevronDown } from 'react-icons/fi';
+import { FiUser, FiSettings, FiLogOut, FiBox, FiLock, FiChevronDown, FiGlobe } from 'react-icons/fi';
 import Image from 'next/image';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
     title: string;
@@ -18,6 +19,7 @@ export default function Header({ title, subtitle, isDark }: HeaderProps) {
     const { user, logout } = useAuth();
     const { isOpen, toggleSidebar } = useSidebar();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const { language, setLanguage, t } = useLanguage();
     const dropdownRef = useRef<HTMLDivElement>(null);
     const pathname = usePathname();
 
@@ -81,7 +83,21 @@ export default function Header({ title, subtitle, isDark }: HeaderProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6" ref={dropdownRef}>
+                    <div className="flex items-center gap-4 sm:gap-6" ref={dropdownRef}>
+                        {/* Language Switcher */}
+                        <button
+                            onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 border-2 group
+                                ${isDark
+                                    ? 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-indigo-500/30'
+                                    : 'bg-slate-50 border-slate-100 hover:border-indigo-200 hover:bg-white'}`}
+                        >
+                            <FiGlobe className={`${isDark ? 'text-indigo-400' : 'text-indigo-600'} group-hover:rotate-12 transition-transform`} />
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                {language === 'en' ? 'English' : 'አማርኛ'}
+                            </span>
+                        </button>
+
                         {/* Profile Dropdown */}
                         <div className="relative">
                             <button

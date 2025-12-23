@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaVideo } from 'react-icons/fa';
 
 interface JitsiMeetingComponentProps {
@@ -15,12 +16,13 @@ const JitsiMeetingComponent: React.FC<JitsiMeetingComponentProps> = ({
     const jitsiContainerRef = useRef<HTMLDivElement>(null);
     const [api, setApi] = useState<any>(null);
     const { user, userRole } = useAuth();
+    const { t } = useLanguage();
     const domain = 'meet.ffmuc.net';
-    const computedDisplayName = user?.displayName || user?.email?.split('@')[0] || 'Executive User';
+    const computedDisplayName = user?.displayName || user?.email?.split('@')[0] || t('executive_user_label');
 
     const normalizedRole = userRole?.toLowerCase() || '';
     const isChief = normalizedRole === 'chief' || normalizedRole === 'managing_director' || normalizedRole === 'managing_director_leader';
-    const connectionStatus = isChief ? 'Starting Meeting...' : 'Joining Meeting...';
+    const connectionStatus = isChief ? t('starting_meeting') : t('joining_meeting');
 
     useEffect(() => {
         // Cleanup on unmount
@@ -34,7 +36,11 @@ const JitsiMeetingComponent: React.FC<JitsiMeetingComponentProps> = ({
     const loadJitsiScript = () => {
         if (!jitsiContainerRef.current || typeof window === 'undefined' || !(window as any).JitsiMeetExternalAPI) return;
 
-        if (api) api.dispose();
+        // Dispose previous API session
+        if (api) {
+            api.dispose();
+            setApi(null);
+        }
 
         const options = {
             roomName: roomName,
@@ -57,14 +63,25 @@ const JitsiMeetingComponent: React.FC<JitsiMeetingComponentProps> = ({
                 ],
             },
             userInfo: {
-                displayName: `${computedDisplayName} (${userRole || 'Executive'})`,
+                displayName: `${computedDisplayName} (${t('executive_label')})`,
                 email: user?.email || '',
             }
         };
 
-        const newApi = new (window as any).JitsiMeetExternalAPI(domain, options);
-        setApi(newApi);
+        try {
+            const newApi = new (window as any).JitsiMeetExternalAPI(domain, options);
+            setApi(newApi);
+        } catch (error) {
+            console.error("Error creating Jitsi API:", error);
+        }
     };
+
+    // Re-initialize if roomName changes
+    useEffect(() => {
+        if ((window as any).JitsiMeetExternalAPI) {
+            loadJitsiScript();
+        }
+    }, [roomName]);
 
     return (
         <div className="w-full h-[600px] bg-slate-900 rounded-2xl overflow-hidden shadow-2xl relative border border-slate-800">
@@ -78,9 +95,9 @@ const JitsiMeetingComponent: React.FC<JitsiMeetingComponentProps> = ({
                         <FaVideo />
                     </div>
                     <div>
-                        <h3 className="text-white font-bold tracking-tight">Executive Live Video Conference</h3>
+                        <h3 className="text-white font-bold tracking-tight">{t('video_conference_title')}</h3>
                         <p className="text-slate-300 text-xs font-medium uppercase tracking-widest">
-                            Room: {roomName}
+                            {t('room_label')}: {roomName}
                         </p>
                     </div>
                 </div>

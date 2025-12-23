@@ -13,65 +13,22 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, userRole } = useAuth();
     const router = useRouter();
-    const [authorized, setAuthorized] = useState(false);
-    const [checking, setChecking] = useState(true);
+    const isAuthorized = !allowedRoles || allowedRoles.length === 0 || (userRole && allowedRoles.includes(userRole));
 
     useEffect(() => {
-        const checkAuthorization = async () => {
-            // Wait for auth to finish loading
-            if (authLoading) {
-                return;
-            }
+        if (authLoading) return;
 
-            // If no user, redirect to login
-            if (!user) {
-                router.push('/login');
-                return;
-            }
+        if (!user) {
+            router.push('/login');
+        } else if (allowedRoles && allowedRoles.length > 0 && userRole && !allowedRoles.includes(userRole)) {
+            router.push('/');
+        }
+    }, [user, authLoading, userRole, allowedRoles, router]);
 
-            // If specific roles are required, check user's role
-            if (allowedRoles && allowedRoles.length > 0) {
-                try {
-                    const userDocRef = doc(db, 'users', user.uid);
-                    const userDoc = await getDoc(userDocRef);
-
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        const userRole = userData.userRole;
-
-                        // Check if user's role is in the allowed roles
-                        if (allowedRoles.includes(userRole)) {
-                            setAuthorized(true);
-                        } else {
-                            // User doesn't have permission, redirect to home
-                            router.push('/');
-                            return;
-                        }
-                    } else {
-                        // User document doesn't exist, redirect to login
-                        router.push('/login');
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error checking user authorization:', error);
-                    router.push('/login');
-                    return;
-                }
-            } else {
-                // No specific roles required, just need to be authenticated
-                setAuthorized(true);
-            }
-
-            setChecking(false);
-        };
-
-        checkAuthorization();
-    }, [user, authLoading, allowedRoles, router]);
-
-    // Show loading state while checking authentication
-    if (authLoading || checking) {
+    // Show loading state ONLY while auth is actually loading
+    if (authLoading) {
         return (
             <div className="min-h-screen bg-[#020205] flex items-center justify-center">
                 <div className="text-center space-y-4">
@@ -84,11 +41,11 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         );
     }
 
-    // Show nothing if not authorized (will redirect)
-    if (!authorized) {
-        return null;
+    // If we're authenticated and authorized (or no roles required), show the children
+    // If not authorized, we'll return null while the useEffect handles the redirect
+    if (user && isAuthorized) {
+        return <>{children}</>;
     }
 
-    // User is authorized, show the protected content
-    return <>{children}</>;
+    return null;
 }

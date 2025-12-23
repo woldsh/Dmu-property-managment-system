@@ -3,26 +3,28 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaChartPie, FaClipboardList, FaTools, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaCar } from 'react-icons/fa';
 
 export default function GeneralServiceSidebar() {
     const pathname = usePathname();
     const basePath = '/service';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaClipboardList },
-        { label: 'Service Tasks', href: `${basePath}/service-tasks`, icon: FaTools },
-        { label: 'Request Material', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Messages', href: `${basePath}/messages`, icon: FaEnvelope },
-        { label: 'Reports', href: `${basePath}/reports`, icon: FaFileAlt },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
+        { label: t('service_tasks'), href: `${basePath}/service-tasks`, icon: FaTools },
+        { label: t('request_material_label'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('messages'), href: `${basePath}/messages`, icon: FaEnvelope },
+        { label: t('reports'), href: `${basePath}/reports`, icon: FaFileAlt },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
     ];
 
     return (
@@ -52,10 +54,10 @@ export default function GeneralServiceSidebar() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">General Service</h2>
+                                <h2 className="text-lg font-black text-white tracking-tight">{t('general_service')}</h2>
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse shadow-lg shadow-violet,400/50" />
-                                    <p className="text-xs font-bold text-violet-400/80 uppercase tracking-[0.2em]">Operations</p>
+                                    <p className="text-xs font-bold text-violet-400/80 uppercase tracking-[0.2em]">{t('operations_label')}</p>
                                 </div>
                             </div>
                         </div>
@@ -113,8 +115,8 @@ export default function GeneralServiceSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">General Service</p>
-                                <p className="text-xs text-violet-400/60 truncate italic font-medium tracking-wide">Service Operations</p>
+                                <p className="text-sm font-bold text-white truncate">{t('general_service')}</p>
+                                <p className="text-xs text-violet-400/60 truncate italic font-medium tracking-wide">{t('service_ops')}</p>
                             </div>
                         </div>
                     </div>

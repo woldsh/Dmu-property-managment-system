@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { FaChartPie, FaClipboardList, FaEnvelope, FaCheckCircle, FaVideo, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaBuilding, FaClock, FaBell } from 'react-icons/fa';
@@ -14,6 +15,7 @@ export default function DepartmentHeadSidebar() {
     const basePath = '/dashboard';
     const { isOpen, closeSidebar } = useSidebar();
     const { userRole, department } = useAuth();
+    const { t } = useLanguage();
     const [meetingInvite, setMeetingInvite] = useState<any>(null);
 
     useEffect(() => {
@@ -38,18 +40,18 @@ export default function DepartmentHeadSidebar() {
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaClipboardList },
-        { label: 'Need AC', href: `${basePath}/ac-decision`, icon: FaClock },
-        { label: 'Messages to AC', href: `${basePath}/messages-ac`, icon: FaEnvelope },
-        { label: 'Approve & Send', href: `${basePath}/approve-decisions`, icon: FaCheckCircle },
-        { label: 'Join Meeting', href: '/dashboard/meeting', icon: FaVideo },
-        { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
+        { label: t('need_ac'), href: `${basePath}/ac-decision`, icon: FaClock },
+        { label: t('messages_ac'), href: `${basePath}/messages-ac`, icon: FaEnvelope },
+        { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckCircle },
+        { label: t('join_meeting'), href: '/dashboard/meeting', icon: FaVideo },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
     ];
 
     return (
@@ -79,10 +81,10 @@ export default function DepartmentHeadSidebar() {
                                 </div>
                             </div>
                             <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">Department Head</h2>
+                                <h2 className="text-lg font-black text-white tracking-tight">{t('dept_head')}</h2>
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse shadow-lg shadow-blue-400/50" />
-                                    <p className="text-xs font-bold text-blue-400/80 uppercase tracking-[0.2em]">Academic Staff</p>
+                                    <p className="text-xs font-bold text-blue-400/80 uppercase tracking-[0.2em]">{t('academic_staff')}</p>
                                 </div>
                             </div>
                         </div>
@@ -111,10 +113,10 @@ export default function DepartmentHeadSidebar() {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-1.5 mb-1">
-                                        <span className="text-[9px] font-black bg-white/20 px-1.5 py-0.5 rounded text-white tracking-widest uppercase">From: Managing Director</span>
+                                        <span className="text-[9px] font-black bg-white/20 px-1.5 py-0.5 rounded text-white tracking-widest uppercase">{t('from_md_label')}</span>
                                     </div>
-                                    <p className="text-xs font-bold text-white uppercase tracking-wider mb-0.5">Meeting Invite</p>
-                                    <p className="text-[11px] text-indigo-100 leading-tight">Emergency executive session started. Join now!</p>
+                                    <p className="text-xs font-bold text-white uppercase tracking-wider mb-0.5">{t('meeting_invite')}</p>
+                                    <p className="text-[11px] text-indigo-100 leading-tight">{t('emergency_session_msg')}</p>
                                 </div>
                             </Link>
                         )}
@@ -159,8 +161,8 @@ export default function DepartmentHeadSidebar() {
                                 </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">Department Head</p>
-                                <p className="text-xs text-blue-400/60 truncate italic font-medium tracking-wide">Academic Management</p>
+                                <p className="text-sm font-bold text-white truncate">{t('dept_head')}</p>
+                                <p className="text-xs text-blue-400/60 truncate italic font-medium tracking-wide">{t('academic_management')}</p>
                             </div>
                         </div>
                     </div>

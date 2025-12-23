@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
     FaChartPie,
     FaUserTie,
@@ -20,6 +21,7 @@ export default function EmployeeSidebar() {
     const pathname = usePathname();
     const basePath = '/admin-panel';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) {
@@ -28,14 +30,14 @@ export default function EmployeeSidebar() {
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'Request to Team Leader', href: `${basePath}/request-material`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'Waiting for AC Decision', href: `${basePath}/ac-decision`, icon: FaClock },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('request_to_tl'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('waiting_ac'), href: `${basePath}/ac-decision`, icon: FaClock },
     ];
 
     return (
@@ -64,8 +66,8 @@ export default function EmployeeSidebar() {
                             <FaIdCard className="text-xl" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white tracking-tight">Employee</h2>
-                            <p className="text-xs font-medium text-green-400 uppercase tracking-wider">Staff Portal</p>
+                            <h2 className="text-lg font-bold text-white tracking-tight">{t('employee')}</h2>
+                            <p className="text-xs font-medium text-green-400 uppercase tracking-wider">{t('staff_portal')}</p>
                         </div>
                     </div>
 
@@ -122,7 +124,7 @@ export default function EmployeeSidebar() {
                                 <span className="text-xs font-bold text-slate-400">EM</span>
                             </div>
                             <div className="overflow-hidden">
-                                <p className="text-sm font-medium text-white truncate">Employee</p>
+                                <p className="text-sm font-medium text-white truncate">{t('employee')}</p>
                                 <p className="text-xs text-slate-500 truncate">staff@system</p>
                             </div>
                         </div>

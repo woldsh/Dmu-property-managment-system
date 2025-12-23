@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
     FaChartPie,
     FaEye,
@@ -29,6 +30,7 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
     const isFixed = stockType === 'fixed';
     const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
+    const { t } = useLanguage();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) {
@@ -37,17 +39,17 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests', href: `${basePath}/view-requests-pmt`, icon: FaEye },
-        { label: 'Messages to PMT', href: `${basePath}/messages-pmt`, icon: FaEnvelopeOpenText },
-        { label: 'Employee Data', href: `${basePath}/employee-data`, icon: FaUsers },
-        { label: 'Report Data', href: `${basePath}/report-data`, icon: FaFileContract },
-        { label: 'Request Materials', href: `${basePath}/request-md`, icon: FaUserTie },
-        { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
-        { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
-        { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
-        { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'Clerk Report', href: `${basePath}/store-clerk-report`, icon: FaFileAlt },
+        { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: t('view_requests'), href: `${basePath}/view-requests-pmt`, icon: FaEye },
+        { label: t('messages_pmt'), href: `${basePath}/messages-pmt`, icon: FaEnvelopeOpenText },
+        { label: t('employee_data'), href: `${basePath}/employee-data`, icon: FaUsers },
+        { label: t('report_data'), href: `${basePath}/report-data`, icon: FaFileContract },
+        { label: t('request_materials'), href: `${basePath}/request-md`, icon: FaUserTie },
+        { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
+        { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
+        { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
+        { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('clerk_report'), href: `${basePath}/store-clerk-report`, icon: FaFileAlt },
     ];
 
     const HeaderIcon = isFixed ? FaClipboardCheck : FaClipboardList;
@@ -79,9 +81,9 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
                             <HeaderIcon className="text-xl" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white tracking-tight">Stock Clerk</h2>
+                            <h2 className="text-lg font-bold text-white tracking-tight">{t('stock_clerk')}</h2>
                             <p className={`text-xs font-medium ${isFixed ? 'text-cyan-400' : 'text-teal-400'} uppercase tracking-wider`}>
-                                {isFixed ? 'Fixed Assets' : 'Consumables'}
+                                {isFixed ? t('fixed_assets') : t('consumable_items')}
                             </p>
                         </div>
                     </div>
@@ -139,7 +141,7 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
                                 <span className="text-xs font-bold text-slate-400">SC</span>
                             </div>
                             <div className="overflow-hidden">
-                                <p className="text-sm font-medium text-white truncate">Stock Clerk</p>
+                                <p className="text-sm font-medium text-white truncate">{t('stock_clerk')}</p>
                                 <p className="text-xs text-slate-500 truncate">clerk@system</p>
                             </div>
                         </div>

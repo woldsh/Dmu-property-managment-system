@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaClipboardList, FaClock, FaUser, FaComments } from 'react-icons/fa';
 import MeetingChat from './MeetingChat';
 
 export default function MeetingAgenda() {
+    const { t, language } = useLanguage();
     const [issues, setIssues] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export default function MeetingAgenda() {
                         : 'text-gray-400 hover:text-gray-600'
                         }`}
                 >
-                    <FaClipboardList /> AGENDA
+                    <FaClipboardList /> {t('agenda_label')}
                 </button>
                 <button
                     onClick={() => setActiveTab('chat')}
@@ -59,7 +61,7 @@ export default function MeetingAgenda() {
                         : 'text-gray-400 hover:text-gray-600'
                         }`}
                 >
-                    <FaComments /> DISCUSSION
+                    <FaComments /> {t('discussion_label')}
                 </button>
             </div>
 
@@ -84,15 +86,15 @@ export default function MeetingAgenda() {
                                 <div key={issue.id} className="p-3 bg-white border border-gray-100 rounded-xl hover:border-indigo-200 transition-colors cursor-default group">
                                     <div className="flex justify-between items-start mb-1">
                                         <h4 className="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight truncate max-w-[150px]">
-                                            {issue.materialName || 'Unnamed Request'}
+                                            {issue.materialName || t('unnamed_request')}
                                         </h4>
                                         <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                                            <FaClock size={10} /> {issue.createdAt?.toDate ? new Date(issue.createdAt.toDate()).toLocaleDateString() : 'Recent'}
+                                            <FaClock size={10} /> {issue.createdAt?.toDate ? new Date(issue.createdAt.toDate()).toLocaleDateString(language === 'am' ? 'am-ET' : 'en-US') : t('recent')}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 text-xs text-gray-500">
                                         <FaUser size={10} />
-                                        <span>{issue.requestedBy || 'User'}</span>
+                                        <span>{issue.requestedBy || t('employee')}</span>
                                         <span className="w-1 h-1 bg-gray-300 rounded-full" />
                                         <span className={`font-medium ${issue.status?.includes('pending') ? 'text-amber-500' : 'text-blue-500'}`}>
                                             {issue.status?.replace(/_/g, ' ')}

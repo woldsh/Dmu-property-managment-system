@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -29,6 +30,7 @@ interface RecentActivity {
 
 export default function DashboardPage() {
     const { user } = useAuth();
+    const { t, language } = useLanguage();
     const [userRole, setUserRole] = useState<string | null>(null);
     const [userName, setUserName] = useState<string>('');
     const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function DashboardPage() {
                 <div className="text-center space-y-4">
                     <Loader2 className="w-12 h-12 text-lime-500 animate-spin mx-auto" />
                     <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
-                        Loading Dashboard...
+                        {t('loading')}...
                     </p>
                 </div>
             </div>
@@ -100,9 +102,9 @@ export default function DashboardPage() {
 
     const greeting = () => {
         const hour = currentTime.getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 17) return 'Good Afternoon';
-        return 'Good Evening';
+        if (hour < 12) return t('good_morning');
+        if (hour < 17) return t('good_afternoon');
+        return t('good_evening');
     };
 
     return (
@@ -120,14 +122,14 @@ export default function DashboardPage() {
                                 <div className="flex items-center gap-3">
                                     <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse" />
                                     <span className="text-xs font-black text-lime-600 uppercase tracking-[0.2em]">
-                                        Live Dashboard
+                                        {t('live_dashboard')}
                                     </span>
                                 </div>
                                 <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-                                    {greeting()}, <span className="bg-gradient-to-r from-lime-600 to-emerald-600 bg-clip-text text-transparent">{userName.split(' ')[0]}</span>
+                                    {greeting()}, <span className="bg-gradient-to-r from-lime-600 to-emerald-600 bg-clip-text text-transparent italic">{userName.split(' ')[0]}</span>
                                 </h1>
                                 <p className="text-slate-500 font-medium text-lg">
-                                    Here's your academic overview for today
+                                    {t('academic_overview_msg')}
                                 </p>
                             </div>
 
@@ -138,12 +140,12 @@ export default function DashboardPage() {
                                             <FiCalendar className="text-2xl text-white" />
                                         </div>
                                         <div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Today</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t('today')}</p>
                                             <p className="text-2xl font-black text-slate-800">
-                                                {currentTime.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                                                {currentTime.toLocaleDateString(language === 'am' ? 'am-ET' : 'en-US', { day: 'numeric', month: 'short' })}
                                             </p>
                                             <p className="text-sm font-bold text-lime-600">
-                                                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                {currentTime.toLocaleTimeString(language === 'am' ? 'am-ET' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
                                     </div>
@@ -165,12 +167,12 @@ export default function DashboardPage() {
                                         <FiClock className="text-2xl text-white" />
                                     </div>
                                     <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-black rounded-full uppercase tracking-wider">
-                                        Pending
+                                        {t('pending')}
                                     </span>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-4xl font-black text-slate-900">{stats.pending}</p>
-                                    <p className="text-sm font-bold text-slate-500">Awaiting Approval</p>
+                                    <p className="text-sm font-bold text-slate-500">{t('awaiting_approval_sub')}</p>
                                 </div>
                                 <div className="mt-4 flex items-center gap-2 text-amber-600">
                                     <FiActivity className="text-sm animate-pulse" />
@@ -188,12 +190,12 @@ export default function DashboardPage() {
                                         <FiCheckCircle className="text-2xl text-white" />
                                     </div>
                                     <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-black rounded-full uppercase tracking-wider">
-                                        Approved
+                                        {t('approved')}
                                     </span>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-4xl font-black text-slate-900">{stats.approved}</p>
-                                    <p className="text-sm font-bold text-slate-500">Successfully Processed</p>
+                                    <p className="text-sm font-bold text-slate-500">{t('successfully_processed')}</p>
                                 </div>
                                 <div className="mt-4 flex items-center gap-2 text-emerald-600">
                                     <FiTrendingUp className="text-sm" />
@@ -211,16 +213,16 @@ export default function DashboardPage() {
                                         <FiPackage className="text-2xl text-white" />
                                     </div>
                                     <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-black rounded-full uppercase tracking-wider">
-                                        Assets
+                                        {t('assets_label')}
                                     </span>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-4xl font-black text-slate-900">7</p>
-                                    <p className="text-sm font-bold text-slate-500">Assigned Equipment</p>
+                                    <p className="text-sm font-bold text-slate-500">{t('assigned_equipment')}</p>
                                 </div>
                                 <div className="mt-4 flex items-center gap-2 text-blue-600">
                                     <FiBox className="text-sm" />
-                                    <span className="text-xs font-bold">All Active</span>
+                                    <span className="text-xs font-bold">{t('all_active')}</span>
                                 </div>
                             </div>
                         </div>
@@ -235,16 +237,16 @@ export default function DashboardPage() {
                                         <FiAward className="text-2xl text-white" />
                                     </div>
                                     <span className="px-3 py-1 bg-white/20 text-white text-xs font-black rounded-full uppercase tracking-wider backdrop-blur-sm">
-                                        Performance
+                                        {t('academic_coordinator')}
                                     </span>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-4xl font-black text-white">98%</p>
-                                    <p className="text-sm font-bold text-white/80">Request Success Rate</p>
+                                    <p className="text-sm font-bold text-white/80">{t('request_success_rate')}</p>
                                 </div>
                                 <div className="mt-4 flex items-center gap-2 text-white/90">
                                     <FiZap className="text-sm" />
-                                    <span className="text-xs font-bold">Excellent Standing</span>
+                                    <span className="text-xs font-bold">{t('excellent_standing')}</span>
                                 </div>
                             </div>
                         </div>
@@ -256,8 +258,8 @@ export default function DashboardPage() {
                         <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200/60 p-8 shadow-lg shadow-slate-200/50">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900">Quick Actions</h2>
-                                    <p className="text-slate-500 font-medium">Frequently used operations</p>
+                                    <h2 className="text-2xl font-black text-slate-900">{t('quick_actions')}</h2>
+                                    <p className="text-slate-500 font-medium">{t('frequently_used_ops')}</p>
                                 </div>
                                 <div className="w-12 h-12 rounded-2xl bg-lime-100 flex items-center justify-center">
                                     <FiZap className="text-xl text-lime-600" />
@@ -270,8 +272,8 @@ export default function DashboardPage() {
                                         <FiFileText className="text-xl text-white" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-slate-900 group-hover:text-lime-700 transition-colors">Request Material</h3>
-                                        <p className="text-sm text-slate-500">Submit new requisition</p>
+                                        <h3 className="font-bold text-slate-900 group-hover:text-lime-700 transition-colors">{t('request_material_label')}</h3>
+                                        <p className="text-sm text-slate-500">{t('submit_new_requisition')}</p>
                                     </div>
                                     <FiArrowRight className="text-xl text-lime-500 group-hover:translate-x-2 transition-transform" />
                                 </a>
@@ -281,8 +283,8 @@ export default function DashboardPage() {
                                         <FiClipboard className="text-xl text-white" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors">View Requests</h3>
-                                        <p className="text-sm text-slate-500">Track your submissions</p>
+                                        <h3 className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors">{t('view_requests')}</h3>
+                                        <p className="text-sm text-slate-500">{t('track_your_submissions')}</p>
                                     </div>
                                     <FiArrowRight className="text-xl text-blue-500 group-hover:translate-x-2 transition-transform" />
                                 </a>
@@ -292,8 +294,8 @@ export default function DashboardPage() {
                                         <FiFileText className="text-xl text-white" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-slate-900 group-hover:text-purple-700 transition-colors">View Reports</h3>
-                                        <p className="text-sm text-slate-500">Access clerk reports</p>
+                                        <h3 className="font-bold text-slate-900 group-hover:text-purple-700 transition-colors">{t('view_reports_label')}</h3>
+                                        <p className="text-sm text-slate-500">{t('access_clerk_reports')}</p>
                                     </div>
                                     <FiArrowRight className="text-xl text-purple-500 group-hover:translate-x-2 transition-transform" />
                                 </a>
@@ -303,8 +305,8 @@ export default function DashboardPage() {
                                         <FiAlertCircle className="text-xl text-white" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-slate-900 group-hover:text-orange-700 transition-colors">AC Decisions</h3>
-                                        <p className="text-sm text-slate-500">Pending decisions</p>
+                                        <h3 className="font-bold text-slate-900 group-hover:text-orange-700 transition-colors">{t('ac_decisions')}</h3>
+                                        <p className="text-sm text-slate-500">{t('pending_decisions')}</p>
                                     </div>
                                     <FiArrowRight className="text-xl text-orange-500 group-hover:translate-x-2 transition-transform" />
                                 </a>
@@ -315,8 +317,8 @@ export default function DashboardPage() {
                         <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-lg shadow-slate-200/50">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-900">Activity</h2>
-                                    <p className="text-slate-500 font-medium text-sm">Recent updates</p>
+                                    <h2 className="text-xl font-black text-slate-900">{t('activity_label')}</h2>
+                                    <p className="text-slate-500 font-medium text-sm">{t('recent_actions')}</p>
                                 </div>
                                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                                     <FiActivity className="text-lg text-slate-600" />
@@ -329,9 +331,9 @@ export default function DashboardPage() {
                                         <FiCheckCircle className="text-emerald-600" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 text-sm">Request Approved</p>
-                                        <p className="text-xs text-slate-500">Your laptop request was approved</p>
-                                        <p className="text-xs text-slate-400 mt-1">2 hours ago</p>
+                                        <p className="font-bold text-slate-800 text-sm">{t('request_approved')}</p>
+                                        <p className="text-xs text-slate-500">{t('laptop_req_approved')}</p>
+                                        <p className="text-xs text-slate-400 mt-1">2 {t('hours_ago')}</p>
                                     </div>
                                 </div>
 
@@ -340,9 +342,9 @@ export default function DashboardPage() {
                                         <FiPackage className="text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 text-sm">Equipment Assigned</p>
-                                        <p className="text-xs text-slate-500">Projector added to your inventory</p>
-                                        <p className="text-xs text-slate-400 mt-1">Yesterday</p>
+                                        <p className="font-bold text-slate-800 text-sm">{t('allocated_items')}</p>
+                                        <p className="text-xs text-slate-500">{t('projector_assigned')}</p>
+                                        <p className="text-xs text-slate-400 mt-1">{t('yesterday')}</p>
                                     </div>
                                 </div>
 
@@ -351,9 +353,9 @@ export default function DashboardPage() {
                                         <FiClock className="text-amber-600" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-slate-800 text-sm">Request Pending</p>
-                                        <p className="text-xs text-slate-500">Waiting for coordinator review</p>
-                                        <p className="text-xs text-slate-400 mt-1">3 days ago</p>
+                                        <p className="font-bold text-slate-800 text-sm">{t('pending')}</p>
+                                        <p className="text-xs text-slate-500">{t('waiting_coordinator_review')}</p>
+                                        <p className="text-xs text-slate-400 mt-1">3 {t('days_ago')}</p>
                                     </div>
                                 </div>
                             </div>

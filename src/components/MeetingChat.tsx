@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { FaPaperPlane, FaUserCircle } from 'react-icons/fa';
 
 export default function MeetingChat() {
     const { user, userRole } = useAuth();
+    const { t } = useLanguage();
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [sending, setSending] = useState(false);
@@ -45,12 +47,12 @@ export default function MeetingChat() {
 
         setSending(true);
         try {
-            const displayName = user.displayName || user.email?.split('@')[0] || 'Executive';
+            const displayName = user.displayName || user.email?.split('@')[0] || t('executive_user_label');
             await addDoc(collection(db, "meeting_messages"), {
                 text: newMessage,
                 senderId: user.uid,
                 senderName: displayName,
-                senderRole: userRole || 'Executive',
+                senderRole: userRole || t('executive_label'),
                 createdAt: serverTimestamp()
             });
             setNewMessage('');
@@ -71,7 +73,7 @@ export default function MeetingChat() {
             >
                 {messages.length === 0 ? (
                     <div className="text-center py-10">
-                        <p className="text-gray-400 text-xs italic">Start the discussion...</p>
+                        <p className="text-gray-400 text-xs italic">{t('start_discussion')}</p>
                     </div>
                 ) : (
                     messages.map((msg) => {
@@ -101,7 +103,7 @@ export default function MeetingChat() {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={t('type_message')}
                     className="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                     disabled={sending}
                 />
