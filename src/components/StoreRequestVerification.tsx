@@ -114,7 +114,7 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
             setLoading(true);
             const batch = writeBatch(db);
 
-            // 1. Update User-Report status from Completed to accepted
+            // 1. Update User_reports status from Completed to accepted
             const userReportQuery = query(
                 collection(db, 'User-Report'),
                 where('requestId', '==', record.request_id)

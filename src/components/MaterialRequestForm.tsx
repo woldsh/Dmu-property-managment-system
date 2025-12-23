@@ -132,15 +132,59 @@ export default function MaterialRequestForm() {
         try {
             let department = userData.department;
             if (!department && userData.userRole) {
-                department = userData.userRole.replace('_teacher', '');
+                department = userData.userRole.replace('_teacher', '').replace('_head', '');
             }
 
-            const deptHeadRole = `${department}_head`;
-            const headQuery = query(collection(db, 'users'), where('userRole', '==', deptHeadRole));
-            const headSnapshot = await getDocs(headQuery);
+            const isDeptHead = userData.userRole?.endsWith('_head');
+            const isAC = userData.userRole === 'academic_coordinator';
+            const isMD = userData.userRole === 'managing_director' || userData.userRole === 'managing_director_leader' || userData.userRole === 'chief';
+            const isTL = userData.userRole?.includes('_leader') || userData.userRole?.includes('_team_leader') || userData.userRole === 'academic_coordinator';
 
-            const approverId = headSnapshot.empty ? 'PENDING_HEAD_ASSIGNMENT' : headSnapshot.docs[0].id;
-            const approverName = headSnapshot.empty ? 'Department Head' : headSnapshot.docs[0].data().displayName;
+            let roleLabel = 'Teacher';
+            if (isMD) roleLabel = 'Managing Director';
+            else if (isAC) roleLabel = 'Academic Coordinator';
+            else if (isTL) roleLabel = 'Leader';
+            else if (isDeptHead) roleLabel = 'Department Head';
+
+            let approverId = 'PENDING_HEAD_ASSIGNMENT';
+            let approverName = 'Department Head';
+            let approverRole = 'department_head';
+            let status = 'pending';
+            let historyNote = `Request initiated by ${roleLabel}`;
+
+            if (isMD) {
+                const clerkQuery = query(collection(db, 'users'), where('userRole', '==', 'stock_clerk'));
+                const clerkSnapshot = await getDocs(clerkQuery);
+                approverId = clerkSnapshot.empty ? 'PENDING_CLERK_ASSIGNMENT' : clerkSnapshot.docs[0].id;
+                approverName = clerkSnapshot.empty ? 'Stock Clerk' : clerkSnapshot.docs[0].data().displayName;
+                approverRole = 'stock_clerk';
+                status = 'approved_by_md';
+                historyNote += ' (Auto-Approved)';
+            } else if (isAC || isTL) {
+                const mdQuery = query(collection(db, 'users'), where('userRole', '==', 'managing_director'));
+                const mdSnapshot = await getDocs(mdQuery);
+                approverId = mdSnapshot.empty ? 'PENDING_MD_ASSIGNMENT' : mdSnapshot.docs[0].id;
+                approverName = mdSnapshot.empty ? 'Managing Director' : mdSnapshot.docs[0].data().displayName;
+                approverRole = 'managing_director';
+                status = 'approved_by_coordinator';
+                historyNote += ' (Auto-Approved)';
+            } else if (isDeptHead) {
+                const acQuery = query(collection(db, 'users'), where('userRole', '==', 'academic_coordinator'));
+                const acSnapshot = await getDocs(acQuery);
+                approverId = acSnapshot.empty ? 'PENDING_AC_ASSIGNMENT' : acSnapshot.docs[0].id;
+                approverName = acSnapshot.empty ? 'Academic Coordinator' : acSnapshot.docs[0].data().displayName;
+                approverRole = 'academic_coordinator';
+                status = 'approved_by_head';
+                historyNote += ' (Auto-Approved)';
+            } else {
+                const deptHeadRole = `${department}_head`;
+                const headQuery = query(collection(db, 'users'), where('userRole', '==', deptHeadRole));
+                const headSnapshot = await getDocs(headQuery);
+                if (!headSnapshot.empty) {
+                    approverId = headSnapshot.docs[0].id;
+                    approverName = headSnapshot.docs[0].data().displayName;
+                }
+            }
 
             const ruledItems = cart.filter(item => item.materialType === 'fixed_asset');
             let acRules: Record<string, any> = {};
@@ -183,14 +227,14 @@ export default function MaterialRequestForm() {
                 items: requestItems,
                 currentApproverId: approverId,
                 currentApproverName: approverName,
-                currentApproverRole: 'department_head',
-                status: 'pending',
+                currentApproverRole: approverRole,
+                status: status,
                 createdAt: serverTimestamp(),
                 history: [{
-                    status: 'submitted',
+                    status: status === 'pending' ? 'submitted' : status,
                     user: user.uid,
                     timestamp: new Date().toISOString(),
-                    note: 'Request initiated by teacher'
+                    note: historyNote
                 }]
             };
 

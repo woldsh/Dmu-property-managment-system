@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where, updateDoc, doc, getDoc } from 'firebase/firestore';
 import { FiSearch, FiCode, FiUser, FiPackage, FiCheckCircle, FiClock, FiSend } from 'react-icons/fi';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MaterialDetail {
     materialName: string;
@@ -32,6 +33,25 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
     const [searchTerm, setSearchTerm] = useState('');
     const [confirmingSendId, setConfirmingSendId] = useState<string | null>(null);
 
+    // Get current user from useAuth
+    const { user } = useAuth();
+    const [userData, setUserData] = useState<any>(null);
+
+    useEffect(() => {
+        if (!user?.uid) return;
+        const fetchUserData = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, 'Users', user.uid));
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data());
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+        fetchUserData();
+    }, [user?.uid]);
+
     const handleConfirmSend = async (id: string) => {
         try {
             await updateDoc(doc(db, 'Send_to_Users', id), {
@@ -46,24 +66,69 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
     };
 
     useEffect(() => {
-        // Query Send_to_Users collection
-        const q = query(
-            collection(db, 'Send_to_Users'),
-            orderBy('created_at', 'desc')
-        );
+        // Don't fetch if no user is logged in
+        if (!user?.uid) {
+            setLoading(false);
+            return;
+        }
+
+        // Determine if we should filter by requester_id
+        // Clerks and Store Keepers should see all records (to verify them)
+        // Others (Teachers, etc.) should only see their own records
+        const isClerkOrStore =
+            userData?.userRole?.includes('stock_clerk') ||
+            userData?.userRole?.includes('store_keeper') ||
+            userData?.userRole === 'procurement_team_leader';
+
+        let q;
+        if (isClerkOrStore) {
+            // Clerks see everything
+            q = query(collection(db, 'Send_to_Users'));
+        } else {
+            // Individual users see only their own reports
+            q = query(
+                collection(db, 'Send_to_Users'),
+                where('requester_user_id', '==', user.uid)
+            );
+        }
+
+        // Safety Timeout to stop loading if Firestore hangs
+        const timeoutId = setTimeout(() => {
+            setLoading(false);
+        }, 5000);
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
+            clearTimeout(timeoutId);
             const data = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as SentCodeRecord[];
 
-            setRecords(data);
+            // Sort client-side to avoid needing a composite index
+            const sortedData = data.sort((a, b) => {
+                const timeA = a.created_at?.seconds || 0;
+                const timeB = b.created_at?.seconds || 0;
+                return timeB - timeA;
+            });
+
+            setRecords(sortedData);
+            setLoading(false);
+        }, (error) => {
+            clearTimeout(timeoutId);
+            console.error("Firestore Error in ClerkReportView:", error);
             setLoading(false);
         });
 
-        return () => unsubscribe();
-    }, []);
+        return () => {
+            clearTimeout(timeoutId);
+            unsubscribe();
+        };
+    }, [user?.uid, userData?.userRole]);
+
+    // Determine derived material type filter if not explicitly provided
+    const effectiveMaterialTypeFilter = materialTypeFilter ||
+        (userData?.stockType === 'fixed_asset' ? 'fixed_asset' :
+            userData?.stockType === 'consumable' ? 'consumable' : undefined);
 
     const filteredRecords = records.filter(record => {
         // 1. Filter by Search Term
@@ -71,11 +136,10 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
             record.requester_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             record.verification_code.includes(searchTerm);
 
-        // 2. Filter by Material Type (if provided)
-        // Check if ANY material in the request matches the filter type
-        // OR checks if ALL match? Usually mixed requests are rare, but let's show if it contains relevant items.
-        const matchesType = !materialTypeFilter ||
-            record.material_details.some(m => m.materialType === materialTypeFilter);
+        // 2. Filter by Material Type
+        // If effectiveMaterialTypeFilter is set, show record if it contains AT LEAST ONE item of that type
+        const matchesType = !effectiveMaterialTypeFilter ||
+            record.material_details.some(m => m.materialType === effectiveMaterialTypeFilter);
 
         return matchesSearch && matchesType;
     });

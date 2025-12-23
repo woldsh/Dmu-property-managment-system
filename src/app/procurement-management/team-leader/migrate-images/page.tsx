@@ -14,7 +14,7 @@ export default function MigrationPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                    <Header title="Database Migration" subtitle="User-Report Image Update" />
+                    <Header title="Database Migration" subtitle="User_reports Image Update" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
                         <MigrateUserReportImages />

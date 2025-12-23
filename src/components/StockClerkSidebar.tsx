@@ -27,9 +27,7 @@ interface StockClerkSidebarProps {
 export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps) {
     const pathname = usePathname();
     const isFixed = stockType === 'fixed';
-    const basePath = isFixed
-        ? '/procurement-management/stock-clerk/fixed-material'
-        : '/procurement-management/stock-clerk/consumable-material';
+    const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
 
     const handleLinkClick = () => {
@@ -40,16 +38,16 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
 
     const menuItems = [
         { label: 'Dashboard', href: basePath, icon: FaChartPie },
-        { label: 'View Requests (PMT)', href: `${basePath}/view-requests-pmt`, icon: FaEye },
+        { label: 'View Requests', href: `${basePath}/view-requests-pmt`, icon: FaEye },
         { label: 'Messages to PMT', href: `${basePath}/messages-pmt`, icon: FaEnvelopeOpenText },
         { label: 'Employee Data', href: `${basePath}/employee-data`, icon: FaUsers },
         { label: 'Report Data', href: `${basePath}/report-data`, icon: FaFileContract },
-        { label: 'Request to MD', href: `${basePath}/request-md`, icon: FaUserTie },
+        { label: 'Request Materials', href: `${basePath}/request-md`, icon: FaUserTie },
         { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
         { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
         { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'Settings', href: `${basePath}/settings`, icon: FaCog, subItems: ['Profile', 'Change Password', 'Properties'] },
+        { label: 'Clerk Report', href: `${basePath}/store-clerk-report`, icon: FaFileAlt },
     ];
 
     const HeaderIcon = isFixed ? FaClipboardCheck : FaClipboardList;
@@ -72,7 +70,7 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
                 flex flex-col shadow-2xl border-r border-slate-900
                 transition-all duration-300 ease-in-out
                 ${isOpen ? 'w-72 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-                z-50 overflow-hidden
+                z-30 overflow-hidden
             `}>
                 <div className="w-72 flex flex-col h-full flex-shrink-0">
                     {/* Header */}
@@ -129,17 +127,6 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
                                         <Icon className={`text-lg transition-colors ${isActive ? (isFixed ? 'text-cyan-400' : 'text-teal-400') : `text-slate-500 group-hover:${isFixed ? 'text-cyan-400' : 'text-teal-400'}`}`} />
                                         <span className="flex-1">{item.label}</span>
                                     </Link>
-
-                                    {/* Submenu */}
-                                    {item.subItems && (
-                                        <div className="ml-12 mt-1 space-y-1 border-l border-slate-800 pl-3">
-                                            {item.subItems.map(sub => (
-                                                <div key={sub} className={`text-xs text-slate-500 hover:${isFixed ? 'text-cyan-400' : 'text-teal-400'} py-1 cursor-pointer transition-colors block`}>
-                                                    {sub}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })}

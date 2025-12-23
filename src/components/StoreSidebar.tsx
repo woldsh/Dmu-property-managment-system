@@ -29,9 +29,7 @@ interface StoreSidebarProps {
 export default function StoreSidebar({ storeType }: StoreSidebarProps) {
     const pathname = usePathname();
     const isFixed = storeType === 'fixed';
-    const basePath = isFixed
-        ? '/procurement-management/store/fixed-material'
-        : '/procurement-management/store/consumable-material';
+    const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
 
     const handleLinkClick = () => {
@@ -43,18 +41,18 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
     const menuItems = [
         { label: 'Dashboard', href: basePath, icon: FaChartPie },
         { label: 'View Requests', href: `${basePath}/requests`, icon: FaBox },
-        { label: 'Search Material', href: `${basePath}/search-material`, icon: FaSearch },
+        { label: 'Search Materials', href: `${basePath}/search-material`, icon: FaSearch },
         { label: 'Employee Data', href: `${basePath}/employee-data`, icon: FaUsers },
         { label: isFixed ? 'Register Asset' : 'Register Item', href: `${basePath}/add-items`, icon: FaPlusCircle },
         { label: 'Materials List', href: `${basePath}/materials-list`, icon: FaList },
         { label: 'Report Data', href: `${basePath}/report-data`, icon: FaChartBar },
         { label: 'Messages', href: `${basePath}/messages`, icon: FaEnvelope },
-        { label: 'Request to MD', href: `${basePath}/request-md`, icon: FaUserTie },
+        { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaUserTie },
         { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
         { label: 'Request Journey', href: `${basePath}/request-journey`, icon: FaCar },
         { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
-        { label: 'Settings', href: `${basePath}/settings`, icon: FaCog, subItems: ['Profile', 'Change Password', 'Properties'] },
+        { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
     ];
 
     return (
@@ -74,7 +72,7 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
                 flex flex-col shadow-2xl border-r border-slate-900
                 transition-all duration-300 ease-in-out
                 ${isOpen ? 'w-72 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-                z-50 overflow-hidden
+                z-30 overflow-hidden
             `}>
                 <div className="w-72 flex flex-col h-full flex-shrink-0">
                     {/* Header */}
@@ -130,17 +128,6 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
                                         <Icon className={`text-lg transition-colors ${isActive ? (isFixed ? 'text-emerald-400' : 'text-blue-400') : `text-slate-500 group-hover:${isFixed ? 'text-emerald-400' : 'text-blue-400'}`}`} />
                                         <span className="flex-1">{item.label}</span>
                                     </Link>
-
-                                    {/* Submenu */}
-                                    {item.subItems && (
-                                        <div className="ml-12 mt-1 space-y-1 border-l border-slate-800 pl-3">
-                                            {item.subItems.map(sub => (
-                                                <div key={sub} className={`text-xs text-slate-500 hover:${isFixed ? 'text-emerald-400' : 'text-blue-400'} py-1 cursor-pointer transition-colors block`}>
-                                                    {sub}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })}

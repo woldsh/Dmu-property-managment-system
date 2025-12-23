@@ -142,7 +142,7 @@ export default function UserReportView() {
                 console.error("Error fetching requester email:", emailError);
             }
 
-            // Create a User-Report entry for each material item
+            // Create a User_reports entry for each material item
             const userReportPromises = request.items.map(async (item) => {
                 await addDoc(collection(db, 'User-Report'), {
                     requestId: request.id,
@@ -174,7 +174,7 @@ export default function UserReportView() {
                 });
             });
 
-            // Wait for all User-Report entries to be created
+            // Wait for all User_reports entries to be created
             await Promise.all(userReportPromises);
 
             // Update Request_materials status

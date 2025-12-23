@@ -5,7 +5,7 @@ import ProcurementTeamLeaderSidebar from '@/components/ProcurementTeamLeaderSide
 import { SidebarProvider } from '@/contexts/SidebarContext';
 import EmployeeReportView from '@/components/EmployeeReportView';
 
-export default function EmployeeReportPage() {
+export default function TeamLeaderEmployeeReportPage() {
     return (
         <SidebarProvider>
             <div className="min-h-screen bg-slate-50 flex font-sans">
@@ -14,7 +14,7 @@ export default function EmployeeReportPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                    <Header title="Employee Material Report" subtitle="Usage Analytics & Tracking" />
+                    <Header title="Employee Report" subtitle="Team Leader Panel" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
                         <EmployeeReportView />

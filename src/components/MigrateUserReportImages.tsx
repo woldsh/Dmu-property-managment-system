@@ -22,11 +22,11 @@ export default function MigrateUserReportImages() {
         setResults([]);
 
         try {
-            // Get all User-Report entries
-            const userReportsSnapshot = await getDocs(collection(db, 'User-Report'));
+            // Get all User_reports entries
+            const userReportsSnapshot = await getDocs(collection(db, 'User_reports'));
             const totalReports = userReportsSnapshot.size;
             setProgress({ current: 0, total: totalReports });
-            setStatus(`Found ${totalReports} User-Report entries to process`);
+            setStatus(`Found ${totalReports} User_reports entries to process`);
 
             let updated = 0;
             let skipped = 0;
@@ -63,8 +63,8 @@ export default function MigrateUserReportImages() {
                     );
 
                     if (matchingItem && matchingItem.image) {
-                        // Update the User-Report with the image
-                        await updateDoc(doc(db, 'User-Report', reportDoc.id), {
+                        // Update the User_reports with the image
+                        await updateDoc(doc(db, 'User_reports', reportDoc.id), {
                             materialImage: matchingItem.image
                         });
                         updated++;
@@ -92,9 +92,9 @@ export default function MigrateUserReportImages() {
     return (
         <div className="max-w-4xl mx-auto p-8 space-y-6">
             <div className="bg-white rounded-3xl border-2 border-slate-200 p-8 shadow-lg">
-                <h1 className="text-3xl font-black text-slate-800 mb-2">User-Report Image Migration</h1>
+                <h1 className="text-3xl font-black text-slate-800 mb-2">User_reports Image Migration</h1>
                 <p className="text-slate-600 mb-6">
-                    This tool will update all existing User-Report entries with material images from their original requests.
+                    This tool will update all existing User_reports entries with material images from their original requests.
                 </p>
 
                 <div className="space-y-4">
@@ -102,8 +102,8 @@ export default function MigrateUserReportImages() {
                         onClick={runMigration}
                         disabled={isRunning}
                         className={`w-full py-4 px-6 rounded-2xl font-black uppercase text-sm tracking-wider transition-all ${isRunning
-                                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                : 'bg-teal-600 text-white hover:bg-teal-500 shadow-lg hover:shadow-xl active:scale-95'
+                            ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                            : 'bg-teal-600 text-white hover:bg-teal-500 shadow-lg hover:shadow-xl active:scale-95'
                             }`}
                     >
                         {isRunning ? 'Migration Running...' : 'Start Migration'}
@@ -137,10 +137,10 @@ export default function MigrateUserReportImages() {
                                     <div
                                         key={idx}
                                         className={`${result.startsWith('✓')
-                                                ? 'text-emerald-400'
-                                                : result.startsWith('✗')
-                                                    ? 'text-red-400'
-                                                    : 'text-slate-400'
+                                            ? 'text-emerald-400'
+                                            : result.startsWith('✗')
+                                                ? 'text-red-400'
+                                                : 'text-slate-400'
                                             }`}
                                     >
                                         {result}

@@ -69,11 +69,11 @@ interface MaterialRequest {
 }
 
 interface MaterialRequestViewProps {
-    roleOverride?: 'department_head' | 'academic_coordinator' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader';
+    roleOverride?: 'department_head' | 'academic_coordinator' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper';
     materialTypeFilter?: 'fixed_asset' | 'consumable';
 }
 
-type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader';
+type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper';
 
 export default function MaterialRequestView({ roleOverride, materialTypeFilter }: MaterialRequestViewProps) {
     const { user } = useAuth();
@@ -87,13 +87,27 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     const pathname = usePathname();
 
     const effectiveRole = roleOverride || (
-        pathname?.includes('/managing-director') ? 'managing_director' :
-            pathname?.includes('/academic-coordinator') ? 'academic_coordinator' :
-                pathname?.includes('/general-service') ? 'general_service' :
-                    pathname?.includes('/stock-clerk') ? 'stock_clerk' :
-                        pathname?.includes('/team-leader') ? 'team_leader' : // Added team_leader detection
-                            userData?.userRole?.includes('_head') ? 'department_head' :
-                                'academic_coordinator'
+        pathname?.includes('/portal') ? 'managing_director' :
+            pathname?.includes('/dashboard') ? (
+                userData?.userRole?.includes('_head') ? 'department_head' :
+                    userData?.userRole === 'academic_coordinator' ? 'academic_coordinator' :
+                        'academic_coordinator'
+            ) :
+                pathname?.includes('/service') ? 'general_service' :
+                    pathname?.includes('/workspace') ? (
+                        userData?.userRole === 'procurement_team_leader' ? 'team_leader' :
+                            userData?.userRole?.includes('stock_clerk') ? 'stock_clerk' :
+                                userData?.userRole?.includes('store_keeper') ? 'store_keeper' :
+                                    'team_leader'
+                    ) :
+                        // Fallback to old path detection for compatibility
+                        pathname?.includes('/managing-director') ? 'managing_director' :
+                            pathname?.includes('/academic-coordinator') ? 'academic_coordinator' :
+                                pathname?.includes('/general-service') ? 'general_service' :
+                                    pathname?.includes('/stock-clerk') ? 'stock_clerk' :
+                                        pathname?.includes('/team-leader') ? 'team_leader' :
+                                            userData?.userRole?.includes('_head') ? 'department_head' :
+                                                'academic_coordinator'
     );
 
     useEffect(() => {
@@ -158,6 +172,11 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 collection(db, 'Request_materials'),
                 where('status', '==', 'approved_by_procurement_team_leader')
             );
+        } else if (effectiveRole === 'store_keeper') {
+            q = query(
+                collection(db, 'Request_materials'),
+                where('status', '==', 'approved_by_clerk')
+            );
         } else if (effectiveRole === 'team_leader') {
             q = query(
                 collection(db, 'Request_materials'),
@@ -173,10 +192,43 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         }
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const requestList = snapshot.docs.map(doc => ({
+            let requestList = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             })) as MaterialRequest[];
+
+            // Filter by material type for stock clerks and store keepers
+            if ((effectiveRole === 'stock_clerk' || effectiveRole === 'store_keeper') && materialTypeFilter) {
+                requestList = requestList.filter(request => {
+                    // Check if any item in the request matches the material type filter
+                    const hasMatchingType = request.items?.some(item => {
+                        const itemType = item.materialType?.toLowerCase() || '';
+                        if (materialTypeFilter === 'fixed_asset') {
+                            return itemType.includes('fixed') || itemType === 'fixed_asset';
+                        } else if (materialTypeFilter === 'consumable') {
+                            return itemType.includes('consumable') || itemType === 'consumable';
+                        }
+                        return true;
+                    });
+                    return hasMatchingType;
+                });
+            }
+
+            // Also filter by user's stockType from userData if materialTypeFilter not explicitly set
+            if ((effectiveRole === 'stock_clerk' || effectiveRole === 'store_keeper') && !materialTypeFilter && userData?.stockType) {
+                requestList = requestList.filter(request => {
+                    const hasMatchingType = request.items?.some(item => {
+                        const itemType = item.materialType?.toLowerCase() || '';
+                        if (userData.stockType === 'fixed_assets' || userData.userRole?.includes('fixed_asset')) {
+                            return itemType.includes('fixed') || itemType === 'fixed_asset';
+                        } else if (userData.stockType === 'consumable_items' || userData.userRole?.includes('consumable')) {
+                            return itemType.includes('consumable') || itemType === 'consumable';
+                        }
+                        return true;
+                    });
+                    return hasMatchingType;
+                });
+            }
 
             requestList.sort((a, b) => {
                 const dateA = a.createdAt?.toDate?.() || new Date(0);
@@ -295,7 +347,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                     ]
                 });
 
-                // 2. Create User-Report entries (moved from General Service logic)
+                // 2. Create User_reports entries (moved from General Service logic)
                 try {
                     const userReportPromises = request.items.map(async (item) => {
                         await addDoc(collection(db, 'User-Report'), {
@@ -467,14 +519,14 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             const requestRef = doc(db, 'Request_materials', request.id);
             await updateDoc(requestRef, {
                 status: 'approved_by_clerk',
-                currentApproverRole: 'stock_clerk',
+                currentApproverRole: 'store_keeper',
                 history: [
                     ...request.history,
                     {
                         status: 'approved_by_clerk',
                         user: user.uid,
                         timestamp: new Date().toISOString(),
-                        note: 'Validated and Forwarded by Stock Clerk. Verification code sent.'
+                        note: 'Validated and Forwarded by Stock Clerk to Store Keeper. Verification code generated.'
                     }
                 ]
             });
@@ -485,7 +537,19 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
             const batch = writeBatch(db);
             userReportSnap.docs.forEach((doc) => {
-                batch.update(doc.ref, { status: 'Completed' });
+                const docData = doc.data();
+                batch.update(doc.ref, {
+                    status: 'completed',
+                    history: [
+                        ...(docData.history || []),
+                        {
+                            status: 'completed',
+                            user: user.uid,
+                            timestamp: new Date().toISOString(),
+                            note: 'Material request validated and completed by Stock Clerk'
+                        }
+                    ]
+                });
             });
             await batch.commit();
 
@@ -510,9 +574,9 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
             });
 
-            // Step 4: Send Code to Requester (Simulation & Success Message)
+            // Step 4: Success Message
             setSuccessMessage({
-                text: `Validation Successful! Code Sent: ${code}`,
+                text: "Successfully approved",
                 type: 'general'
             });
 
@@ -632,10 +696,9 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             key={request.id}
                             className={`group relative bg-white border-2 rounded-[3rem] transition-all duration-700 hover:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] hover:-translate-y-2 flex flex-col overflow-hidden ${effectiveRole === 'academic_coordinator' ? 'border-slate-100 hover:border-lime-200 shadow-lime-500/5' :
                                 effectiveRole === 'managing_director' ? 'border-slate-100 hover:border-indigo-200 shadow-indigo-500/5' :
-                                    effectiveRole === 'general_service' ? 'border-slate-100 hover:border-violet-200 shadow-violet-500/5' :
-                                        effectiveRole === 'department_head' ? 'border-slate-100 hover:border-orange-300 shadow-orange-500/10 bg-gradient-to-b from-white to-orange-50/20' :
-                                            effectiveRole === 'general_service' ? 'border-slate-100 hover:border-violet-300 shadow-violet-500/5 bg-gradient-to-b from-white to-violet-50/20' :
-                                                'border-slate-100 hover:border-orange-200'
+                                    effectiveRole === 'general_service' ? 'border-slate-100 hover:border-violet-300 shadow-violet-500/5 bg-gradient-to-b from-white to-violet-50/20' :
+                                        effectiveRole === 'team_leader' ? 'border-slate-100 hover:border-teal-300 shadow-teal-500/5 bg-gradient-to-b from-white to-teal-50/20' :
+                                            'border-slate-100 hover:border-orange-200'
                                 } ${processingId === request.id ? 'opacity-50 pointer-events-none' : ''}`}
                         >
                             {/* Premium Glow Effect */}

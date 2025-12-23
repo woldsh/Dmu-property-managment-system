@@ -18,7 +18,7 @@ import {
 
 export default function EmployeeSidebar() {
     const pathname = usePathname();
-    const basePath = '/admin-staff/employees';
+    const basePath = '/admin-panel';
     const { isOpen, closeSidebar } = useSidebar();
 
     const handleLinkClick = () => {
@@ -36,7 +36,6 @@ export default function EmployeeSidebar() {
         { label: 'Clerk Report', href: `${basePath}/clerk-report`, icon: FaFileAlt },
         { label: 'Exchange Report', href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
         { label: 'Waiting for AC Decision', href: `${basePath}/ac-decision`, icon: FaClock },
-        { label: 'Settings', href: `${basePath}/settings`, icon: FaCog, subItems: ['Profile', 'Change Password', 'Properties'] },
     ];
 
     return (
@@ -56,7 +55,7 @@ export default function EmployeeSidebar() {
                 flex flex-col shadow-2xl border-r border-slate-900
                 transition-all duration-300 ease-in-out
                 ${isOpen ? 'w-72 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-                z-50 overflow-hidden
+                z-30 overflow-hidden
             `}>
                 <div className="w-72 flex flex-col h-full flex-shrink-0">
                     {/* Header */}
@@ -111,17 +110,6 @@ export default function EmployeeSidebar() {
                                         <Icon className={`text-lg transition-colors ${isActive ? 'text-green-400' : 'text-slate-500 group-hover:text-green-400'}`} />
                                         <span className="flex-1">{item.label}</span>
                                     </Link>
-
-                                    {/* Submenu */}
-                                    {item.subItems && (
-                                        <div className="ml-12 mt-1 space-y-1 border-l border-slate-800 pl-3">
-                                            {item.subItems.map(sub => (
-                                                <div key={sub} className="text-xs text-slate-500 hover:text-green-400 py-1 cursor-pointer transition-colors block">
-                                                    {sub}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })}

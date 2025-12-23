@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
     // This middleware primarily blocks direct URL access attempts
 
     // Protected routes
-    const protectedRoutes = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel', '/admin'];
+    const protectedRoutes = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel', '/admin', '/procurement-management'];
 
     // Check if accessing a protected route
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
@@ -37,7 +37,6 @@ export function middleware(request: NextRequest) {
         '/managing-director',
         '/general-service',
         '/chief',
-        '/procurement-management',
         '/admin-staff'
     ];
 

@@ -56,13 +56,14 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
     const [materialImages, setMaterialImages] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [userDept, setUserDept] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
-    // 1. Fetch User Profile to determine department
+    // 1. Fetch User Profile to determine department and role
     useEffect(() => {
         const fetchUserProfile = async () => {
             if (user?.uid) {
                 try {
-                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userDoc = await getDoc(doc(db, 'Users', user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let dept = data.department;
@@ -71,8 +72,15 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
                             dept = data.userRole.replace('_head', '').replace('_teacher', '');
                         }
                         setUserDept(dept || 'unknown');
+                        setUserRole(data.userRole || 'unknown');
+
+                        // Automatically switch to department view if Department Head
+                        if (data.userRole?.includes('_head') && viewType === 'personal') {
+                            setLoading(true);
+                        }
                     } else {
                         setUserDept('unknown');
+                        setUserRole('unknown');
                     }
                 } catch (error) {
                     console.error("Error fetching user profile:", error);
@@ -117,7 +125,11 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
             return;
         }
 
-        const q = viewType === 'department'
+        // Determine effective view type
+        const isDeptHead = userRole?.includes('_head');
+        const effectiveViewType = isDeptHead ? 'department' : viewType;
+
+        const q = effectiveViewType === 'department'
             ? query(collection(db, 'Need_AC_decition'), where('department', '==', userDept))
             : query(collection(db, 'Need_AC_decition'), where('requesterId', '==', user.uid));
 
