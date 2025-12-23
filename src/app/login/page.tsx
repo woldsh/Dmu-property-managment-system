@@ -16,40 +16,41 @@ export default function Login() {
     async function checkRoleAndRedirect() {
       if (!loading && user) {
         try {
-          // 1. Check Admins Collection First
-          try {
-            const adminsRef = collection(db, 'admins');
-            const q = query(adminsRef, where('email', '==', user.email));
-            const adminSnapshot = await getDocs(q);
-
-            if (!adminSnapshot.empty) {
-              const adminData = adminSnapshot.docs[0].data();
-              if (adminData.role === 'admin') {
-                router.push('/admin');
-                return;
-              }
-            }
-          } catch (adminErr) {
-            console.error("Error checking admins collection:", adminErr);
-          }
-
-          // 2. Fetch user role from Firestore Users collection
+          // Priority 1: Check standard user roles from 'users' collection (Registral functionality)
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
-            const userRole = userData.userRole;
+            // Prefer userRole, fallback to mainRole if needed (though RegisterUser sets both)
+            const userRole = userData.userRole || userData.mainRole;
 
-            // Use centralized route config for clean URLs
-            const cleanUrl = getCleanUrlForRole(userRole);
-            router.push(cleanUrl);
-          } else {
-            router.push('/');
+            if (userRole) {
+              // Use centralized route config for clean URLs
+              const cleanUrl = getCleanUrlForRole(userRole);
+              console.log(`Redirecting role "${userRole}" to ${cleanUrl}`);
+              router.push(cleanUrl);
+              return;
+            }
           }
+
+          // Priority 2: Check Admins Collection if not found in standard users
+          const adminsRef = collection(db, 'admins');
+          const q = query(adminsRef, where('email', '==', user.email));
+          const adminSnapshot = await getDocs(q);
+
+          if (!adminSnapshot.empty) {
+            const adminData = adminSnapshot.docs[0].data();
+            if (adminData.role === 'admin') {
+              router.push('/admin');
+              return;
+            }
+          }
+
+          // Fallback: Default to home
+          router.push('/');
         } catch (error) {
-          console.error("Error fetching user role for redirect:", error);
-          // Fallback
+          console.error("Critical error in role-based redirection:", error);
           router.push('/');
         }
       }
@@ -58,27 +59,16 @@ export default function Login() {
     checkRoleAndRedirect();
   }, [user, loading, router]);
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // If user is not logged in, show login page
   if (!user) {
     return <LoginPage />;
   }
 
-  // Waiting for redirect
+  // Show loading/redirecting state when user is authenticated
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
       <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         <p className="mt-4 text-gray-600">Redirecting...</p>
       </div>
     </div>

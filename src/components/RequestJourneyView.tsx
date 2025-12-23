@@ -242,7 +242,7 @@ export default function RequestJourneyView() {
                                                 if (userData?.userRole === 'procurement_team_leader' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator' || step.id === 'md' || step.id === 'gs')) return false;
 
                                                 // For General Service, skip 'submission', 'dept_head', 'coordinator', and 'md' (Start at Step 4 (Index 4): GS as Submission)
-                                                if (userData?.userRole === 'general_service_leader' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator' || step.id === 'md')) return false;
+                                                if (userData?.userRole === 'general_service_leader' && (step.id === 'submission' || step.id === 'dept_head')) return false;
 
                                                 return true;
                                             }).map((step, index) => {
@@ -274,7 +274,7 @@ export default function RequestJourneyView() {
                                                     description = 'Request submitted to academic coordinator';
                                                 }
 
-                                                if (userData?.userRole === 'academic_coordinator') {
+                                                if ((userData?.userRole === 'academic_coordinator' || userData?.userRole === 'general_service_leader')) {
                                                     if (step.id === 'coordinator') {
                                                         label = 'Submission';
                                                         description = 'Request submitted to managing director';
@@ -295,10 +295,6 @@ export default function RequestJourneyView() {
                                                     description = 'Request submitted to store clerk';
                                                 }
 
-                                                if (userData?.userRole === 'general_service_leader' && step.id === 'gs') {
-                                                    label = 'Submission';
-                                                    description = 'Request submitted to procurement team leader';
-                                                }
 
                                                 return (
                                                     <div key={step.id} className="flex lg:flex-col items-center gap-6 lg:gap-4 relative group">
