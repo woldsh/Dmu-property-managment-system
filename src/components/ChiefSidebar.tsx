@@ -31,7 +31,7 @@ export default function ChiefSidebar() {
     };
 
     const menuItems = [
-        { label: 'Dashboard', href: basePath, icon: FaChartPie },
+        { label: 'Dashboard', href: '/chief', icon: FaChartPie },
         { label: 'View Requests (MD)', href: `${basePath}/view-requests-md`, icon: FaClipboardList },
         { label: 'Send AC Decision (MD)', href: `${basePath}/send-ac-decision`, icon: FaPaperPlane },
         { label: 'Request to MD', href: `${basePath}/request-material`, icon: FaUserTie },

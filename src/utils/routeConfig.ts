@@ -9,7 +9,7 @@ export interface RouteMapping {
 export const ROUTE_MAPPINGS: RouteMapping[] = [
     // Managing Director & Chief
     { userRole: 'managing_director_leader', cleanUrl: '/portal', displayName: 'Portal' },
-    { userRole: 'chief', cleanUrl: '/portal', displayName: 'Portal' },
+    { userRole: 'chief', cleanUrl: '/chief', displayName: 'Chief' },
 
     // General Service
     { userRole: 'general_service_leader', cleanUrl: '/service', displayName: 'Service' },
@@ -77,4 +77,4 @@ export function getDisplayNameForRole(userRole: string): string {
 export const PUBLIC_ROUTES = ['/', '/login'];
 
 // Protected routes that require authentication
-export const PROTECTED_ROUTES = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel'];
+export const PROTECTED_ROUTES = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel', '/chief'];
