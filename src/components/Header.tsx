@@ -11,9 +11,10 @@ import Image from 'next/image';
 interface HeaderProps {
     title: string;
     subtitle?: string;
+    isDark?: boolean;
 }
 
-export default function Header({ title, subtitle }: HeaderProps) {
+export default function Header({ title, subtitle, isDark }: HeaderProps) {
     const { user, logout } = useAuth();
     const { isOpen, toggleSidebar } = useSidebar();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -57,7 +58,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
     }, []);
 
     return (
-        <header className="bg-white shadow-sm mb-8 sticky top-0 z-[110] border-b border-slate-100">
+        <header className={`${isDark ? 'bg-slate-950/40 backdrop-blur-xl border-b border-white/5' : 'bg-white shadow-sm border-b border-slate-100'} mb-8 sticky top-0 z-[110]`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -68,15 +69,15 @@ export default function Header({ title, subtitle }: HeaderProps) {
                             aria-label="Toggle sidebar"
                         >
                             <div className="flex flex-col gap-1.5 w-6">
-                                <span className={`h-0.5 w-full bg-slate-700 rounded-full transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                                <span className={`h-0.5 w-full bg-slate-700 rounded-full transition-all duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-                                <span className={`h-0.5 w-full bg-slate-700 rounded-full transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+                                <span className={`h-0.5 w-full ${isDark ? 'bg-white' : 'bg-slate-700'} rounded-full transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+                                <span className={`h-0.5 w-full ${isDark ? 'bg-white' : 'bg-slate-700'} rounded-full transition-all duration-300 ${isOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                                <span className={`h-0.5 w-full ${isDark ? 'bg-white' : 'bg-slate-700'} rounded-full transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
                             </div>
                         </button>
 
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{title}</h1>
-                            {subtitle && <p className="text-sm text-gray-500 font-medium">{subtitle}</p>}
+                            <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h1>
+                            {subtitle && <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{subtitle}</p>}
                         </div>
                     </div>
 

@@ -1,14 +1,37 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
-import { FaChartPie, FaClipboardList, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaGraduationCap, FaVideo, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaGavel } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { FaChartPie, FaClipboardList, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaGraduationCap, FaVideo, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaGavel, FaBell } from 'react-icons/fa';
 
 export default function AcademicCoordinatorSidebar() {
     const pathname = usePathname();
     const basePath = '/dashboard';
+
     const { isOpen, closeSidebar } = useSidebar();
+    const { userRole } = useAuth();
+    const [meetingInvite, setMeetingInvite] = useState<any>(null);
+
+    useEffect(() => {
+        if (!db) return;
+        const unsubscribe = onSnapshot(doc(db, "meeting_sessions", "current_executive_meeting"), (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                const role = userRole?.toLowerCase() || '';
+                const isInvited = data.isPublic || data.invitedRoles.includes(role) || data.invitedRoles.includes('academic_coordinator');
+                if (isInvited) setMeetingInvite(data);
+                else setMeetingInvite(null);
+            } else {
+                setMeetingInvite(null);
+            }
+        });
+        return () => unsubscribe();
+    }, [userRole]);
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
@@ -18,7 +41,7 @@ export default function AcademicCoordinatorSidebar() {
         { label: 'Dashboard', href: basePath, icon: FaChartPie },
         { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaClipboardList },
         { label: 'Commission Review', href: `${basePath}/commission-review`, icon: FaGavel },
-        { label: 'Join Meeting', href: `${basePath}/join-meeting`, icon: FaVideo },
+        { label: 'Join Meeting', href: '/dashboard/meeting', icon: FaVideo },
         { label: 'View AC Report', href: `${basePath}/ac-report`, icon: FaFileAlt },
         { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },
@@ -78,6 +101,25 @@ export default function AcademicCoordinatorSidebar() {
                             .menu-item { animation: slideIn 0.3s ease-out forwards; }
                             .active-glow { animation: glow 2s ease-in-out infinite; }
                         `}</style>
+
+                        {meetingInvite && (
+                            <Link
+                                href="/dashboard/meeting"
+                                className="mb-4 mx-3 p-3 bg-gradient-to-r from-lime-600 to-emerald-600 rounded-2xl shadow-lg border border-lime-400/30 flex items-start gap-3 group hover:scale-[1.02] transition-transform"
+                                onClick={handleLinkClick}
+                            >
+                                <div className="p-2 bg-white/20 rounded-lg animate-pulse">
+                                    <FaBell className="text-white" />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <span className="text-[9px] font-black bg-white/20 px-1.5 py-0.5 rounded text-white tracking-widest uppercase">From: Managing Director</span>
+                                    </div>
+                                    <p className="text-xs font-bold text-white uppercase tracking-wider mb-0.5">Meeting Invite</p>
+                                    <p className="text-[11px] text-lime-100 leading-tight">Emergency executive session started. Join now!</p>
+                                </div>
+                            </Link>
+                        )}
 
                         {menuItems.map((item, index) => {
                             const isActive = item.href === basePath ? pathname === basePath : pathname?.startsWith(item.href);

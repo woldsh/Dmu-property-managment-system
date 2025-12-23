@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -11,6 +12,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
+  userRole: string | null;
+  department: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,6 +22,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [department, setDepartment] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,9 +41,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Don't block the app - allow user access but maybe not admin
             setIsAdmin(false);
           }
+
+          // Fetch explicit user role and department from Firestore
+          try {
+            if (db) {
+              const userDoc = await getDoc(doc(db, 'users', user.uid));
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                setUserRole(userData.userRole || null);
+                setDepartment(userData.department || null);
+              }
+            }
+          } catch (docError) {
+            console.error("Error fetching user document:", docError);
+          }
         } else {
           setUser(null);
           setIsAdmin(false);
+          setUserRole(null);
+          setDepartment(null);
         }
       } catch (err) {
         console.error("Auth state change error:", err);
@@ -69,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, userRole, department }}>
       {children}
     </AuthContext.Provider>
   );

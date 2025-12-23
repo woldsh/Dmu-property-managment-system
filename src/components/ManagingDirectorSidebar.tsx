@@ -17,7 +17,7 @@ export default function ManagingDirectorSidebar() {
     const menuItems = [
         { label: 'Dashboard', href: basePath, icon: FaChartPie },
         { label: 'View Requests', href: `${basePath}/view-requests`, icon: FaClipboardList },
-        { label: 'Join Meeting', href: `${basePath}/join-meeting`, icon: FaVideo },
+        { label: 'Start Meeting', href: `${basePath}/start-meeting`, icon: FaVideo },
         { label: 'Request Materials', href: `${basePath}/request-material`, icon: FaPlusCircle },
         { label: 'Receive Goods', href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: 'Return Goods', href: `${basePath}/return-goods`, icon: FaUndo },

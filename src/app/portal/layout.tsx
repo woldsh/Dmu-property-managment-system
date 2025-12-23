@@ -11,10 +11,10 @@ export default function PortalLayout({
 }) {
     return (
         <SidebarProvider>
-            <div className="min-h-screen bg-gray-50 flex">
+            <div className="min-h-screen bg-[#020205] flex">
                 <ManagingDirectorSidebar />
-                <div className="flex-1 flex flex-col">
-                    <Header title="Executive Portal" subtitle="Managing Director" />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <Header title="Executive Portal" subtitle="Managing Director Control Center" isDark={true} />
                     <main className="flex-1 overflow-y-auto">
                         {children}
                     </main>

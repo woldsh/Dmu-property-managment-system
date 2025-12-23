@@ -9,6 +9,7 @@ import AcademicCoordinatorSidebar from '@/components/AcademicCoordinatorSidebar'
 import DepartmentHeadSidebar from '@/components/DepartmentHeadSidebar';
 import TeacherSidebar from '@/components/TeacherSidebar';
 import Header from '@/components/Header';
+import MeetingNotificationBanner from '@/components/MeetingNotificationBanner';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -91,6 +92,7 @@ export default function DashboardLayout({
             <div className="min-h-screen bg-gray-50 flex">
                 {renderSidebar()}
                 <div className="flex-1 flex flex-col min-w-0">
+                    <MeetingNotificationBanner />
                     <div className="sticky top-0 z-40">
                         <Header title={getTitle()} subtitle="Academic Staff" />
                     </div>
