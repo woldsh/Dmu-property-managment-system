@@ -2,10 +2,25 @@ import "server-only";
 import { v2 as cloudinary } from 'cloudinary';
 
 // Configure Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET || process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET;
+
+console.log('--- Cloudinary Config Check ---');
+console.log('Cloud Name set:', !!cloudName);
+console.log('API Key set:', !!apiKey);
+console.log('API Secret set:', !!apiSecret);
+if (apiKey) console.log('API Key starts with:', apiKey.substring(0, 4) + '...');
+console.log('-------------------------------');
+
+if (!cloudName || !apiKey || !apiSecret) {
+  console.error('CRITICAL: Cloudinary configuration is incomplete!');
+}
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '',
-  api_key: process.env.CLOUDINARY_API_KEY || process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '',
-  api_secret: process.env.CLOUDINARY_API_SECRET || process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET || '',
+  cloud_name: cloudName || '',
+  api_key: apiKey || '',
+  api_secret: apiSecret || '',
   secure: true,
 });
 
@@ -30,7 +45,7 @@ export const uploadImage = async (
 ): Promise<CloudinaryUploadResult> => {
   try {
     const uploadOptions: any = {
-      resource_type: 'image',
+      resource_type: 'auto',
       overwrite: true,
       invalidate: true,
     };
@@ -61,7 +76,7 @@ export const uploadImageFromBuffer = async (
 ): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
     const uploadOptions: any = {
-      resource_type: 'image',
+      resource_type: 'auto',
       overwrite: true,
       invalidate: true,
     };
@@ -74,16 +89,31 @@ export const uploadImageFromBuffer = async (
       uploadOptions.public_id = publicId;
     }
 
+    // Ensure config is applied
+    cloudinary.config({
+      cloud_name: cloudName || '',
+      api_key: apiKey || '',
+      api_secret: apiSecret || '',
+      secure: true,
+    });
+
+    console.log('Starting Cloudinary upload stream with options:', uploadOptions);
     const uploadStream = cloudinary.uploader.upload_stream(
       uploadOptions,
       (error, result) => {
         if (error) {
+          console.error('Cloudinary stream error:', error);
           reject(error);
         } else {
+          console.log('Cloudinary stream success');
           resolve(result as CloudinaryUploadResult);
         }
       }
     );
+
+    uploadStream.on('error', (err) => {
+      console.error('Upload stream event error:', err);
+    });
 
     uploadStream.end(buffer);
   });
@@ -117,6 +147,23 @@ export const getImageUrl = (
     ...transformations,
     secure: true,
   });
+};
+
+/**
+ * Generic upload function that can be used on the server
+ */
+export const uploadImageToCloudinary = async (
+  file: File | Blob | Buffer,
+  folder?: string,
+  publicId?: string
+): Promise<CloudinaryUploadResult> => {
+  if (Buffer.isBuffer(file)) {
+    return uploadImageFromBuffer(file, folder, publicId);
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  return uploadImageFromBuffer(buffer, folder, publicId);
 };
 
 export default cloudinary;
