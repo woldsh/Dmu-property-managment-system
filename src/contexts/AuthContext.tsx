@@ -27,7 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!auth) {
+      console.warn("AuthContext: Firebase auth is not initialized. Skipping onAuthStateChanged.");
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth as any, async (user) => {
       try {
         if (user) {
           setUser(user);
@@ -72,8 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (!auth) {
+      throw new Error('Authentication is currently unavailable. Please check your system configuration.');
+    }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth as any, email, password);
       // Navigation will be handled by the component using this function
     } catch (error: any) {
       throw new Error(error.message || 'Login failed');
@@ -81,8 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!auth) {
+      router.push('/login');
+      return;
+    }
     try {
-      await signOut(auth);
+      await signOut(auth as any);
       router.push('/login');
     } catch (error: any) {
       throw new Error(error.message || 'Logout failed');

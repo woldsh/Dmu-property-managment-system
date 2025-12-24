@@ -19,9 +19,13 @@ const firebaseConfig = {
 // Initialize Firebase safely
 const app = firebaseConfig.apiKey ? initializeApp(firebaseConfig) : null;
 
+if (!app) {
+  console.warn("Firebase was not initialized. Check your NEXT_PUBLIC_FIREBASE_API_KEY environment variable.");
+}
+
 // Initialize Firebase services with null safety
-export const auth = app ? getAuth(app) : null as any;
-export const db = app ? getFirestore(app) : null as any;
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 
 // Set auth persistence to LOCAL (persists even when browser is closed)
 if (auth) {
