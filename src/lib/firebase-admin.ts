@@ -28,40 +28,48 @@ export const initializeFirebaseAdmin = () => {
                 }
 
                 // 2. Try Local File (Best for Local Dev)
-                // We look in the root directory or adjacent to where this runs
-                const possiblePaths = [
-                    path.join(process.cwd(), 'serviceAccountKey.json'),
-                    path.join(process.cwd(), '..', 'serviceAccountKey.json'), // If running from frontend/
-                ];
+                // We use process.env.NODE_ENV check to avoid dynamic require in production builds
+                if (process.env.NODE_ENV === 'development') {
+                    const possiblePaths = [
+                        path.join(process.cwd(), 'serviceAccountKey.json'),
+                        path.join(process.cwd(), '..', 'serviceAccountKey.json'),
+                    ];
 
-                let serviceAccountData = null;
+                    let serviceAccountData = null;
 
-                for (const p of possiblePaths) {
-                    if (fs.existsSync(p)) {
-                        try {
-                            serviceAccountData = require(p);
-                            console.log('Found service account key at:', p);
-                            break;
-                        } catch (e) {
-                            console.error("Error reading service account from", p, e);
+                    for (const p of possiblePaths) {
+                        if (fs.existsSync(p)) {
+                            try {
+                                // Using eval('require') is a common hack to prevent bundlers like Webpack/Turbopack 
+                                // from trying to resolve the dependency at build time.
+                                const dynamicRequire = eval('require');
+                                serviceAccountData = dynamicRequire(p);
+                                console.log('Found service account key at:', p);
+                                break;
+                            } catch (e) {
+                                console.error("Error reading service account from", p, e);
+                            }
                         }
+                    }
+
+                    if (serviceAccountData) {
+                        admin.initializeApp({
+                            credential: admin.credential.cert(serviceAccountData),
+                            projectId: projectId,
+                        });
+                        console.log('Firebase Admin initialized with service account key file');
+                        initialized = true;
+                        return admin;
                     }
                 }
 
-                if (serviceAccountData) {
-                    admin.initializeApp({
-                        credential: admin.credential.cert(serviceAccountData),
-                        projectId: projectId,
-                    });
-                    console.log('Firebase Admin initialized with service account key file');
-                } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-                    // Use environment variable if set
+                // 3. Fallback to ADC or Project ID
+                if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
                     admin.initializeApp({
                         projectId: projectId,
                     });
                     console.log('Firebase Admin initialized with GOOGLE_APPLICATION_CREDENTIALS');
                 } else {
-                    // Fallback to project ID only (requires Application Default Credentials)
                     admin.initializeApp({
                         projectId: projectId,
                     });
@@ -69,10 +77,8 @@ export const initializeFirebaseAdmin = () => {
                 }
             }
             initialized = true;
-            //   console.log('Firebase Admin initialized successfully');
         } catch (error) {
             console.error('Error initializing Firebase Admin:', error);
-            // Don't throw, just log. Next.js dev server hot reload can cause race conditions.
         }
     }
     return admin;
