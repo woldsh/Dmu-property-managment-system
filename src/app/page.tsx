@@ -54,7 +54,7 @@ export default function LandingPage() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" }
+      transition: { duration: 0.6, ease: "easeOut" as any }
     }
   };
 
@@ -272,7 +272,7 @@ export default function LandingPage() {
               <div className="hidden lg:block w-48 h-48 relative">
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" as any }}
                   className={`absolute inset-0 border-2 border-dashed rounded-full transition-colors ${theme === 'dark' ? 'border-indigo-500/20' : 'border-indigo-100'
                     }`}
                 />
@@ -401,7 +401,7 @@ export default function LandingPage() {
                       {/* Matrix Scan Effect */}
                       <motion.div
                         animate={{ top: ["-100%", "200%"] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" as any }}
                         className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-cyan-400/5 to-transparent pointer-events-none"
                       />
                     </motion.div>
@@ -413,7 +413,7 @@ export default function LandingPage() {
                             x: [-10, 10],
                             opacity: [0.3, 1, 0.3]
                           }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as any }}
                           className="flex items-center -space-x-3 lg:-space-x-4"
                         >
                           <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-cyan-400/30' : 'text-cyan-300'}`} />
@@ -510,7 +510,7 @@ export default function LandingPage() {
                       {/* Matrix Scan Effect */}
                       <motion.div
                         animate={{ top: ["-100%", "200%"] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "linear" as any }}
                         className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-indigo-400/5 to-transparent pointer-events-none"
                       />
                     </motion.div>
@@ -522,7 +522,7 @@ export default function LandingPage() {
                             x: [-10, 10],
                             opacity: [0.3, 1, 0.3]
                           }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as any }}
                           className="flex items-center -space-x-3 lg:-space-x-4"
                         >
                           <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-indigo-400/30' : 'text-indigo-300'}`} />
@@ -608,13 +608,13 @@ export default function LandingPage() {
                 <div className="w-[400px] h-[400px] lg:w-[500px] lg:h-[500px] relative flex items-center justify-center">
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 30, repeat: Infinity, ease: "linear" as any }}
                     className={`absolute inset-0 border-2 border-dashed rounded-full transition-colors box-shadow-[0_0_50px_rgba(6,182,212,0.2)] ${theme === 'dark' ? 'border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'border-cyan-300 shadow-[0_0_30px_rgba(6,182,212,0.2)]'
                       }`}
                   />
                   <motion.div
                     animate={{ rotate: -360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" as any }}
                     className={`absolute inset-12 border border-dashed rounded-full transition-colors ${theme === 'dark' ? 'border-indigo-500/40 shadow-[0_0_30px_rgba(79,70,229,0.1)]' : 'border-indigo-300 shadow-[0_0_30px_rgba(79,70,229,0.2)]'
                       }`}
                   />
@@ -784,7 +784,7 @@ export default function LandingPage() {
                       }`}>
                       <motion.div
                         animate={{ x: ["-100%", "200%"] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: idx * 0.7 }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "linear" as any, delay: idx * 0.7 }}
                         className={`absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-opacity-40 to-transparent ${item.color === 'cyan' ? 'via-cyan-400' :
                           item.color === 'indigo' ? 'via-indigo-400' :
                             'via-blue-400'
