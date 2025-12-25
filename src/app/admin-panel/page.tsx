@@ -22,7 +22,7 @@ export default function AdminPanelPage() {
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) { setLoading(false); return; }
+            if (!user || !db) { setLoading(false); return; }
             try {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 if (userDoc.exists()) setUserName(userDoc.data().displayName || 'Admin');
