@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import { FaUserPlus, FaUsers, FaLock, FaGlobe, FaChevronRight, FaPaperPlane, FaUserTie, FaLaptopCode, FaChartLine, FaCalculator } from 'react-icons/fa';
 import { db } from '../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
@@ -15,6 +16,7 @@ interface StaffUser {
     userRole: string;
     subRole: string;
     email: string;
+    department?: string;
 }
 
 export default function MemberSelection({ onStartMeeting }: MemberSelectionProps) {
@@ -23,39 +25,70 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
     const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
     const [isPublic, setIsPublic] = useState(true);
+    const [departments, setDepartments] = useState<Array<{
+        id: string;
+        label: string;
+        icon: React.ReactElement;
+        color: string;
+        bg: string;
+        border: string;
+        text: string;
+        activeShadow: string;
+    }>>([]);
 
-    const departments = [
-        {
-            id: 'computer_science',
-            label: 'Computer Science',
-            icon: <FaLaptopCode size={18} />,
-            color: 'from-cyan-500 to-blue-600',
-            bg: 'bg-cyan-50',
-            border: 'border-cyan-100',
-            text: 'text-cyan-700',
-            activeShadow: 'shadow-cyan-200'
-        },
-        {
-            id: 'economics',
-            label: 'Economics',
-            icon: <FaChartLine size={18} />,
-            color: 'from-amber-500 to-orange-600',
-            bg: 'bg-amber-50',
-            border: 'border-amber-100',
-            text: 'text-amber-700',
-            activeShadow: 'shadow-amber-200'
-        },
-        {
-            id: 'accounting_finance',
-            label: 'Accounting',
-            icon: <FaCalculator size={18} />,
-            color: 'from-rose-500 to-red-600',
-            bg: 'bg-rose-50',
-            border: 'border-rose-100',
-            text: 'text-rose-700',
-            activeShadow: 'shadow-rose-200'
-        },
-    ];
+    // Department icon and color mapping
+    const getDepartmentStyle = (deptId: string) => {
+        const styles: { [key: string]: any } = {
+            computer_science: {
+                icon: <FaLaptopCode size={18} />,
+                color: 'from-cyan-500 to-blue-600',
+                bg: 'bg-cyan-50',
+                border: 'border-cyan-100',
+                text: 'text-cyan-700',
+                activeShadow: 'shadow-cyan-200'
+            },
+            economics: {
+                icon: <FaChartLine size={18} />,
+                color: 'from-amber-500 to-orange-600',
+                bg: 'bg-amber-50',
+                border: 'border-amber-100',
+                text: 'text-amber-700',
+                activeShadow: 'shadow-amber-200'
+            },
+            accounting_finance: {
+                icon: <FaCalculator size={18} />,
+                color: 'from-rose-500 to-red-600',
+                bg: 'bg-rose-50',
+                border: 'border-rose-100',
+                text: 'text-rose-700',
+                activeShadow: 'shadow-rose-200'
+            },
+            management: {
+                icon: <FaUserTie size={18} />,
+                color: 'from-purple-500 to-indigo-600',
+                bg: 'bg-purple-50',
+                border: 'border-purple-100',
+                text: 'text-purple-700',
+                activeShadow: 'shadow-purple-200'
+            }
+        };
+
+        // Default style for departments not in the mapping
+        return styles[deptId] || {
+            icon: <FaUserTie size={18} />,
+            color: 'from-gray-500 to-gray-600',
+            bg: 'bg-gray-50',
+            border: 'border-gray-100',
+            text: 'text-gray-700',
+            activeShadow: 'shadow-gray-200'
+        };
+    };
+
+    const formatDepartmentName = (deptId: string) => {
+        return deptId.split('_').map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    };
 
     useEffect(() => {
         const fetchStaff = async () => {
@@ -63,6 +96,8 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
             try {
                 const querySnapshot = await getDocs(collection(db, "users"));
                 const filteredStaff: StaffUser[] = [];
+                const deptSet = new Set<string>();
+
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const subRole = (data.subRole || '').toLowerCase();
@@ -72,15 +107,48 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
                         userRole.includes('department_head') || userRole.includes('academic_coordinator') ||
                         userRole.endsWith('_head')) {
 
+                        // Extract department from userRole if department field is missing
+                        let department = data.department || '';
+                        if (!department && userRole.endsWith('_head')) {
+                            department = userRole.replace('_head', '');
+                        }
+
                         filteredStaff.push({
                             id: doc.id,
                             fullName: data.displayName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown User',
                             userRole: userRole,
                             subRole: subRole,
-                            email: data.email || ''
+                            email: data.email || '',
+                            department: department
                         });
+
+                        // Collect unique departments from department heads
+                        if (subRole === 'department_head' || userRole.endsWith('_head')) {
+                            let deptId = data.department;
+
+                            // If no department field, try to extract from userRole
+                            if (!deptId && userRole.endsWith('_head')) {
+                                deptId = userRole.replace('_head', '');
+                            }
+
+                            if (deptId) {
+                                deptSet.add(deptId);
+                            }
+                        }
                     }
                 });
+
+                // Build dynamic departments array
+                const dynamicDepts = Array.from(deptSet).map(deptId => {
+                    const style = getDepartmentStyle(deptId);
+                    return {
+                        id: deptId,
+                        label: formatDepartmentName(deptId),
+                        ...style
+                    };
+                });
+
+                setDepartments(dynamicDepts);
                 setStaff(filteredStaff);
             } catch (error) {
                 console.error("Error fetching staff:", error);
@@ -115,8 +183,8 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
 
     const getStaffByDept = (deptId: string) => {
         return staff.find(s =>
-            s.userRole.includes(deptId.toLowerCase()) &&
-            (s.subRole === 'department_head' || s.userRole.endsWith('_head'))
+            (s.subRole === 'department_head' || s.userRole.endsWith('_head')) &&
+            (s.department === deptId || s.userRole.includes(deptId.toLowerCase()))
         );
     };
 
