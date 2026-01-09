@@ -669,34 +669,16 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 max-w-2xl mx-auto gap-8">
             {[
               {
                 group: 'implementationGroup',
                 team: 'Implementation Team',
                 label: 'Implementation',
-                members: ['Shikure', 'Woldemariam'],
+                members: ['Woldemariam', 'Shikure', 'Nurye', 'Samuel', 'Samson', 'Lamenew'],
                 color: 'cyan',
                 glow: 'rgba(6,182,212,0.3)',
                 bgImage: '/implementation.png'
-              },
-              {
-                group: 'documentationGroup',
-                team: 'Documentation Team',
-                label: 'Documentation',
-                members: ['Lamenew', 'Samuel', 'Nurye', 'samson'],
-                color: 'indigo',
-                glow: 'rgba(79,70,229,0.3)',
-                bgImage: '/documentation.png'
-              },
-              {
-                group: 'supporterGroup',
-                team: 'Supporter',
-                label: 'Supporter',
-                members: ['Yeshimebet'],
-                color: 'blue',
-                glow: 'rgba(59,130,246,0.3)',
-                bgImage: '/supporter.png'
               }
             ].map((item, idx) => (
               <motion.div
