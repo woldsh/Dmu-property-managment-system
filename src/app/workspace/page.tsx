@@ -39,7 +39,8 @@ export default function WorkspacePage() {
             }
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
+                if (!db) return;
+                const userDocRef = doc(db!, 'users', user.uid);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
@@ -49,7 +50,7 @@ export default function WorkspacePage() {
                 }
 
                 // Fetch statistics based on role
-                const requestsRef = collection(db, 'Request_materials');
+                const requestsRef = collection(db!, 'Request_materials');
                 const pendingQuery = query(requestsRef, where('status', 'in', ['forwarded_to_team_leader', 'approved_by_procurement_team_leader', 'approved_by_clerk']));
                 const pendingSnap = await getDocs(pendingQuery);
 

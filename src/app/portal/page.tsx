@@ -38,7 +38,8 @@ export default function PortalPage() {
             }
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
+                if (!db) return;
+                const userDocRef = doc(db!, 'users', user.uid);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
@@ -46,7 +47,7 @@ export default function PortalPage() {
                 }
 
                 // Fetch pending requests for MD approval
-                const requestsRef = collection(db, 'Request_materials');
+                const requestsRef = collection(db!, 'Request_materials');
                 const pendingQuery = query(requestsRef, where('status', '==', 'approved_by_coordinator'));
                 const pendingSnap = await getDocs(pendingQuery);
 

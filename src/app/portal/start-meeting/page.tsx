@@ -18,7 +18,7 @@ export default function ChiefMeetingPage() {
 
     useEffect(() => {
         if (!db) return;
-        const unsubscribe = onSnapshot(doc(db, "meeting_sessions", "current_executive_meeting"), (doc) => {
+        const unsubscribe = onSnapshot(doc(db!, "meeting_sessions", "current_executive_meeting"), (doc) => {
             if (doc.exists()) {
                 setActiveSession(doc.data());
                 setIsStarting(false);
@@ -47,7 +47,7 @@ export default function ChiefMeetingPage() {
             status: 'active'
         };
         try {
-            await setDoc(doc(db, "meeting_sessions", "current_executive_meeting"), sessionData);
+            await setDoc(doc(db!, "meeting_sessions", "current_executive_meeting"), sessionData);
         } catch (error) {
             console.error("Error starting meeting session:", error);
             setIsStarting(false);
@@ -57,7 +57,7 @@ export default function ChiefMeetingPage() {
     const endMeeting = async () => {
         if (!db) return;
         try {
-            await deleteDoc(doc(db, "meeting_sessions", "current_executive_meeting"));
+            await deleteDoc(doc(db!, "meeting_sessions", "current_executive_meeting"));
         } catch (error) {
             console.error("Error ending meeting:", error);
         }

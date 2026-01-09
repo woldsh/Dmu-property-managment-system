@@ -24,9 +24,10 @@ export default function ServicePage() {
         const fetchData = async () => {
             if (!user) { setLoading(false); return; }
             try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (!db) return;
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) setUserName(userDoc.data().displayName || 'User');
-                const requestsRef = collection(db, 'Request_materials');
+                const requestsRef = collection(db!, 'Request_materials');
                 const pendingSnap = await getDocs(query(requestsRef, where('status', '==', 'approved_by_md')));
                 setStats(prev => ({ ...prev, pendingTasks: pendingSnap.size }));
             } catch (error) { console.error('Error:', error); }

@@ -45,8 +45,9 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
 
     useEffect(() => {
         // Fetch from Send_to_Users
+        if (!db) return;
         const q = query(
-            collection(db, 'Send_to_Users'),
+            collection(db!, 'Send_to_Users'),
             orderBy('created_at', 'desc')
         );
 
@@ -111,12 +112,13 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
         }
 
         try {
+            if (!db) return;
             setLoading(true);
-            const batch = writeBatch(db);
+            const batch = writeBatch(db!);
 
             // 1. Update User_reports status from Completed to accepted
             const userReportQuery = query(
-                collection(db, 'User-Report'),
+                collection(db!, 'User-Report'),
                 where('requestId', '==', record.request_id)
             );
             const userReportSnap = await getDocs(userReportQuery);
@@ -131,7 +133,7 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
             // 2. Inventory Deduction: Reduce quantity in 'materials' collection
             for (const item of record.material_details) {
                 const materialQuery = query(
-                    collection(db, 'materials'),
+                    collection(db!, 'materials'),
                     where('materialName', '==', item.materialName)
                 );
                 const materialSnap = await getDocs(materialQuery);
@@ -146,12 +148,12 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
             }
 
             // 3. Update Send_to_Users status to identify it as completed in this view
-            const sendToUserRef = doc(db, 'Send_to_Users', record.id);
+            const sendToUserRef = doc(db!, 'Send_to_Users', record.id);
             batch.update(sendToUserRef, { status: 'handout_completed' });
 
             // 4. Delete the original Request_materials document
             if (record.request_id) {
-                const requestMaterialRef = doc(db, 'Request_materials', record.request_id);
+                const requestMaterialRef = doc(db!, 'Request_materials', record.request_id);
                 batch.delete(requestMaterialRef);
             }
 
@@ -165,8 +167,10 @@ export default function StoreRequestVerification({ storeType }: StoreRequestVeri
             // 5. Auto-Deletion: Delete document after 24 hours (86,400,000ms)
             setTimeout(async () => {
                 try {
-                    await deleteDoc(doc(db, 'Send_to_Users', record.id));
-                    console.log(`Document ${record.id} deleted automatically.`);
+                    if (db) {
+                        await deleteDoc(doc(db!, 'Send_to_Users', record.id));
+                        console.log(`Document ${record.id} deleted automatically.`);
+                    }
                 } catch (delError) {
                     console.error('Failed to auto-delete document:', delError);
                 }

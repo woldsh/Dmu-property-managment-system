@@ -17,7 +17,7 @@ export default function MeetingPage() {
 
     useEffect(() => {
         if (!db) return;
-        const unsubscribe = onSnapshot(doc(db, "meeting_sessions", "current_executive_meeting"), (doc) => {
+        const unsubscribe = onSnapshot(doc(db!, "meeting_sessions", "current_executive_meeting"), (doc) => {
             if (doc.exists()) setSession(doc.data());
             else setSession(null);
             setLoading(false);

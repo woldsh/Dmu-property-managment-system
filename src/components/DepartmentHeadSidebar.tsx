@@ -20,7 +20,7 @@ export default function DepartmentHeadSidebar() {
 
     useEffect(() => {
         if (!db) return;
-        const unsubscribe = onSnapshot(doc(db, "meeting_sessions", "current_executive_meeting"), (doc) => {
+        const unsubscribe = onSnapshot(doc(db!, "meeting_sessions", "current_executive_meeting"), (doc) => {
             if (doc.exists()) {
                 const data = doc.data();
                 const role = userRole?.toLowerCase() || '';

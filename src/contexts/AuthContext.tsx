@@ -51,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Fetch explicit user role and department from Firestore
           try {
             if (db) {
-              const userDoc = await getDoc(doc(db, 'users', user.uid));
+              const userDoc = await getDoc(doc(db!, 'users', user.uid));
               if (userDoc.exists()) {
                 const userData = userDoc.data();
                 setUserRole(userData.userRole || null);

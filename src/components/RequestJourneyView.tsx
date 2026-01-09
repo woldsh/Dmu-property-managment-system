@@ -59,8 +59,10 @@ export default function RequestJourneyView() {
     useEffect(() => {
         if (!user) return;
 
+        if (!user || !db) return;
+
         const q = query(
-            collection(db, 'Request_materials'),
+            collection(db!, 'Request_materials'),
             where('requesterId', '==', user.uid)
         );
 
@@ -88,9 +90,11 @@ export default function RequestJourneyView() {
 
         // Fetch user role for conditional step rendering
         async function fetchUserData() {
-            const userDoc = await getDoc(doc(db, 'users', user!.uid));
-            if (userDoc.exists()) {
-                setUserData(userDoc.data());
+            if (user && db) {
+                const userDoc = await getDoc(doc(db!, 'users', user!.uid));
+                if (userDoc.exists()) {
+                    setUserData(userDoc.data());
+                }
             }
         }
         fetchUserData();

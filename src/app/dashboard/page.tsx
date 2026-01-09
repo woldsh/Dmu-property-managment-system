@@ -51,7 +51,8 @@ export default function DashboardPage() {
             }
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
+                if (!db) return;
+                const userDocRef = doc(db!, 'users', user.uid);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
@@ -61,7 +62,7 @@ export default function DashboardPage() {
                 }
 
                 // Fetch request statistics
-                const requestsRef = collection(db, 'Request_materials');
+                const requestsRef = collection(db!, 'Request_materials');
                 const pendingQuery = query(requestsRef, where('requesterId', '==', user.uid), where('status', '==', 'pending'));
                 const approvedQuery = query(requestsRef, where('requesterId', '==', user.uid), where('status', 'in', ['approved_by_head', 'approved_by_coordinator', 'approved_by_md']));
 

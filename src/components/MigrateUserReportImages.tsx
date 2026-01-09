@@ -22,8 +22,9 @@ export default function MigrateUserReportImages() {
         setResults([]);
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             // Get all User_reports entries
-            const userReportsSnapshot = await getDocs(collection(db, 'User_reports'));
+            const userReportsSnapshot = await getDocs(collection(db!, 'User_reports'));
             const totalReports = userReportsSnapshot.size;
             setProgress({ current: 0, total: totalReports });
             setStatus(`Found ${totalReports} User_reports entries to process`);
@@ -47,7 +48,7 @@ export default function MigrateUserReportImages() {
 
                 try {
                     // Get the original request
-                    const requestDoc = await getDoc(doc(db, 'Request_materials', reportData.requestId));
+                    const requestDoc = await getDoc(doc(db!, 'Request_materials', reportData.requestId));
 
                     if (!requestDoc.exists()) {
                         errors++;
@@ -64,7 +65,7 @@ export default function MigrateUserReportImages() {
 
                     if (matchingItem && matchingItem.image) {
                         // Update the User_reports with the image
-                        await updateDoc(doc(db, 'User_reports', reportDoc.id), {
+                        await updateDoc(doc(db!, 'User_reports', reportDoc.id), {
                             materialImage: matchingItem.image
                         });
                         updated++;

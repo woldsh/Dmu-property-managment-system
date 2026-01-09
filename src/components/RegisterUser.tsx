@@ -209,7 +209,8 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      if (!auth) throw new Error("Firebase auth not initialized");
+      const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
       const newUser = userCredential.user;
 
       await updateProfile(newUser, {
@@ -227,7 +228,8 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
         uid: newUser.uid
       };
 
-      await setDoc(doc(db, 'users', newUser.uid), userDocData);
+      if (!db) throw new Error("Firebase not initialized");
+      await setDoc(doc(db!, 'users', newUser.uid), userDocData);
 
       setSuccess(`User ${email} created successfully!`);
 

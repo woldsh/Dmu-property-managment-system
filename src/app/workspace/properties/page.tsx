@@ -22,7 +22,8 @@ export default function WorkspacePropertiesPage() {
             }
 
             try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (!db) return;
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
 

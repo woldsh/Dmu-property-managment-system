@@ -63,7 +63,8 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
         const fetchUserProfile = async () => {
             if (user?.uid) {
                 try {
-                    const userDoc = await getDoc(doc(db, 'Users', user.uid));
+                    if (!db) return;
+                    const userDoc = await getDoc(doc(db!, 'Users', user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
                         let dept = data.department;
@@ -95,7 +96,8 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
     useEffect(() => {
         const fetchMaterialImages = async () => {
             try {
-                const materialsSnap = await getDocs(collection(db, 'materials'));
+                if (!db) return;
+                const materialsSnap = await getDocs(collection(db!, 'materials'));
                 const imageMap: Record<string, string> = {};
                 materialsSnap.docs.forEach(doc => {
                     const data = doc.data();
@@ -129,9 +131,10 @@ export default function UniversalCommissionReview({ viewType = 'personal' }: Uni
         const isDeptHead = userRole?.includes('_head');
         const effectiveViewType = isDeptHead ? 'department' : viewType;
 
+        if (!db) return;
         const q = effectiveViewType === 'department'
-            ? query(collection(db, 'Need_AC_decition'), where('department', '==', userDept))
-            : query(collection(db, 'Need_AC_decition'), where('requesterId', '==', user.uid));
+            ? query(collection(db!, 'Need_AC_decition'), where('department', '==', userDept))
+            : query(collection(db!, 'Need_AC_decition'), where('requesterId', '==', user.uid));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const requestList = snapshot.docs.map(doc => ({

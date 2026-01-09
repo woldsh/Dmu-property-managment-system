@@ -14,10 +14,10 @@ export default function Login() {
 
   useEffect(() => {
     async function checkRoleAndRedirect() {
-      if (!loading && user) {
+      if (!loading && user && db) {
         try {
           // Priority 1: Check standard user roles from 'users' collection (Registral functionality)
-          const userDocRef = doc(db, 'users', user.uid);
+          const userDocRef = doc(db!, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
@@ -35,7 +35,7 @@ export default function Login() {
           }
 
           // Priority 2: Check Admins Collection if not found in standard users
-          const adminsRef = collection(db, 'admins');
+          const adminsRef = collection(db!, 'admins');
           const q = query(adminsRef, where('email', '==', user.email));
           const adminSnapshot = await getDocs(q);
 

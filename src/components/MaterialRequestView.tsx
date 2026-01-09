@@ -133,7 +133,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         // Fetch material images for fallback
         const fetchMaterialImages = async () => {
             if (!db) return;
-            const materialsSnap = await getDocs(collection(db, 'materials'));
+            const materialsSnap = await getDocs(collection(db!, 'materials'));
             const imageMap: Record<string, string> = {};
             materialsSnap.docs.forEach(doc => {
                 const data = doc.data();
@@ -149,7 +149,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     useEffect(() => {
         const fetchUserProfile = async () => {
             if (user && db) {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
                 }
@@ -640,7 +640,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
         try {
             // Step 1: Update Request_materials
-            const requestRef = doc(db, 'Request_materials', request.id);
+            const requestRef = doc(db!, 'Request_materials', request.id);
             await updateDoc(requestRef, {
                 status: 'approved_by_clerk',
                 currentApproverRole: 'store_keeper',

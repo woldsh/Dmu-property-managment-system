@@ -78,7 +78,8 @@ export default function UserReportView() {
 
     useEffect(() => {
         const fetchMaterialImages = async () => {
-            const materialsSnap = await getDoc(doc(db, 'materials', 'all'));
+            if (!db) return;
+            const materialsSnap = await getDoc(doc(db!, 'materials', 'all'));
             // Simplified - adjust based on your materials structure
             setMaterialImages({});
         };
@@ -87,8 +88,8 @@ export default function UserReportView() {
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            if (user) {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (user && db) {
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
                 }
@@ -101,8 +102,9 @@ export default function UserReportView() {
         if (!userData) return;
 
         // Query Request_materials collection for processed requests
+        if (!db) return;
         const q = query(
-            collection(db, 'Request_materials'),
+            collection(db!, 'Request_materials'),
             where('status', '==', 'processed_by_general_service')
         );
 
@@ -134,9 +136,11 @@ export default function UserReportView() {
             // Fetch requester email from users collection
             let requesterEmail = '';
             try {
-                const requesterDoc = await getDoc(doc(db, 'users', request.requesterId));
-                if (requesterDoc.exists()) {
-                    requesterEmail = requesterDoc.data().email || '';
+                if (db) {
+                    const requesterDoc = await getDoc(doc(db!, 'users', request.requesterId));
+                    if (requesterDoc.exists()) {
+                        requesterEmail = requesterDoc.data().email || '';
+                    }
                 }
             } catch (emailError) {
                 console.error("Error fetching requester email:", emailError);
@@ -144,7 +148,8 @@ export default function UserReportView() {
 
             // Create a User_reports entry for each material item
             const userReportPromises = request.items.map(async (item) => {
-                await addDoc(collection(db, 'User-Report'), {
+                if (!db) return;
+                await addDoc(collection(db!, 'User-Report'), {
                     requestId: request.id,
                     requesterId: request.requesterId,
                     requesterName: request.requesterName,
@@ -178,7 +183,8 @@ export default function UserReportView() {
             await Promise.all(userReportPromises);
 
             // Update Request_materials status
-            const requestRef = doc(db, 'Request_materials', request.id);
+            if (!db) return;
+            const requestRef = doc(db!, 'Request_materials', request.id);
             await updateDoc(requestRef, {
                 status: 'approved_by_procurement_team_leader',
                 currentApproverRole: 'completed',
@@ -210,7 +216,8 @@ export default function UserReportView() {
 
         setProcessingId(request.id);
         try {
-            const requestRef = doc(db, 'Request_materials', request.id);
+            if (!db) return;
+            const requestRef = doc(db!, 'Request_materials', request.id);
 
             await updateDoc(requestRef, {
                 status: 'rejected_by_team_leader',

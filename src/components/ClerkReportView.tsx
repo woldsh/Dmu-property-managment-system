@@ -40,23 +40,26 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
     useEffect(() => {
         if (!user?.uid) return;
         const fetchUserData = async () => {
-            try {
-                const userDoc = await getDoc(doc(db, 'Users', user.uid));
-                if (userDoc.exists()) {
-                    setUserData(userDoc.data());
+            if (user?.uid && db) {
+                try {
+                    const userDoc = await getDoc(doc(db!, 'Users', user.uid));
+                    if (userDoc.exists()) {
+                        setUserData(userDoc.data());
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
                 }
-            } catch (error) {
-                console.error("Error fetching user data:", error);
             }
         };
         fetchUserData();
     }, [user?.uid]);
 
     const handleConfirmSend = async (id: string) => {
+        if (!db) return;
         try {
-            await updateDoc(doc(db, 'Send_to_Users', id), {
+            await updateDoc(doc(db!, 'Send_to_Users', id), {
                 status: 'shared_with_store',
-                sharedAt: new Date().toISOString() // Using ISO string for easier client-side parsing without dealing with serverTimestamp promise/latency issues in this context, or keep consistency if other fields use Firestore Timestamp.
+                sharedAt: new Date().toISOString()
             });
             setConfirmingSendId(null);
         } catch (error) {
@@ -67,7 +70,7 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
 
     useEffect(() => {
         // Don't fetch if no user is logged in
-        if (!user?.uid) {
+        if (!user?.uid || !db) {
             setLoading(false);
             return;
         }
@@ -83,11 +86,11 @@ export default function ClerkReportView({ materialTypeFilter }: ClerkReportViewP
         let q;
         if (isClerkOrStore) {
             // Clerks see everything
-            q = query(collection(db, 'Send_to_Users'));
+            q = query(collection(db!, 'Send_to_Users'));
         } else {
             // Individual users see only their own reports
             q = query(
-                collection(db, 'Send_to_Users'),
+                collection(db!, 'Send_to_Users'),
                 where('requester_user_id', '==', user.uid)
             );
         }

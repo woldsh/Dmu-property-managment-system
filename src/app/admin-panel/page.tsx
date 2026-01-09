@@ -27,7 +27,8 @@ export default function AdminPanelPage() {
         const fetchData = async () => {
             if (!user || !db) { setLoading(false); return; }
             try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (!db) return;
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     setUserName(userData.displayName || 'User');
@@ -35,7 +36,7 @@ export default function AdminPanelPage() {
 
                 // If employee, fetch personal stats
                 if (isEmployee) {
-                    const requestsRef = collection(db, 'Request_materials');
+                    const requestsRef = collection(db!, 'Request_materials');
                     const q = query(requestsRef, where('requesterId', '==', user.uid));
                     const querySnapshot = await getDocs(q);
                     setStats(prev => ({ ...prev, personalRequests: querySnapshot.size }));

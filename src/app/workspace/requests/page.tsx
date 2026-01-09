@@ -22,7 +22,8 @@ export default function WorkspaceRequestsPage() {
             }
 
             try {
-                const userDocRef = doc(db, 'users', user.uid);
+                if (!db) return;
+                const userDocRef = doc(db!, 'users', user.uid);
                 const userDoc = await getDoc(userDocRef);
 
                 if (userDoc.exists()) {
