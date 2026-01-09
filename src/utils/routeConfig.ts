@@ -55,11 +55,41 @@ export const ROUTE_MAPPINGS: RouteMapping[] = [
     { userRole: 'consumable_item_store_keeper', cleanUrl: '/workspace', displayName: 'Workspace' },
 
     // Admin Staff
-    { userRole: 'hrm_leader', cleanUrl: '/admin-panel', displayName: 'Admin Panel' },
-    { userRole: 'finance_leader', cleanUrl: '/admin-panel', displayName: 'Admin Panel' },
-    { userRole: 'hrm_employee', cleanUrl: '/admin-panel', displayName: 'Admin Panel' },
-    { userRole: 'finance_employee', cleanUrl: '/admin-panel', displayName: 'Admin Panel' },
+    { userRole: 'hrm_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'HRM Leader' },
+    { userRole: 'finance_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Finance Leader' },
+    { userRole: 'hrm_employee', cleanUrl: '/admin-staff/employees', displayName: 'HRM Employee' },
+    { userRole: 'finance_employee', cleanUrl: '/admin-staff/employees', displayName: 'Finance Employee' },
+    { userRole: 'student_service_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Student Service Leader' },
+
+    // Student Service - Dormitory
+    { userRole: 'student_service_dormitory_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Dormitory Leader' },
+    { userRole: 'student_service_dormitory_employee', cleanUrl: '/admin-staff/employees', displayName: 'Dormitory Employee' },
+
+    // Student Service - Cafeteria
+    { userRole: 'student_service_cafeteria_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Cafeteria Leader' },
+    { userRole: 'student_service_cafeteria_employee', cleanUrl: '/admin-staff/employees', displayName: 'Cafeteria Employee' },
+
+    // Student Service - Sport
+    { userRole: 'student_service_sport_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Sport Leader' },
+    { userRole: 'student_service_sport_employee', cleanUrl: '/admin-staff/employees', displayName: 'Sport Employee' },
 ];
+
+// Helper to check if a user is an employee
+export function isEmployeeRole(userRole: string | null): boolean {
+    if (!userRole) return false;
+    return userRole.endsWith('_employee');
+}
+
+// Helper to check if a user is a leader
+export function isLeaderRole(userRole: string | null): boolean {
+    if (!userRole) return false;
+    return userRole.endsWith('_leader') ||
+        userRole === 'academic_coordinator' ||
+        userRole.endsWith('_head') ||
+        userRole === 'general_service_leader' ||
+        userRole === 'managing_director_leader' ||
+        userRole === 'chief';
+}
 
 // Helper function to get clean URL for a user role
 export function getCleanUrlForRole(userRole: string): string {

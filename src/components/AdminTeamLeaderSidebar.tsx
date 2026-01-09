@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaUserShield } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaUserShield, FaBox } from 'react-icons/fa';
 
 export default function AdminTeamLeaderSidebar() {
     const pathname = usePathname();
-    const basePath = '/admin-panel';
+    const { userRole } = useAuth();
+    const isHRMOrFinance = userRole === 'hrm_leader' || userRole === 'finance_leader';
+    const basePath = isHRMOrFinance ? '/admin-staff/team-leader' : '/admin-panel';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
 
@@ -19,9 +22,10 @@ export default function AdminTeamLeaderSidebar() {
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaUsers },
+        ...(isHRMOrFinance ? [{ label: t('leader_requests'), href: `${basePath}/leader-requests`, icon: FaUserTie }] : []),
         { label: t('messages_md'), href: `${basePath}/messages-md`, icon: FaEnvelope },
         { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckDouble },
-        { label: t('request_to_md'), href: `${basePath}/request-material`, icon: FaUserTie },
+        { label: t('request_to_md'), href: `${basePath}${isHRMOrFinance ? '/request-material' : '/request-material'}`, icon: FaBox },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
         { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
@@ -32,10 +36,10 @@ export default function AdminTeamLeaderSidebar() {
     return (
         <>
             {isOpen && (
-                <div className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
+                <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
-            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-30 overflow-hidden transition-all duration-500 ease-out
+            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
                 ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
 
                 {/* Ultra Premium Emerald Gradient Background */}

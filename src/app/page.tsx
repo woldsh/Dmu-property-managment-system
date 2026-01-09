@@ -85,7 +85,7 @@ export default function LandingPage() {
               </div>
               <div className="flex flex-col">
                 <span className={`text-xl font-black tracking-tighter uppercase leading-none italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  Property <span className="text-indigo-500 font-normal">Hub</span>
+                  Property <span className="text-indigo-500 font-normal">System</span>
                 </span>
                 <span className={`hidden sm:block text-[8px] font-black tracking-[0.4em] uppercase mt-1 transition-colors ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                   Debremarkos University
@@ -821,7 +821,7 @@ export default function LandingPage() {
                 <div className="w-14 h-14 bg-white text-black rounded-2xl flex items-center justify-center text-2xl font-black shadow-2xl">PH</div>
                 <div className="flex flex-col">
                   <h5 className={`text-2xl font-black tracking-tighter uppercase italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                    Property <span className="text-indigo-600 font-normal">Hub</span>
+                    Property <span className="text-indigo-600 font-normal">System</span>
                   </h5>
                   <p className={`text-[10px] font-black tracking-[0.4em] uppercase mt-1 transition-colors ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
                     Debremarkos University

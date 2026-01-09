@@ -7,13 +7,16 @@ import { db } from '@/lib/firebase';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { FiUsers, FiClipboard, FiCheckCircle, FiClock, FiTrendingUp, FiArrowRight, FiCalendar, FiZap, FiTarget, FiFileText, FiSettings, FiMessageSquare } from 'react-icons/fi';
 import { Loader2 } from 'lucide-react';
+import { isEmployeeRole } from '@/utils/routeConfig';
 
 export default function AdminPanelPage() {
-    const { user } = useAuth();
+    const { user, userRole } = useAuth();
     const [userName, setUserName] = useState<string>('');
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({ teamRequests: 9, teamMembers: 12, approved: 18, pendingReview: 5 });
+    const [stats, setStats] = useState({ teamRequests: 9, teamMembers: 12, approved: 18, pendingReview: 5, personalRequests: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
+
+    const isEmployee = isEmployeeRole(userRole);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -25,7 +28,18 @@ export default function AdminPanelPage() {
             if (!user || !db) { setLoading(false); return; }
             try {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
-                if (userDoc.exists()) setUserName(userDoc.data().displayName || 'Admin');
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    setUserName(userData.displayName || 'User');
+                }
+
+                // If employee, fetch personal stats
+                if (isEmployee) {
+                    const requestsRef = collection(db, 'Request_materials');
+                    const q = query(requestsRef, where('requesterId', '==', user.uid));
+                    const querySnapshot = await getDocs(q);
+                    setStats(prev => ({ ...prev, personalRequests: querySnapshot.size }));
+                }
             } catch (error) { console.error('Error:', error); }
             finally { setLoading(false); }
         };
@@ -48,12 +62,16 @@ export default function AdminPanelPage() {
                         <div className="space-y-2">
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 bg-teal-500 rounded-full animate-pulse" />
-                                <span className="text-xs font-black text-teal-600 uppercase tracking-[0.2em]">Admin Control Panel</span>
+                                <span className="text-xs font-black text-teal-600 uppercase tracking-[0.2em]">
+                                    {isEmployee ? 'Staff Portal' : 'Admin Control Panel'}
+                                </span>
                             </div>
                             <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-                                Welcome, <span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">{userName.split(' ')[0]}</span>
+                                {isEmployee ? 'Welcome Back' : 'Welcome'}, <span className="bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">{userName.split(' ')[0]}</span>
                             </h1>
-                            <p className="text-slate-500 font-medium text-lg">Manage team operations and administrative tasks</p>
+                            <p className="text-slate-500 font-medium text-lg">
+                                {isEmployee ? 'Access your personal workspace and requisitions' : 'Manage team operations and administrative tasks'}
+                            </p>
                         </div>
                         <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl px-6 py-4 shadow-lg">
                             <div className="flex items-center gap-4">
@@ -77,11 +95,11 @@ export default function AdminPanelPage() {
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform">
                                     <FiClipboard className="text-2xl text-white" />
                                 </div>
-                                <p className="text-4xl font-black text-slate-900">{stats.teamRequests}</p>
-                                <p className="text-sm font-bold text-slate-500">Team Requests</p>
+                                <p className="text-4xl font-black text-slate-900">{isEmployee ? stats.personalRequests : stats.teamRequests}</p>
+                                <p className="text-sm font-bold text-slate-500">{isEmployee ? 'My Requests' : 'Team Requests'}</p>
                                 <div className="mt-4 flex items-center gap-2 text-amber-600">
                                     <FiClock className="text-sm animate-pulse" />
-                                    <span className="text-xs font-bold">Pending Review</span>
+                                    <span className="text-xs font-bold">{isEmployee ? 'Track Status' : 'Pending Review'}</span>
                                 </div>
                             </div>
                         </div>
@@ -91,11 +109,11 @@ export default function AdminPanelPage() {
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform">
                                     <FiUsers className="text-2xl text-white" />
                                 </div>
-                                <p className="text-4xl font-black text-slate-900">{stats.teamMembers}</p>
-                                <p className="text-sm font-bold text-slate-500">Team Members</p>
+                                <p className="text-4xl font-black text-slate-900">{isEmployee ? 'Active' : stats.teamMembers}</p>
+                                <p className="text-sm font-bold text-slate-500">{isEmployee ? 'Staff Status' : 'Team Members'}</p>
                                 <div className="mt-4 flex items-center gap-2 text-blue-600">
                                     <FiTrendingUp className="text-sm" />
-                                    <span className="text-xs font-bold">All Active</span>
+                                    <span className="text-xs font-bold">{isEmployee ? 'System Online' : 'All Active'}</span>
                                 </div>
                             </div>
                         </div>
@@ -131,21 +149,31 @@ export default function AdminPanelPage() {
                     <div className="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-lg">
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h2 className="text-2xl font-black text-slate-900">Admin Actions</h2>
-                                <p className="text-slate-500 font-medium">Team management operations</p>
+                                <h2 className="text-2xl font-black text-slate-900">{isEmployee ? 'Quick Actions' : 'Admin Actions'}</h2>
+                                <p className="text-slate-500 font-medium">{isEmployee ? 'Manage your resources' : 'Team management operations'}</p>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center">
                                 <FiZap className="text-xl text-teal-600" />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <a href="/admin-panel/view-requests" className="group flex items-center gap-4 p-5 bg-teal-50 rounded-2xl border-2 border-teal-100 hover:border-teal-300 transition-all">
-                                <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                    <FiClipboard className="text-xl text-white" />
-                                </div>
-                                <div className="flex-1"><h3 className="font-bold text-slate-900">View Requests</h3><p className="text-sm text-slate-500">Team submissions</p></div>
-                                <FiArrowRight className="text-xl text-teal-500 group-hover:translate-x-2 transition-transform" />
-                            </a>
+                            {isEmployee ? (
+                                <a href="/admin-panel/view-requests" className="group flex items-center gap-4 p-5 bg-teal-50 rounded-2xl border-2 border-teal-100 hover:border-teal-300 transition-all">
+                                    <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                        <FiClock className="text-xl text-white" />
+                                    </div>
+                                    <div className="flex-1"><h3 className="font-bold text-slate-900">Track My Requests</h3><p className="text-sm text-slate-500">View status updates</p></div>
+                                    <FiArrowRight className="text-xl text-teal-500 group-hover:translate-x-2 transition-transform" />
+                                </a>
+                            ) : (
+                                <a href="/admin-panel/view-requests" className="group flex items-center gap-4 p-5 bg-teal-50 rounded-2xl border-2 border-teal-100 hover:border-teal-300 transition-all">
+                                    <div className="w-12 h-12 rounded-xl bg-teal-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                        <FiClipboard className="text-xl text-white" />
+                                    </div>
+                                    <div className="flex-1"><h3 className="font-bold text-slate-900">View Team Requests</h3><p className="text-sm text-slate-500">Manage submissions</p></div>
+                                    <FiArrowRight className="text-xl text-teal-500 group-hover:translate-x-2 transition-transform" />
+                                </a>
+                            )}
                             <a href="/admin-panel/request-material" className="group flex items-center gap-4 p-5 bg-emerald-50 rounded-2xl border-2 border-emerald-100 hover:border-emerald-300 transition-all">
                                 <div className="w-12 h-12 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                     <FiFileText className="text-xl text-white" />

@@ -31,10 +31,10 @@ export default function ManagingDirectorSidebar() {
     return (
         <>
             {isOpen && (
-                <div className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
+                <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
-            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-30 overflow-hidden transition-all duration-500 ease-out
+            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
                 ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
 
                 {/* Ultra Premium Dark Gradient Background */}

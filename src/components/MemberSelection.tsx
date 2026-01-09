@@ -148,6 +148,10 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
                     };
                 });
 
+                console.log('🔍 DEBUG: Found departments:', Array.from(deptSet));
+                console.log('🔍 DEBUG: Dynamic departments array:', dynamicDepts);
+                console.log('🔍 DEBUG: Filtered staff:', filteredStaff);
+
                 setDepartments(dynamicDepts);
                 setStaff(filteredStaff);
             } catch (error) {

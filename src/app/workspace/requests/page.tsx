@@ -59,7 +59,7 @@ export default function WorkspaceRequestsPage() {
         );
     }
 
-    // Store Keeper sees StoreRequestVerification component
+    // Store Keeper sees only handout verification (approved clerk requests)
     if (userRole?.includes('store_keeper')) {
         return <StoreRequestVerification storeType={storeType} />;
     }

@@ -35,6 +35,7 @@ export default function Header({ title, subtitle, isDark }: HeaderProps) {
             if (pathname.includes('/stock-clerk')) return '/procurement-management/stock-clerk';
             return '/procurement-management';
         }
+        if (pathname.startsWith('/admin-staff/team-leader')) return '/admin-staff/team-leader';
         return '/dashboard'; // Default
     };
 
@@ -60,7 +61,7 @@ export default function Header({ title, subtitle, isDark }: HeaderProps) {
     }, []);
 
     return (
-        <header className={`${isDark ? 'bg-slate-950/40 backdrop-blur-xl border-b border-white/5' : 'bg-white shadow-sm border-b border-slate-100'} mb-8 sticky top-0 z-[110]`}>
+        <header className={`${isDark ? 'bg-slate-950/40 backdrop-blur-xl border-b border-white/5' : 'bg-white shadow-sm border-b border-slate-100'} mb-8 sticky top-0 z-40`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">

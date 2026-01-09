@@ -17,7 +17,7 @@ export default function ViewRequestsPMTPage() {
                     <Header title="View Requests (PMT)" subtitle="Consumable Material Requests" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
-                        <MaterialRequestView roleOverride="stock_clerk" materialTypeFilter="consumable" />
+                        <MaterialRequestView roleOverride="consumable_item_stock_clerk" materialTypeFilter="consumable" />
                     </main>
                 </div>
             </div>

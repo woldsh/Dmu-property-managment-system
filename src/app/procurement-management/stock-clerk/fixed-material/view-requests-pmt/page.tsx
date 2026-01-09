@@ -17,7 +17,7 @@ export default function ViewRequestsPMTPage() {
                     <Header title="View Requests (PMT)" subtitle="Fixed Asset Requests" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
-                        <MaterialRequestView roleOverride="stock_clerk" materialTypeFilter="fixed_asset" />
+                        <MaterialRequestView roleOverride="fixed_asset_stock_clerk" materialTypeFilter="fixed_asset" />
                     </main>
                 </div>
             </div>

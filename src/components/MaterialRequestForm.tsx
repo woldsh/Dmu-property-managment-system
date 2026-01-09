@@ -67,7 +67,7 @@ export default function MaterialRequestForm() {
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            if (user) {
+            if (user && db) {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
@@ -76,6 +76,7 @@ export default function MaterialRequestForm() {
         };
         fetchUserProfile();
 
+        if (!db) return;
         const q = query(collection(db, 'materials'), orderBy('materialName', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const materialList = snapshot.docs.map(doc => ({
@@ -126,7 +127,7 @@ export default function MaterialRequestForm() {
     };
 
     const handleSubmit = async () => {
-        if (!user || !userData || cart.length === 0) return;
+        if (!user || !userData || cart.length === 0 || !db) return;
         setSubmitting(true);
 
         try {
@@ -140,20 +141,86 @@ export default function MaterialRequestForm() {
             const isMD = userData.userRole === 'managing_director' || userData.userRole === 'managing_director_leader' || userData.userRole === 'chief';
             const isTL = userData.userRole?.includes('_leader') || userData.userRole?.includes('_team_leader') || userData.userRole === 'academic_coordinator';
 
-            let roleLabel = 'Teacher';
+            // Student Service Roles
+            const isDormEmployee = userData.userRole === 'student_service_dormitory_employee';
+            const isCafeteriaEmployee = userData.userRole === 'student_service_cafeteria_employee';
+            const isSportEmployee = userData.userRole === 'student_service_sport_employee';
+
+            // HRM and Finance Roles
+            const isHRMEmployee = userData.userRole === 'hrm_employee';
+            const isFinanceEmployee = userData.userRole === 'finance_employee';
+
+            // Student Service Leader Roles (Dormitory, Sport, Cafeteria Leaders) - go to Student Service Leader first
+            const isDormLeader = userData.userRole === 'student_service_dormitory_leader';
+            const isCafeteriaLeader = userData.userRole === 'student_service_cafeteria_leader';
+            const isSportLeader = userData.userRole === 'student_service_sport_leader';
+
+            // Top-Level Leaders (Student Service, HRM, Finance) - go directly to Managing Director
+            const isStudentServiceLeader = userData.userRole === 'student_service_leader';
+            const isHRMLeader = userData.userRole === 'hrm_leader';
+            const isFinanceLeader = userData.userRole === 'finance_leader';
+
+            let roleLabel = 'Employee';
             if (isMD) roleLabel = 'Managing Director';
             else if (isAC) roleLabel = 'Academic Coordinator';
             else if (isTL) roleLabel = 'Leader';
             else if (isDeptHead) roleLabel = 'Department Head';
+            else if (userData.userRole?.includes('teacher')) roleLabel = 'Teacher';
 
-            let approverId = 'PENDING_HEAD_ASSIGNMENT';
-            let approverName = 'Department Head';
-            let approverRole = 'department_head';
+            let approverId = 'PENDING_ASSIGNMENT';
+            let approverName = 'Approver';
+            let approverRole = 'approver';
             let status = 'pending';
             let historyNote = `Request initiated by ${roleLabel}`;
 
-            if (isMD) {
-                const clerkQuery = query(collection(db, 'users'), where('userRole', '==', 'stock_clerk'));
+            // Top-Level Leaders go directly to Managing Director
+            if (isStudentServiceLeader || isHRMLeader || isFinanceLeader) {
+                const mdQuery = query(collection(db!, 'users'), where('userRole', '==', 'managing_director'));
+                const mdSnapshot = await getDocs(mdQuery);
+
+                approverId = mdSnapshot.empty ? 'PENDING_MD_ASSIGNMENT' : mdSnapshot.docs[0].id;
+                approverName = mdSnapshot.empty ? 'Managing Director' : mdSnapshot.docs[0].data().displayName;
+                approverRole = 'managing_director';
+                status = 'pending_managing_director';
+
+                const leaderType = isStudentServiceLeader ? 'Student Service Leader' :
+                    isHRMLeader ? 'HRM Leader' : 'Finance Leader';
+                historyNote = `Request initiated by ${leaderType}`;
+            }
+            // Special handling for Dormitory/Sport/Cafeteria Leaders - they go to Student Service Leader first
+            else if (isDormLeader || isCafeteriaLeader || isSportLeader) {
+                const sslQuery = query(collection(db!, 'users'), where('userRole', '==', 'student_service_leader'));
+                const sslSnapshot = await getDocs(sslQuery);
+
+                approverId = sslSnapshot.empty ? 'PENDING_STUDENT_SERVICE_LEADER_ASSIGNMENT' : sslSnapshot.docs[0].id;
+                approverName = sslSnapshot.empty ? 'Student Service Leader' : sslSnapshot.docs[0].data().displayName;
+                approverRole = 'student_service_leader';
+                status = 'pending_student_service_leader';
+                historyNote = `Request initiated by ${isDormLeader ? 'Dormitory' : isCafeteriaLeader ? 'Cafeteria' : 'Sport'} Leader`;
+            } else if (isDormEmployee || isCafeteriaEmployee || isSportEmployee) {
+                const leaderRole = isDormEmployee ? 'student_service_dormitory_leader' :
+                    isCafeteriaEmployee ? 'student_service_cafeteria_leader' :
+                        'student_service_sport_leader';
+
+                const leaderQuery = query(collection(db!, 'users'), where('userRole', '==', leaderRole));
+                const leaderSnapshot = await getDocs(leaderQuery);
+
+                approverId = leaderSnapshot.empty ? `PENDING_${leaderRole.toUpperCase()}_ASSIGNMENT` : leaderSnapshot.docs[0].id;
+                approverName = leaderSnapshot.empty ? leaderRole.replace(/_/g, ' ') : leaderSnapshot.docs[0].data().displayName;
+                approverRole = leaderRole;
+                status = 'pending_department_leader';
+            } else if (isHRMEmployee || isFinanceEmployee) {
+                const leaderRole = isHRMEmployee ? 'hrm_leader' : 'finance_leader';
+
+                const leaderQuery = query(collection(db!, 'users'), where('userRole', '==', leaderRole));
+                const leaderSnapshot = await getDocs(leaderQuery);
+
+                approverId = leaderSnapshot.empty ? `PENDING_${leaderRole.toUpperCase()}_ASSIGNMENT` : leaderSnapshot.docs[0].id;
+                approverName = leaderSnapshot.empty ? leaderRole.replace(/_/g, ' ') : leaderSnapshot.docs[0].data().displayName;
+                approverRole = leaderRole;
+                status = 'pending_department_leader';
+            } else if (isMD) {
+                const clerkQuery = query(collection(db!, 'users'), where('userRole', '==', 'stock_clerk'));
                 const clerkSnapshot = await getDocs(clerkQuery);
                 approverId = clerkSnapshot.empty ? 'PENDING_CLERK_ASSIGNMENT' : clerkSnapshot.docs[0].id;
                 approverName = clerkSnapshot.empty ? 'Stock Clerk' : clerkSnapshot.docs[0].data().displayName;
@@ -161,7 +228,7 @@ export default function MaterialRequestForm() {
                 status = 'approved_by_md';
                 historyNote += ' (Auto-Approved)';
             } else if (isAC || isTL) {
-                const mdQuery = query(collection(db, 'users'), where('userRole', '==', 'managing_director'));
+                const mdQuery = query(collection(db!, 'users'), where('userRole', '==', 'managing_director'));
                 const mdSnapshot = await getDocs(mdQuery);
                 approverId = mdSnapshot.empty ? 'PENDING_MD_ASSIGNMENT' : mdSnapshot.docs[0].id;
                 approverName = mdSnapshot.empty ? 'Managing Director' : mdSnapshot.docs[0].data().displayName;
@@ -169,7 +236,7 @@ export default function MaterialRequestForm() {
                 status = 'approved_by_coordinator';
                 historyNote += ' (Auto-Approved)';
             } else if (isDeptHead) {
-                const acQuery = query(collection(db, 'users'), where('userRole', '==', 'academic_coordinator'));
+                const acQuery = query(collection(db!, 'users'), where('userRole', '==', 'academic_coordinator'));
                 const acSnapshot = await getDocs(acQuery);
                 approverId = acSnapshot.empty ? 'PENDING_AC_ASSIGNMENT' : acSnapshot.docs[0].id;
                 approverName = acSnapshot.empty ? 'Academic Coordinator' : acSnapshot.docs[0].data().displayName;
@@ -178,11 +245,13 @@ export default function MaterialRequestForm() {
                 historyNote += ' (Auto-Approved)';
             } else {
                 const deptHeadRole = `${department}_head`;
-                const headQuery = query(collection(db, 'users'), where('userRole', '==', deptHeadRole));
+                const headQuery = query(collection(db!, 'users'), where('userRole', '==', deptHeadRole));
                 const headSnapshot = await getDocs(headQuery);
                 if (!headSnapshot.empty) {
                     approverId = headSnapshot.docs[0].id;
                     approverName = headSnapshot.docs[0].data().displayName;
+                    approverRole = 'department_head';
+                    status = 'pending';
                 }
             }
 
@@ -190,7 +259,7 @@ export default function MaterialRequestForm() {
             let acRules: Record<string, any> = {};
 
             if (ruledItems.length > 0) {
-                const rulesSnapshot = await getDocs(collection(db, 'AC_rules'));
+                const rulesSnapshot = await getDocs(collection(db!, 'AC_rules'));
                 rulesSnapshot.docs.forEach(doc => {
                     acRules[doc.id] = doc.data();
                 });
@@ -238,7 +307,7 @@ export default function MaterialRequestForm() {
                 }]
             };
 
-            await addDoc(collection(db, 'Request_materials'), requestData);
+            await addDoc(collection(db!, 'Request_materials'), requestData);
             setStep(4);
             setCart([]);
             setShowSuccess(true);

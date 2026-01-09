@@ -3,7 +3,7 @@
 import Header from '@/components/Header';
 import StoreSidebar from '@/components/StoreSidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import StoreRequestVerification from '@/components/StoreRequestVerification';
+import MaterialRequestView from '@/components/MaterialRequestView';
 
 export default function StoreFixedRequestsPage() {
     return (
@@ -14,10 +14,10 @@ export default function StoreFixedRequestsPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                    <Header title="View Requests" subtitle="Fixed Asset Handout Verification" />
+                    <Header title="View Requests" subtitle="Fixed Asset Requests" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
-                        <StoreRequestVerification storeType="fixed_asset" />
+                        <MaterialRequestView roleOverride="fixed_asset_store_keeper" materialTypeFilter="fixed_asset" />
                     </main>
                 </div>
             </div>

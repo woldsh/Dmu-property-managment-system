@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db, auth } from '../lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiUser,
   FiMail,
@@ -14,8 +15,13 @@ import {
   FiAlertCircle,
   FiChevronRight,
   FiShield,
-  FiLayers
+  FiLayers,
+  FiCommand,
+  FiTarget,
+  FiCpu,
+  FiHardDrive
 } from 'react-icons/fi';
+import { Loader2 } from 'lucide-react';
 
 interface RegisterUserProps {
   onSuccess?: () => void;
@@ -36,6 +42,7 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
   const [stockStoreType, setStockStoreType] = useState('');
 
   const [adminSelection, setAdminSelection] = useState('');
+  const [studentServiceSelection, setStudentServiceSelection] = useState('');
   const [adminRoleSelection, setAdminRoleSelection] = useState('');
 
   const [password, setPassword] = useState('');
@@ -54,8 +61,15 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
     setProcurementSelection('');
     setStockStoreType('');
     setAdminSelection('');
+    setStudentServiceSelection('');
     setAdminRoleSelection('');
   }, [mainRole]);
+
+  // Reset student service sub-selection when admin selection changes
+  useEffect(() => {
+    setStudentServiceSelection('');
+    setAdminRoleSelection('');
+  }, [adminSelection]);
 
   // Derived Logic for Final Roles
   const getRoleData = () => {
@@ -87,17 +101,17 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
           };
         } else if (academicSelection === 'department') {
           const deptMap: { [key: string]: string } = {
-            computer_science: 'computer_science',
-            agribusiness: 'agribusiness',
             accounting_finance: 'accounting_finance',
+            agribusiness: 'agribusiness',
             animal_science: 'animal_science',
+            computer_science: 'computer_science',
             economics: 'economics',
-            general_forestry: 'general_forestry',
+            general_forester: 'general_forester',
             horticulture: 'horticulture',
             management: 'management',
             natural_resource_management: 'natural_resource_management',
-            peace_development: 'peace_development',
             plant_science: 'plant_science',
+            peace_development: 'peace_development',
             veterinary_science: 'veterinary_science',
             common_course: 'common_course'
           };
@@ -151,6 +165,23 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
         } else if (adminSelection === 'finance') {
           if (adminRoleSelection === 'leader') return { mainRole: 'admin_staff', userRole: 'finance_leader', subRole: 'finance_manager' };
           if (adminRoleSelection === 'employee') return { mainRole: 'admin_staff', userRole: 'finance_employee', subRole: 'finance_staff' };
+        } else if (adminSelection === 'student_service') {
+          if (studentServiceSelection === 'overall') {
+            return {
+              mainRole: 'admin_staff',
+              userRole: 'student_service_leader',
+              subRole: 'student_service_manager'
+            };
+          }
+          if (studentServiceSelection && adminRoleSelection) {
+            const roleKey = `student_service_${studentServiceSelection}_${adminRoleSelection}`;
+            return {
+              mainRole: 'admin_staff',
+              userRole: roleKey,
+              subRole: `student_service_${adminRoleSelection}`,
+              service: studentServiceSelection
+            };
+          }
         }
         break;
     }
@@ -212,6 +243,7 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
       setProcurementSelection('');
       setStockStoreType('');
       setAdminSelection('');
+      setStudentServiceSelection('');
       setAdminRoleSelection('');
 
       if (onSuccess) {
@@ -230,65 +262,73 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-4xl mx-auto border border-gray-100 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
-      {/* Premium Header */}
-      <div className="bg-slate-900 px-8 py-12 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full -mr-32 -mt-32 blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/10 rounded-full -ml-24 -mb-24 blur-2xl"></div>
+    <div className="bg-black/40 backdrop-blur-3xl rounded-[3rem] shadow-2xl overflow-hidden max-w-5xl mx-auto border border-white/5 transition-all duration-700 hover:shadow-[0_40px_100px_rgba(0,0,0,0.4)] relative">
+      {/* Decorative Glows */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[150px] -mr-48 -mt-48 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 blur-[120px] -ml-32 -mb-32 pointer-events-none" />
 
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="p-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg ring-4 ring-white/10">
-            <div className="text-4xl text-white">
+      {/* Premium Dark Header */}
+      <div className="px-10 py-16 text-white relative border-b border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent">
+        <div className="relative z-10 flex items-center gap-10">
+          <div className="p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] shadow-2xl ring-1 ring-white/20 transform hover:rotate-12 transition-transform duration-500">
+            <div className="text-5xl text-white">
               <FiUser />
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">System Enrollment</h2>
-            <p className="mt-2 text-slate-400 font-medium max-w-md">Provision new administrative or academic accounts with granular permission mapping.</p>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10 mb-4">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400 leading-none">Registry Console</span>
+            </div>
+            <h2 className="text-4xl italic font-black tracking-tighter uppercase leading-none">System <span className="text-blue-500 not-italic">Enrollment</span></h2>
+            <p className="mt-4 text-slate-400 font-medium max-w-xl text-lg leading-relaxed">Map institutional identities to secure permission nodes within the DC-DMU cloud cluster.</p>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-10 space-y-12 bg-white">
-        {/* Identity Section */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                <FiUser />
+      <form onSubmit={handleSubmit} className="p-12 space-y-16">
+        {/* Phase 01: Core Identity */}
+        <div className="space-y-10">
+          <div className="flex items-center justify-between border-b border-white/5 pb-6">
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-[1.2rem] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 text-xl shadow-inner">
+                <FiTarget />
               </div>
-              <h3 className="font-bold text-slate-800 text-lg">Identity Profile</h3>
+              <div>
+                <h3 className="font-black text-white text-2xl tracking-tight leading-none">Identity Core</h3>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1.5">Biographical Data Mapping</p>
+              </div>
             </div>
-            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">Phase 01</span>
+            <div className="px-4 py-1.5 bg-black/40 rounded-full border border-white/10 text-[10px] font-black text-blue-400 tracking-[0.3em] uppercase">Phase 01</div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Legal First Name</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">First Name <span className="text-blue-500">*</span></label>
               <input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
-                placeholder="Ex: John"
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium"
+                placeholder="Ex: Abebe"
+                className="w-full px-6 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-bold text-white shadow-xl hover:bg-white/[0.08]"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Legal Last Name</label>
+            <div className="space-y-3">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Last Name <span className="text-blue-500">*</span></label>
               <input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
-                placeholder="Ex: Smith"
-                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium"
+                placeholder="Ex: Kebede"
+                className="w-full px-6 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-bold text-white shadow-xl hover:bg-white/[0.08]"
               />
             </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Institutional Email</label>
+            <div className="md:col-span-2 space-y-3">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block">Institutional Uplink (Email) <span className="text-blue-500">*</span></label>
               <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors pointer-events-none text-xl">
                   <FiMail />
                 </div>
                 <input
@@ -296,278 +336,306 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="name@institution.edu"
-                  className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium font-mono text-sm"
+                  placeholder="name@institutional-relay.edu"
+                  className="w-full pl-16 pr-6 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-black text-white font-mono text-sm tracking-tight shadow-xl hover:bg-white/[0.08]"
                 />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Permissions Section */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
-                <FiLayers />
+        {/* Phase 02: Permission Mapping */}
+        <div className="space-y-10">
+          <div className="flex items-center justify-between border-b border-white/5 pb-6">
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-[1.2rem] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 text-xl shadow-inner">
+                <FiCpu />
               </div>
-              <h3 className="font-bold text-slate-800 text-lg">Organizational Mapping</h3>
+              <div>
+                <h3 className="font-black text-white text-2xl tracking-tight leading-none">Logic Mapping</h3>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1.5">Permission Node Assignment</p>
+              </div>
             </div>
-            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">Phase 02</span>
+            <div className="px-4 py-1.5 bg-black/40 rounded-full border border-white/10 text-[10px] font-black text-indigo-400 tracking-[0.3em] uppercase">Phase 02</div>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200 shadow-inner space-y-8">
-            <div className="space-y-3">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Functional Domain</label>
-              <select
-                value={mainRole}
-                onChange={(e) => setMainRole(e.target.value)}
-                required
-                className="w-full px-6 py-4 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none appearance-none transition-all cursor-pointer shadow-sm font-semibold text-slate-700"
-                style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\' /%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 1.5rem center', backgroundSize: '1.25rem' }}
-              >
-                <option value="">Select Organizational Domain...</option>
-                <option value="academic_staff">Educational & Academic Staff</option>
-                <option value="managing_director">Directorate / Executive Office</option>
-                <option value="general_service">Operational / General Services</option>
-                <option value="chief">Institutional Leadership (Chief)</option>
-                <option value="procurement_management">Supply Chain & Procurement</option>
-                <option value="admin_staff">Institutional Administration</option>
-              </select>
+          <div className="bg-white/5 backdrop-blur-3xl rounded-[2.5rem] p-10 border border-white/5 space-y-10 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/5 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2 block italic">Institutional Functional Domain</label>
+              <div className="relative group/select">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-indigo-500 text-xl pointer-events-none group-focus-within/select:scale-110 transition-transform">
+                  <FiCommand />
+                </div>
+                <select
+                  value={mainRole}
+                  onChange={(e) => setMainRole(e.target.value)}
+                  required
+                  className="w-full pl-16 pr-10 py-5 bg-black border border-white/10 rounded-[1.5rem] focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none appearance-none transition-all cursor-pointer font-black text-white text-lg tracking-tight hover:border-indigo-500/40"
+                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'white\' opacity=\'0.3\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'3\' d=\'M19 9l-7 7-7-7\' /%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 2rem center', backgroundSize: '1.5rem' }}
+                >
+                  <option value="" disabled className="bg-slate-900 border-none">Select Primary Domain...</option>
+                  <option value="academic_staff" className="bg-slate-900">Education & Academic Research</option>
+                  <option value="managing_director" className="bg-slate-900">Executive / Directorate Office</option>
+                  <option value="general_service" className="bg-slate-900">Functional & General Operations</option>
+                  <option value="chief" className="bg-slate-900">Institutional High Command (Chief)</option>
+                  <option value="procurement_management" className="bg-slate-900">Supply Chain / Logistics Cluster</option>
+                  <option value="admin_staff" className="bg-slate-900">Departmental Administration</option>
+                </select>
+              </div>
             </div>
 
-            {/* Dynamic Branching Logic */}
-            {mainRole === 'academic_staff' && (
-              <div className="space-y-6 pt-4 border-t border-slate-200 animate-in slide-in-from-top duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-600">Position Type</label>
-                    <div className="flex gap-2">
-                      {['academic_coordinator', 'department'].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setAcademicSelection(type)}
-                          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${academicSelection === type
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-500/20'
-                            : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300 hover:text-blue-600'
-                            }`}
-                        >
-                          {type === 'academic_coordinator' ? 'Coordinator' : 'Department'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+            {/* Dynamic Branching Logic with Advanced Motion */}
+            <AnimatePresence mode="wait">
+              {mainRole && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="space-y-8 pt-8 border-t border-white/5"
+                >
+                  {/* Academic Branching */}
+                  {mainRole === 'academic_staff' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2">Position Model</label>
+                        <div className="flex bg-black p-1.5 rounded-2xl border border-white/5 gap-1.5">
+                          {['academic_coordinator', 'department'].map((type) => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => setAcademicSelection(type)}
+                              className={`flex-1 py-4 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${academicSelection === type
+                                ? 'bg-blue-600 text-white shadow-2xl shadow-blue-600/40'
+                                : 'text-slate-500 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                              {type === 'academic_coordinator' ? 'Coordinator' : 'Departmental'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                  {academicSelection === 'department' && (
-                    <div className="space-y-2 animate-in fade-in zoom-in duration-300">
-                      <label className="text-xs font-bold text-slate-600">Faculty/Department</label>
-                      <select
-                        value={departmentSelection}
-                        onChange={(e) => setDepartmentSelection(e.target.value)}
-                        required
-                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none text-sm font-medium"
-                      >
-                        <option value="">Choose Department...</option>
-                        <option value="computer_science">Computer Science</option>
-                        <option value="agribusiness">Agribusiness & Value Chain Management</option>
-                        <option value="accounting_finance">Accounting and Finance</option>
-                        <option value="animal_science">Animal Science</option>
-                        <option value="economics">Economics</option>
-                        <option value="general_forestry">General Forestry</option>
-                        <option value="horticulture">Horticulture</option>
-                        <option value="management">Management</option>
-                        <option value="natural_resource_management">Natural Resource Management</option>
-                        <option value="peace_development">Peace and Development</option>
-                        <option value="plant_science">Plant Science</option>
-                        <option value="veterinary_science">Veterinary Science</option>
-                        <option value="common_course">Common Course Department</option>
-                      </select>
+                      {academicSelection === 'department' && (
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2">Select Faculty Node</label>
+                          <select
+                            value={departmentSelection}
+                            onChange={(e) => setDepartmentSelection(e.target.value)}
+                            required
+                            className="w-full px-5 py-4 bg-black border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm font-black text-white tracking-tight"
+                          >
+                            <option value="">Choose Node...</option>
+                            <option value="accounting_finance">Accounting and Finance</option>
+                            <option value="agribusiness">Agribusiness and Value Chain Management</option>
+                            <option value="animal_science">Animal Science</option>
+                            <option value="computer_science">Computer Science</option>
+                            <option value="economics">Economics</option>
+                            <option value="general_forester">General Forester</option>
+                            <option value="horticulture">Horticulture</option>
+                            <option value="management">Management</option>
+                            <option value="natural_resource_management">Natural Resource Management</option>
+                            <option value="plant_science">Plant Science</option>
+                            <option value="peace_development">Peace and Development</option>
+                            <option value="veterinary_science">Veterinary Science</option>
+                            <option value="common_course">Common Course</option>
+                          </select>
+                        </motion.div>
+                      )}
+
+                      {academicSelection === 'department' && departmentSelection && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="md:col-span-2 grid grid-cols-2 gap-6 bg-black/40 p-6 rounded-[2rem] border border-white/5">
+                          {[
+                            { id: 'head', label: 'Faculty Lead', desc: 'Authoritative oversight.' },
+                            { id: 'teacher', label: 'Instructor', desc: 'Standard data relay.' }
+                          ].map((role) => (
+                            <label key={role.id} className={`group relative flex flex-col p-6 rounded-3xl border-2 cursor-pointer transition-all duration-500 ${deptRoleSelection === role.id ? 'border-blue-600 bg-blue-600/5 shadow-2xl shadow-blue-600/10' : 'border-white/5 hover:bg-white/5'}`}>
+                              <input type="radio" className="absolute opacity-0" checked={deptRoleSelection === role.id} onChange={() => setDeptRoleSelection(role.id)} />
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${deptRoleSelection === role.id ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-500'}`}>
+                                  {deptRoleSelection === role.id ? <FiCheckCircle /> : <FiLayers />}
+                                </div>
+                                <span className={`font-black text-sm uppercase tracking-tight ${deptRoleSelection === role.id ? 'text-blue-500' : 'text-slate-400'}`}>{role.label}</span>
+                              </div>
+                              <span className="text-[10px] text-slate-500 font-bold leading-none">{role.desc}</span>
+                            </label>
+                          ))}
+                        </motion.div>
+                      )}
                     </div>
                   )}
-                </div>
 
-                {academicSelection === 'department' && departmentSelection && (
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 animate-in slide-in-from-bottom duration-300 shadow-sm">
-                    <label className="text-xs font-bold text-slate-500 uppercase block mb-4">Select Staff Designation</label>
-                    <div className="grid grid-cols-2 gap-6">
-                      {[
-                        { id: 'head', label: 'Department Head', desc: 'Full administrative control over faculty tasks.' },
-                        { id: 'teacher', label: 'Academic Lecturer', desc: 'Standard instruction and course management.' }
-                      ].map((role) => (
-                        <label
-                          key={role.id}
-                          className={`relative flex flex-col p-5 rounded-2xl border-2 cursor-pointer transition-all group ${deptRoleSelection === role.id
-                            ? 'border-blue-500 bg-blue-50/50'
-                            : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'
-                            }`}
-                        >
-                          <input
-                            type="radio"
-                            name="deptRole"
-                            className="absolute opacity-0"
-                            checked={deptRoleSelection === role.id}
-                            onChange={() => setDeptRoleSelection(role.id)}
-                          />
-                          <span className={`font-bold text-sm mb-1 ${deptRoleSelection === role.id ? 'text-blue-700' : 'text-slate-700'}`}>{role.label}</span>
-                          <span className="text-[10px] text-slate-500 leading-tight">{role.desc}</span>
-                          {deptRoleSelection === role.id && (
-                            <span className="absolute top-4 right-4 text-blue-500 text-lg">
-                              <FiCheckCircle />
-                            </span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Procurement / Supply Chain Branch */}
-            {mainRole === 'procurement_management' && (
-              <div className="space-y-6 pt-4 border-t border-slate-200 animate-in slide-in-from-top duration-500">
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-600 uppercase">Operational Role</label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {[
-                      { id: 'team_leader', label: 'Lead' },
-                      { id: 'stock_clerk', label: 'Clerk' },
-                      { id: 'store_keeper', label: 'Keeper' }
-                    ].map((btn) => (
-                      <button
-                        key={btn.id}
-                        type="button"
-                        onClick={() => setProcurementSelection(btn.id)}
-                        className={`py-3 px-4 rounded-xl text-sm font-bold border transition-all ${procurementSelection === btn.id
-                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg'
-                          : 'bg-white border-slate-200 text-slate-500 hover:border-emerald-300'
-                          }`}
-                      >
-                        {btn.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {(procurementSelection === 'stock_clerk' || procurementSelection === 'store_keeper') && (
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 animate-in fade-in duration-500">
-                    <label className="text-xs font-bold text-slate-500 block mb-4">Inventory Specialization</label>
-                    <div className="flex gap-4">
-                      {['fixed_assets', 'consumable_items'].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setStockStoreType(type)}
-                          className={`flex-1 py-4 px-6 rounded-2xl text-sm font-extrabold border-2 transition-all ${stockStoreType === type
-                            ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                            : 'bg-white border-slate-100 text-slate-400 hover:bg-slate-50'
-                            }`}
-                        >
-                          {type === 'fixed_assets' ? 'Fixed Asset Mgmt' : 'Consumable Resource'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Admin Staff Branch */}
-            {mainRole === 'admin_staff' && (
-              <div className="space-y-6 pt-4 border-t border-slate-200 animate-in slide-in-from-top duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-600">Administrative Unit</label>
-                    <div className="flex gap-2">
-                      {[
-                        { id: 'hrm', label: 'HRM' },
-                        { id: 'finance', label: 'Finance' }
-                      ].map((unit) => (
-                        <button
-                          key={unit.id}
-                          type="button"
-                          onClick={() => setAdminSelection(unit.id)}
-                          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${adminSelection === unit.id
-                            ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/30'
-                            : 'bg-white border-slate-200 text-slate-500 hover:border-purple-300 hover:text-purple-600'
-                            }`}
-                        >
-                          {unit.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {adminSelection && (
-                    <div className="space-y-2 animate-in fade-in zoom-in duration-300">
-                      <label className="text-xs font-bold text-slate-600">Position Level</label>
-                      <div className="flex gap-2">
+                  {/* Procurement Logic */}
+                  {mainRole === 'procurement_management' && (
+                    <div className="space-y-8">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none">Supply Chain Vector</label>
+                      <div className="grid grid-cols-3 gap-4">
                         {[
-                          { id: 'leader', label: 'Leader' },
-                          { id: 'employee', label: 'Employee' }
-                        ].map((level) => (
+                          { id: 'team_leader', label: 'Lead' },
+                          { id: 'stock_clerk', label: 'Clerk' },
+                          { id: 'store_keeper', label: 'Keeper' }
+                        ].map((btn) => (
                           <button
-                            key={level.id}
+                            key={btn.id}
                             type="button"
-                            onClick={() => setAdminRoleSelection(level.id)}
-                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold border transition-all ${adminRoleSelection === level.id
-                              ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-500/30'
-                              : 'bg-white border-slate-200 text-slate-500 hover:border-purple-300 hover:text-purple-600'
+                            onClick={() => setProcurementSelection(btn.id)}
+                            className={`py-5 rounded-2xl text-sm font-black uppercase tracking-[0.2em] italic border transition-all duration-500 ${procurementSelection === btn.id
+                              ? 'bg-emerald-600 border-emerald-500 text-white shadow-2xl shadow-emerald-600/30 -translate-y-1'
+                              : 'bg-black border-white/5 text-slate-500 hover:text-white hover:bg-white/5'
                               }`}
                           >
-                            {level.label}
+                            {btn.label}
                           </button>
                         ))}
                       </div>
+
+                      {(procurementSelection === 'stock_clerk' || procurementSelection === 'store_keeper') && (
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="p-8 rounded-[2rem] bg-black border border-white/10 flex flex-col gap-6">
+                          <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] leading-none mb-2 italic">Specialized Asset Domain</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            {['fixed_assets', 'consumable_items'].map((type) => (
+                              <button key={type} type="button" onClick={() => setStockStoreType(type)} className={`py-5 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all duration-500 ${stockStoreType === type ? 'border-emerald-600 bg-emerald-600/10 text-emerald-400 shadow-2xl shadow-emerald-600/10' : 'border-white/5 text-slate-500 hover:bg-white/5'}`}>
+                                {type === 'fixed_assets' ? 'Infinite Assets' : 'Resource Tokens'}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   )}
-                </div>
-              </div>
-            )}
 
-            <div className={`mt-8 p-5 rounded-2xl border transition-all duration-500 flex items-center justify-between ${currentRoleData ? 'bg-slate-900 border-slate-800 text-white translate-y-0' : 'bg-slate-100 border-slate-200 text-slate-400 opacity-50'
-              }`}>
-              <div className="flex items-center gap-5">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${currentRoleData ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50 rotate-3' : 'bg-slate-300 text-white'}`}>
-                  <span className="text-2xl">
-                    <FiShield />
-                  </span>
+                  {/* Admin Brach */}
+                  {mainRole === 'admin_staff' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none italic">Admin Relay Cluster</label>
+                        <div className="flex bg-black p-2 rounded-2xl border border-white/5 gap-2">
+                          {[
+                            { id: 'hrm', label: 'HRM Hub' },
+                            { id: 'finance', label: 'Finance Hub' },
+                            { id: 'student_service', label: 'Student Service' }
+                          ].map((unit) => (
+                            <button key={unit.id} type="button" onClick={() => setAdminSelection(unit.id)} className={`flex-1 py-4 font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-500 ${adminSelection === unit.id ? 'bg-purple-600 text-white shadow-2xl' : 'text-slate-500 hover:bg-white/5'}`}>
+                              {unit.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {adminSelection === 'student_service' && (
+                        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-10">
+                          <div className="space-y-4">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none italic">Service Level</label>
+                            <div className="flex bg-black p-2 rounded-2xl border border-white/5 gap-2">
+                              {[
+                                { id: 'overall', label: 'Overall Unit' },
+                                { id: 'node', label: 'Sub-Service Node' }
+                              ].map((lvl) => (
+                                <button key={lvl.id} type="button" onClick={() => {
+                                  setStudentServiceSelection(lvl.id === 'overall' ? 'overall' : '');
+                                  setAdminRoleSelection(lvl.id === 'overall' ? 'leader' : '');
+                                }} className={`flex-1 py-4 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all duration-500 ${studentServiceSelection === 'overall' && lvl.id === 'overall' ? 'bg-purple-600 text-white shadow-2xl' : (studentServiceSelection !== 'overall' && studentServiceSelection !== '' && lvl.id === 'node') ? 'bg-purple-600 text-white shadow-2xl' : 'text-slate-400 hover:bg-white/5'}`}>
+                                  {lvl.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {studentServiceSelection !== 'overall' && (
+                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none italic">Select Service Node</label>
+                              <div className="flex bg-black p-2 rounded-2xl border border-white/5 gap-2">
+                                {[
+                                  { id: 'dormitory', label: 'Dormitory' },
+                                  { id: 'cafeteria', label: 'Cafeteria' },
+                                  { id: 'sport', label: 'Sport' }
+                                ].map((svc) => (
+                                  <button key={svc.id} type="button" onClick={() => setStudentServiceSelection(svc.id)} className={`flex-1 py-4 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all duration-500 ${studentServiceSelection === svc.id ? 'bg-purple-600 text-white shadow-2xl' : 'text-slate-400 hover:bg-white/5'}`}>
+                                    {svc.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+
+                          {studentServiceSelection && studentServiceSelection !== 'overall' && (
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none italic">Security Hierarchy</label>
+                              <div className="flex bg-black p-2 rounded-2xl border border-white/5 gap-2">
+                                {[{ id: 'leader', label: 'Leader' }, { id: 'employee', label: 'Base staff' }].map((lvl) => (
+                                  <button key={lvl.id} type="button" onClick={() => setAdminRoleSelection(lvl.id)} className={`flex-1 py-4 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all duration-500 ${adminRoleSelection === lvl.id ? 'bg-purple-600 text-white shadow-2xl shadow-purple-600/30' : 'text-slate-500 hover:bg-white/5'}`}>
+                                    {lvl.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+
+                      {(adminSelection === 'hrm' || adminSelection === 'finance') && (
+                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block ml-2 leading-none italic">Security Hierarchy</label>
+                          <div className="flex bg-black p-2 rounded-2xl border border-white/5 gap-2">
+                            {[{ id: 'leader', label: 'Leader' }, { id: 'employee', label: 'Base staff' }].map((lvl) => (
+                              <button key={lvl.id} type="button" onClick={() => setAdminRoleSelection(lvl.id)} className={`flex-1 py-4 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all duration-500 ${adminRoleSelection === lvl.id ? 'bg-purple-600 text-white shadow-2xl shadow-purple-600/30' : 'text-slate-500 hover:bg-white/5'}`}>
+                                {lvl.label}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Live Role Signature Preview */}
+            <div className={`mt-10 p-8 rounded-[2rem] border transition-all duration-1000 flex items-center justify-between group/sig ${currentRoleData ? 'bg-white text-black translate-y-0 shadow-[0_30px_60px_rgba(255,255,255,0.1)]' : 'bg-black border-white/5 text-slate-700 opacity-40'}`}>
+              <div className="flex items-center gap-6">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-700 ${currentRoleData ? 'bg-black text-white shadow-2xl ring-4 ring-blue-500/20 rotate-6' : 'bg-white/5 text-slate-800'}`}>
+                  <FiShield className="text-3xl" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-black tracking-[0.2em] mb-1 opacity-50">Provisioning Signature</p>
-                  <p className="font-mono text-xs font-bold flex items-center gap-2">
-                    {currentRoleData ? currentRoleData.userRole : 'AWAITING CONFIGURATION'}
-                    {currentRoleData && <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-2"></span>}
+                  <p className="text-[10px] uppercase font-black tracking-[0.4em] mb-2 opacity-60 italic">Node Signature</p>
+                  <p className="font-mono text-lg font-black tracking-tighter uppercase italic flex items-center gap-4">
+                    {currentRoleData ? currentRoleData.userRole.replace(/_/g, ' • ') : 'AWAITING CONFIGURATION...'}
+                    {currentRoleData && <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_rgba(16,185,129,1)]"></span>}
                   </p>
                 </div>
               </div>
               {currentRoleData && (
-                <span className="text-emerald-400 text-2xl animate-in zoom-in spin-in-90 duration-500">
-                  <FiCheckCircle />
-                </span>
+                <div className="hidden sm:flex flex-col items-end gap-1 font-black text-[10px] uppercase tracking-widest italic opacity-40">
+                  <p>Verified Module</p>
+                  <p className="text-blue-600 font-black">S-772_READY</p>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Credentials Section */}
-        <div className="space-y-8">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-sm">
+        {/* Phase 03: Security Protocol */}
+        <div className="space-y-10">
+          <div className="flex items-center justify-between border-b border-white/5 pb-6">
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-[1.2rem] bg-slate-100/5 border border-white/10 flex items-center justify-center text-white text-xl shadow-inner">
                 <FiLock />
               </div>
-              <h3 className="font-bold text-slate-800 text-lg">Infrastructure Access</h3>
+              <div>
+                <h3 className="font-black text-white text-2xl tracking-tight leading-none">Access Protocol</h3>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1.5">Infrastructure Key Generation</p>
+              </div>
             </div>
-            <span className="text-xs font-bold text-slate-400 tracking-widest uppercase">Phase 03</span>
+            <div className="px-4 py-1.5 bg-black/40 rounded-full border border-white/10 text-[10px] font-black text-slate-400 tracking-[0.3em] uppercase">Phase 03</div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Secure Passphrase</label>
-              <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block leading-none">Secure Key Phrase</label>
+              <div className="relative group/pass">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/pass:text-blue-500 transition-colors pointer-events-none text-xl">
                   <FiLock />
                 </div>
                 <input
@@ -575,16 +643,15 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
-                  placeholder="Minimum 6 characters"
-                  className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium font-mono text-sm leading-none"
+                  placeholder="Cipher Key (Min 6 chars)"
+                  className="w-full pl-16 pr-6 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-black text-white font-mono text-sm leading-none shadow-xl hover:bg-white/[0.08]"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-extrabold text-slate-500 uppercase tracking-tighter ml-1">Verify Passphrase</label>
-              <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+            <div className="space-y-4">
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 block leading-none">Verify Key Phrase</label>
+              <div className="relative group/pass">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/pass:text-blue-500 transition-colors pointer-events-none text-xl">
                   <FiShield />
                 </div>
                 <input
@@ -592,9 +659,8 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
-                  placeholder="Must match exactly"
-                  className="w-full pl-14 pr-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium font-mono text-sm leading-none"
+                  placeholder="Match Cipher Exactly"
+                  className="w-full pl-16 pr-6 py-5 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-600 font-black text-white font-mono text-sm leading-none shadow-xl hover:bg-white/[0.08]"
                 />
               </div>
             </div>
@@ -602,65 +668,65 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
         </div>
 
         {/* Global Feedback & Final Trigger */}
-        <div className="pt-10 border-t border-slate-100 space-y-6">
-          {error && (
-            <div className="flex items-center gap-4 bg-rose-50 border border-rose-200 text-rose-700 p-5 rounded-2xl text-sm animate-in slide-in-from-top-4 font-medium shadow-sm">
-              <span className="flex-shrink-0 text-xl">
-                <FiAlertCircle />
-              </span>
-              <span>{error}</span>
-            </div>
-          )}
-          {success && (
-            <div className="flex items-center gap-4 bg-emerald-50 border border-emerald-200 text-emerald-700 p-5 rounded-2xl text-sm animate-in slide-in-from-top-4 font-medium shadow-sm">
-              <span className="flex-shrink-0 text-xl">
-                <FiCheckCircle />
-              </span>
-              <span>{success}</span>
-            </div>
-          )}
+        <div className="pt-16 border-t border-white/10 space-y-10">
+          <AnimatePresence>
+            {error && (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-6 bg-rose-600/10 border border-rose-500/20 text-rose-500 p-8 rounded-3xl text-sm font-black italic tracking-tight shadow-[0_20px_40px_rgba(244,63,94,0.1)]">
+                <FiAlertCircle className="text-3xl animate-pulse" />
+                <div>
+                  <p className="uppercase text-[10px] tracking-[0.3em] mb-1 leading-none">Access Alert</p>
+                  <p className="text-lg leading-tight uppercase font-black italic font-mono">{error}</p>
+                </div>
+              </motion.div>
+            )}
+            {success && (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-6 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 p-8 rounded-3xl text-sm font-black italic tracking-tight shadow-[0_20px_40px_rgba(16,185,129,0.1)]">
+                <FiCheckCircle className="text-3xl" />
+                <div>
+                  <p className="uppercase text-[10px] tracking-[0.3em] mb-1 leading-none">Registry Update</p>
+                  <p className="text-lg leading-tight uppercase font-black italic font-mono">{success}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none" />
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-slate-900 py-6 px-10 rounded-2xl text-white font-black text-xl tracking-tight shadow-2xl transition-all hover:bg-slate-800 hover:scale-[1.01] hover:-translate-y-1 active:scale-[0.98] active:translate-y-0 disabled:bg-slate-300 disabled:cursor-not-allowed group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+              className="w-full relative bg-white py-8 px-10 rounded-[2.25rem] text-black font-black text-2xl tracking-tighter italic uppercase shadow-2xl transition-all hover:scale-[1.02] hover:-translate-y-2 active:scale-[0.98] active:translate-y-0 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] overflow-hidden"
             >
-              <span className="flex items-center justify-center gap-3">
+              <div className="absolute inset-0 bg-blue-500 translate-y-full group-hover:translate-y-0 transition-transform duration-700 pointer-events-none" />
+              <span className="relative z-10 flex items-center justify-center gap-5 group-hover:text-white transition-colors duration-500">
                 {loading ? (
                   <>
-                    <div className="h-6 w-6 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                    Executing Deployment...
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                    Deploying Identity...
                   </>
                 ) : (
                   <>
-                    Generate Identity
-                    <span className="text-2xl group-hover:translate-x-2 transition-transform duration-300">
-                      <FiChevronRight />
-                    </span>
+                    Initialize Core Identity
+                    <FiChevronRight className="text-3xl group-hover:translate-x-3 transition-transform duration-500" />
                   </>
                 )}
               </span>
             </button>
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none"></div>
           </div>
 
-          <div className="flex items-center justify-center gap-6 opacity-40">
-            <div className="h-[1px] flex-1 bg-slate-300"></div>
-            <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 flex items-center gap-2">
-              <FiShield /> End-to-End Encrypted Enrollment
+          <div className="flex flex-col items-center gap-4 py-8">
+            <div className="flex items-center gap-6 w-full opacity-10">
+              <div className="h-px flex-1 bg-white" />
+              <FiShield className="text-sm" />
+              <div className="h-px flex-1 bg-white" />
+            </div>
+            <p className="text-[9px] uppercase font-black tracking-[0.5em] text-slate-500 flex items-center gap-3">
+              Institutional Proxy Enabled • End-to-End Encrypted Tunnel Active
             </p>
-            <div className="h-[1px] flex-1 bg-slate-300"></div>
           </div>
         </div>
       </form>
-
-      <style jsx global>{`
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slide-up { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-in { animation: fade-in 0.5s ease-out forwards; }
-        .slide-in-from-top { animation: slide-up 0.5s ease-out forwards; }
-      `}</style>
     </div>
   );
 }

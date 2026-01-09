@@ -14,7 +14,8 @@ import {
     where,
     getDocs,
     getDoc,
-    writeBatch
+    writeBatch,
+    Firestore
 } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { usePathname } from 'next/navigation';
@@ -69,13 +70,14 @@ interface MaterialRequest {
 }
 
 interface MaterialRequestViewProps {
-    roleOverride?: 'department_head' | 'academic_coordinator' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper';
+    roleOverride?: 'department_head' | 'academic_coordinator' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper' | 'student_service_leader' | 'consumable_item_stock_clerk' | 'fixed_asset_stock_clerk' | 'consumable_item_store_keeper' | 'fixed_asset_store_keeper';
     materialTypeFilter?: 'fixed_asset' | 'consumable';
 }
 
-type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper';
+type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper' | 'dormitory_leader' | 'cafeteria_leader' | 'sports_leader' | 'student_service_leader' | 'hrm_leader' | 'finance_leader' | 'consumable_item_stock_clerk' | 'fixed_asset_stock_clerk' | 'consumable_item_store_keeper' | 'fixed_asset_store_keeper';
 
 export default function MaterialRequestView({ roleOverride, materialTypeFilter }: MaterialRequestViewProps) {
+    if (!db) return <div className="p-8 text-center text-red-500">Database connection error. Please refresh.</div>;
     const { user } = useAuth();
     const [requests, setRequests] = useState<MaterialRequest[]>([]);
     const [materialImages, setMaterialImages] = useState<Record<string, string>>({});
@@ -96,23 +98,41 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 pathname?.includes('/service') ? 'general_service' :
                     pathname?.includes('/workspace') ? (
                         userData?.userRole === 'procurement_team_leader' ? 'team_leader' :
-                            userData?.userRole?.includes('stock_clerk') ? 'stock_clerk' :
-                                userData?.userRole?.includes('store_keeper') ? 'store_keeper' :
+                            userData?.userRole?.includes('stock_clerk') ? (userData?.userRole || 'stock_clerk') :
+                                userData?.userRole?.includes('store_keeper') ? (userData?.userRole || 'store_keeper') :
                                     'team_leader'
                     ) :
-                        // Fallback to old path detection for compatibility
-                        pathname?.includes('/managing-director') ? 'managing_director' :
-                            pathname?.includes('/academic-coordinator') ? 'academic_coordinator' :
-                                pathname?.includes('/general-service') ? 'general_service' :
-                                    pathname?.includes('/stock-clerk') ? 'stock_clerk' :
-                                        pathname?.includes('/team-leader') ? 'team_leader' :
-                                            userData?.userRole?.includes('_head') ? 'department_head' :
-                                                'academic_coordinator'
+                        pathname?.includes('/admin-staff/team-leader') ? (
+                            userData?.userRole === 'student_service_leader' ? 'student_service_leader' :
+                                userData?.userRole === 'student_service_dormitory_leader' ? 'dormitory_leader' :
+                                    userData?.userRole === 'student_service_cafeteria_leader' ? 'cafeteria_leader' :
+                                        userData?.userRole === 'student_service_sport_leader' ? 'sports_leader' :
+                                            userData?.userRole === 'hrm_leader' ? 'hrm_leader' :
+                                                userData?.userRole === 'finance_leader' ? 'finance_leader' :
+                                                    'team_leader'
+                        ) :
+                            // Check for Stock Clerk and Store Keeper specific roles in the URL or User Role?
+                            // This part ensures effectiveRole carries the full role name like 'consumable_item_stock_clerk'
+                            pathname?.includes('/procurement-management/stock-clerk') ? (
+                                userData?.userRole || 'stock_clerk'
+                            ) :
+                                pathname?.includes('/procurement-management/store') ? (
+                                    userData?.userRole || 'store_keeper'
+                                ) :
+                                    // Fallback to old path detection for compatibility
+                                    pathname?.includes('/managing-director') ? 'managing_director' :
+                                        pathname?.includes('/academic-coordinator') ? 'academic_coordinator' :
+                                            pathname?.includes('/general-service') ? 'general_service' :
+                                                pathname?.includes('/stock-clerk') ? 'stock_clerk' :
+                                                    pathname?.includes('/team-leader') ? 'team_leader' :
+                                                        userData?.userRole?.includes('_head') ? 'department_head' :
+                                                            'academic_coordinator'
     );
 
     useEffect(() => {
         // Fetch material images for fallback
         const fetchMaterialImages = async () => {
+            if (!db) return;
             const materialsSnap = await getDocs(collection(db, 'materials'));
             const imageMap: Record<string, string> = {};
             materialsSnap.docs.forEach(doc => {
@@ -128,7 +148,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            if (user) {
+            if (user && db) {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
@@ -139,10 +159,10 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     }, [user]);
 
     useEffect(() => {
-        if (!userData) return;
+        if (!userData || !db) return;
 
         let q;
-        const requestsRef = collection(db, 'Request_materials');
+        const requestsRef = collection(db!, 'Request_materials');
 
         if (effectiveRole === 'department_head') {
             let dept = userData.department;
@@ -155,37 +175,51 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 requestsRef,
                 where('department', '==', dept),
                 where('currentApproverRole', '==', 'department_head'),
-                where('status', '==', 'pending')
+                where('status', 'in', ['pending', 'pending_department_leader'])
             );
+        } else if (effectiveRole === 'dormitory_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', 'student_service_dormitory_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'cafeteria_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', 'student_service_cafeteria_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'sports_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', 'student_service_sport_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'hrm_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', 'hrm_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'finance_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', 'finance_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'student_service_leader') {
+            q = query(requestsRef, where('status', '==', 'pending_student_service_leader'));
         } else if (effectiveRole === 'managing_director') {
             q = query(
                 requestsRef,
-                where('status', '==', 'approved_by_coordinator')
+                where('status', 'in', ['approved_by_coordinator', 'pending_managing_director', 'approved_by_student_service_leader'])
             );
         } else if (effectiveRole === 'general_service') {
             q = query(
                 requestsRef,
-                where('status', '==', 'approved_by_md')
+                where('status', 'in', ['approved_by_md', 'pending_general_service'])
             );
-        } else if (effectiveRole === 'stock_clerk') {
+        } else if (effectiveRole.includes('stock_clerk')) {
             q = query(
-                collection(db, 'Request_materials'),
+                collection(db!, 'Request_materials'),
+                where('currentApproverRole', '==', effectiveRole), // Filter by exact clerk role (consumable/fixed)
                 where('status', '==', 'approved_by_procurement_team_leader')
             );
-        } else if (effectiveRole === 'store_keeper') {
+        } else if (effectiveRole.includes('store_keeper')) {
             q = query(
-                collection(db, 'Request_materials'),
+                collection(db!, 'Request_materials'),
+                where('currentApproverRole', '==', effectiveRole), // Filter by exact keeper role
                 where('status', '==', 'approved_by_clerk')
             );
         } else if (effectiveRole === 'team_leader') {
             q = query(
-                collection(db, 'Request_materials'),
-                where('status', '==', 'forwarded_to_team_leader')
+                collection(db!, 'Request_materials'),
+                where('status', 'in', ['forwarded_to_team_leader', 'pending_procurement'])
             );
         } else {
             // Academic Coordinator view
             q = query(
-                collection(db, 'Request_materials'),
+                collection(db!, 'Request_materials'),
                 where('currentApproverRole', '==', 'academic_coordinator'),
                 where('status', '==', 'approved_by_head')
             );
@@ -243,16 +277,66 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     }, [userData, effectiveRole]);
 
     const handleApprove = async (request: MaterialRequest) => {
-        if (!user || !userData) return;
+        if (!user || !userData || !db) return;
         setProcessingId(request.id);
 
         try {
-            const requestRef = doc(db, 'Request_materials', request.id);
+            const requestRef = doc(db!, 'Request_materials', request.id);
 
-            if (effectiveRole === 'department_head') {
+            if (effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader' || effectiveRole === 'hrm_leader' || effectiveRole === 'finance_leader') {
+                // If it's a student service leader, forward to SSL. If it's HRM or Finance leader, forward to MD.
+                const isStudentServiceSubLeader = effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader';
+
+                const nextRole = isStudentServiceSubLeader ? 'student_service_leader' : 'managing_director';
+                const nextStatus = isStudentServiceSubLeader ? 'pending_student_service_leader' : 'pending_managing_director';
+
+                const nextQuery = query(collection(db!, 'users'), where('userRole', '==', nextRole));
+                const nextSnapshot = await getDocs(nextQuery);
+                const nextApproverId = nextSnapshot.empty ? `PENDING_${nextRole.toUpperCase()}_ASSIGNMENT` : nextSnapshot.docs[0].id;
+                const nextApproverName = nextSnapshot.empty ? nextRole.replace(/_/g, ' ') : nextSnapshot.docs[0].data().displayName;
+
+                await updateDoc(requestRef, {
+                    status: nextStatus,
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: nextRole,
+                    history: [
+                        ...request.history,
+                        {
+                            status: nextStatus,
+                            user: user.uid,
+                            timestamp: new Date().toISOString(),
+                            note: `Approved by ${effectiveRole.replace('_', ' ')}. Forwarded to ${nextApproverName}.`
+                        }
+                    ]
+                });
+                setSuccessMessage({ text: `Request approved and forwarded to ${nextApproverName}`, type: 'general' });
+            } else if (effectiveRole === 'student_service_leader') {
+                const mdQuery = query(collection(db!, 'users'), where('userRole', '==', 'managing_director'));
+                const mdSnapshot = await getDocs(mdQuery);
+                const nextApproverId = mdSnapshot.empty ? 'PENDING_MD_ASSIGNMENT' : mdSnapshot.docs[0].id;
+                const nextApproverName = mdSnapshot.empty ? 'Managing Director' : mdSnapshot.docs[0].data().displayName;
+
+                await updateDoc(requestRef, {
+                    status: 'pending_managing_director',
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: 'managing_director',
+                    history: [
+                        ...request.history,
+                        {
+                            status: 'pending_managing_director',
+                            user: user.uid,
+                            timestamp: new Date().toISOString(),
+                            note: 'Approved by Student Service Leader. Forwarded to Managing Director.'
+                        }
+                    ]
+                });
+                setSuccessMessage({ text: "Request approved and forwarded to Managing Director", type: 'general' });
+            } else if (effectiveRole === 'department_head') {
                 // Find the Academic Coordinator
                 const acQuery = query(
-                    collection(db, 'users'),
+                    collection(db!, 'users'),
                     where('userRole', '==', 'academic_coordinator')
                 );
                 const acSnapshot = await getDocs(acQuery);
@@ -280,77 +364,117 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                     text: "Successfully sent message",
                     type: 'general'
                 });
-                setTimeout(() => setSuccessMessage(null), 5000);
             } else if (effectiveRole === 'managing_director') {
-                // Managing Director Logic
+                const gsQuery = query(collection(db!, 'users'), where('userRole', '==', 'general_service_leader'));
+                const gsSnapshot = await getDocs(gsQuery);
+                const nextApproverId = gsSnapshot.empty ? 'PENDING_GS_ASSIGNMENT' : gsSnapshot.docs[0].id;
+                const nextApproverName = gsSnapshot.empty ? 'General Service' : gsSnapshot.docs[0].data().displayName;
+
                 await updateDoc(requestRef, {
-                    status: 'approved_by_md',
-                    currentApproverRole: 'procurement_officer', // Forward to procurement
+                    status: 'pending_general_service',
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: 'general_service_leader',
                     history: [
                         ...request.history,
                         {
-                            status: 'approved_by_md',
+                            status: 'pending_general_service',
                             user: user.uid,
                             timestamp: new Date().toISOString(),
-                            note: 'Final approval granted by Managing Director. Forwarded to Procurement.'
+                            note: 'Approved by Managing Director. Forwarded to General Service.'
                         }
                     ]
                 });
-                setSuccessMessage({
-                    text: "Successfully sent message",
-                    type: 'md'
-                });
-                setTimeout(() => setSuccessMessage(null), 5000);
+                setSuccessMessage({ text: "Request approved and forwarded to General Service", type: 'md' });
             } else if (effectiveRole === 'general_service') {
-                // General Service Logic - Just forward to Team Leader
-                try {
-                    // Update the original Request_materials document
-                    await updateDoc(requestRef, {
-                        status: 'forwarded_to_team_leader',
-                        currentApproverRole: 'procurement_team_leader',
-                        history: [
-                            ...request.history,
-                            {
-                                status: 'forwarded_to_team_leader',
-                                user: user.uid,
-                                timestamp: new Date().toISOString(),
-                                note: `Request processed by General Service. Forwarded to Team Leader for approval.`
-                            }
-                        ]
-                    });
+                const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
+                const ptlSnapshot = await getDocs(ptlQuery);
+                const nextApproverId = ptlSnapshot.empty ? 'PENDING_PTL_ASSIGNMENT' : ptlSnapshot.docs[0].id;
+                const nextApproverName = ptlSnapshot.empty ? 'Procurement Team Leader' : ptlSnapshot.docs[0].data().displayName;
 
-                    setSuccessMessage({
-                        text: "Successfully sent message",
-                        type: 'general'
-                    });
-                    setTimeout(() => setSuccessMessage(null), 5000);
-                } catch (error) {
-                    console.error("Error creating User-Report entries:", error);
-                    throw error;
-                }
-                // Clear message after 5 seconds
-                setTimeout(() => setSuccessMessage(null), 5000);
+                await updateDoc(requestRef, {
+                    status: 'pending_procurement',
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: 'procurement_team_leader',
+                    history: [
+                        ...request.history,
+                        {
+                            status: 'pending_procurement',
+                            user: user.uid,
+                            timestamp: new Date().toISOString(),
+                            note: 'Approved by General Service. Forwarded to Procurement Team Leader.'
+                        }
+                    ]
+                });
+                setSuccessMessage({ text: "Request approved and forwarded to Procurement Team Leader", type: 'general' });
             } else if (effectiveRole === 'team_leader') {
-                // Procurement Team Leader Logic
-                // 1. Update Request_materials
+                // Procurement Team Leader -> Forward to Stock Clerk
+                // Determine material type from items (assuming all items in a request are of similar type or taking the first one)
+                // If mixed, default to fixed for safety or check logic. For now, checking the first item.
+                const firstItem = request.items[0];
+                const type = firstItem?.materialType?.toLowerCase() || '';
+                const isConsumable = type.includes('consumable');
+
+                const clerkRole = isConsumable ? 'consumable_item_stock_clerk' : 'fixed_asset_stock_clerk';
+
+                // Find Clerk
+                const clerkQuery = query(collection(db!, 'users'), where('userRole', '==', clerkRole));
+                const clerkSnapshot = await getDocs(clerkQuery);
+                const nextApproverId = clerkSnapshot.empty ? 'PENDING_CLERK_ASSIGNMENT' : clerkSnapshot.docs[0].id;
+                const nextApproverName = clerkSnapshot.empty ? (isConsumable ? 'Consumable Stock Clerk' : 'Fixed Stock Clerk') : clerkSnapshot.docs[0].data().displayName;
+
                 await updateDoc(requestRef, {
                     status: 'approved_by_procurement_team_leader',
-                    currentApproverRole: 'stock_clerk',
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: clerkRole,
                     history: [
                         ...request.history,
                         {
                             status: 'approved_by_procurement_team_leader',
                             user: user.uid,
                             timestamp: new Date().toISOString(),
-                            note: 'Approved by Procurement Team Leader. Forwarded to Stock Clerk for validation.'
+                            note: `Approved by Procurement Team Leader. Forwarded to ${nextApproverName}.`
+                        }
+                    ]
+                });
+                setSuccessMessage({ text: "Request approved and forwarded to Stock Clerk", type: 'general' });
+
+            } else if (effectiveRole === 'stock_clerk' || effectiveRole.includes('stock_clerk')) {
+                // Stock Clerk -> Forward to Store Keeper AND send verification to employee
+                const firstItem = request.items[0];
+                const type = firstItem?.materialType?.toLowerCase() || '';
+                const isConsumable = type.includes('consumable');
+
+                const keeperRole = isConsumable ? 'consumable_item_store_keeper' : 'fixed_asset_store_keeper';
+
+                // Find Keeper
+                const keeperQuery = query(collection(db!, 'users'), where('userRole', '==', keeperRole));
+                const keeperSnapshot = await getDocs(keeperQuery);
+                const nextApproverId = keeperSnapshot.empty ? 'PENDING_KEEPER_ASSIGNMENT' : keeperSnapshot.docs[0].id;
+                const nextApproverName = keeperSnapshot.empty ? (isConsumable ? 'Consumable Store Keeper' : 'Fixed Store Keeper') : keeperSnapshot.docs[0].data().displayName;
+
+                await updateDoc(requestRef, {
+                    status: 'approved_by_clerk',
+                    currentApproverId: nextApproverId,
+                    currentApproverName: nextApproverName,
+                    currentApproverRole: keeperRole,
+                    history: [
+                        ...request.history,
+                        {
+                            status: 'approved_by_clerk',
+                            user: user.uid,
+                            timestamp: new Date().toISOString(),
+                            note: `Approved by Stock Clerk. Forwarded to ${nextApproverName} and verification sent to employee.`
                         }
                     ]
                 });
 
-                // 2. Create User_reports entries (moved from General Service logic)
+                // Create User-Report entries and send verification code to employee
                 try {
                     const userReportPromises = request.items.map(async (item) => {
-                        await addDoc(collection(db, 'User-Report'), {
+                        await addDoc(collection(db!, 'User-Report'), {
                             requestId: request.id,
                             requesterId: request.requesterId,
                             requesterName: request.requesterName,
@@ -362,30 +486,19 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             unit: item.unit,
                             materialType: item.materialType,
                             condition: item.condition,
-                            image: item.image || '', // Added image field
+                            image: item.image || '',
                             withdrawalDate: serverTimestamp(),
-                            // Status set to pending as requested
-                            status: 'pending',
-                            // Processed by (General Service who forwarded it originally, but simplifying here to be the creator for now or keep generic?)
-                            // User requested data be "keep before but creating time update to team-leader approval time"
-                            // So we set creation time (withdrawalDate) here.
-
-                            processedBy: request.history.find(h => h.status === 'forwarded_to_team_leader')?.user || 'SYSTEM',
-                            processedByName: 'General Service', // Preserving this context if possible, or we could set Team Leader as processedBy depending on interpretation. 
-                            // However, user said "User-Report created during approved in team-leader... keep before".
-                            // Before, General Service created it. Now Team Leader creates it.
-                            // Let's stick to the prompt: "approvedBy" keys should be populated.
-
+                            status: 'approved_by_clerk',
                             approvedBy: user.uid,
-                            approvedByName: userData.displayName || 'Team Leader',
+                            approvedByName: userData.displayName || 'Stock Clerk',
                             approvedAt: serverTimestamp(),
                             createdAt: serverTimestamp(),
                             history: [
                                 {
-                                    status: 'pending',
+                                    status: 'approved_by_clerk',
                                     user: user.uid,
                                     timestamp: new Date().toISOString(),
-                                    note: 'Material withdrawal request created and approved by Team Leader.'
+                                    note: 'Approved by Stock Clerk. Awaiting employee verification.'
                                 }
                             ]
                         });
@@ -393,23 +506,38 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
                     await Promise.all(userReportPromises);
 
+                    // Generate verification code and Send_to_Users entry
+                    const code = Math.floor(100000 + Math.random() * 900000).toString();
+                    await addDoc(collection(db!, 'Send_to_Users'), {
+                        request_id: request.id,
+                        requester_user_id: request.requesterId,
+                        requester_name: request.requesterName,
+                        material_details: request.items.map(item => ({
+                            materialName: item.materialName,
+                            materialCode: item.materialCode,
+                            materialType: item.materialType,
+                            materialId: item.materialId,
+                            quantity: item.quantity,
+                            unit: item.unit
+                        })),
+                        verification_code: code,
+                        created_at: serverTimestamp(),
+                        status: 'ready_for_pickup'
+                    });
+
                     setSuccessMessage({
-                        text: "Request approved and forwarded to Stock Clerk",
+                        text: "Request approved. Forwarded to Store Keeper and verification sent to employee.",
                         type: 'general'
                     });
-                    setTimeout(() => setSuccessMessage(null), 5000);
                 } catch (error) {
                     console.error("Error creating User-Report entries:", error);
                     throw error;
                 }
-                setTimeout(() => setSuccessMessage(null), 5000);
             } else {
                 // Academic Coordinator Logic
                 const itemsWithACRule = request.items.filter(item => item.AC_decition === 'need AC decision');
 
-
                 if (itemsWithACRule.length > 0) {
-                    // Part of the request needs Chief decision
                     await addDoc(collection(db, 'Need_AC_decition'), {
                         ...request,
                         originalRequestId: request.id,
@@ -419,7 +547,6 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                         status: 'pending_chief_decision'
                     });
 
-                    // Update original request status
                     await updateDoc(requestRef, {
                         status: 'forwarded_to_chief',
                         currentApproverRole: 'chief_executive',
@@ -438,10 +565,9 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                         type: 'chief'
                     });
                 } else {
-                    // Normal approval
                     await updateDoc(requestRef, {
                         status: 'approved_by_coordinator',
-                        currentApproverRole: 'procurement_md', // Assuming MD is next for non-AC-needed items
+                        currentApproverRole: 'procurement_md',
                         history: [
                             ...request.history,
                             {
@@ -457,10 +583,10 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                         type: 'coordinator'
                     });
                 }
-
-                // Clear message after 5 seconds
-                setTimeout(() => setSuccessMessage(null), 5000);
             }
+
+            // Clear message after 5 seconds
+            setTimeout(() => setSuccessMessage(null), 5000);
         } catch (error) {
             console.error("Error approving request:", error);
             alert("Failed to approve request.");
@@ -470,16 +596,14 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     };
 
     const handleReject = async (request: MaterialRequest) => {
-        if (!user) return;
+        if (!user || !db) return;
         const note = prompt("Please enter a reason for rejection:");
         if (note === null) return;
 
         setProcessingId(request.id);
         try {
-            const requestRef = doc(db, 'Request_materials', request.id);
-            const statusLabel = effectiveRole === 'department_head' ? 'rejected_by_head' :
-                effectiveRole === 'team_leader' ? 'rejected_by_team_leader' :
-                    'rejected_by_coordinator';
+            const requestRef = doc(db!, 'Request_materials', request.id);
+            const statusLabel = 'rejected';
 
             await updateDoc(requestRef, {
                 status: statusLabel,
@@ -511,7 +635,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     };
 
     const handleValidate = async (request: MaterialRequest) => {
-        if (!user) return;
+        if (!user || !db) return;
         setProcessingId(request.id);
 
         try {
@@ -532,10 +656,10 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             });
 
             // Step 2: Update User-Report
-            const userReportQuery = query(collection(db, 'User-Report'), where('requestId', '==', request.id));
+            const userReportQuery = query(collection(db!, 'User-Report'), where('requestId', '==', request.id));
             const userReportSnap = await getDocs(userReportQuery);
 
-            const batch = writeBatch(db);
+            const batch = writeBatch(db!);
             userReportSnap.docs.forEach((doc) => {
                 const docData = doc.data();
                 batch.update(doc.ref, {
@@ -557,7 +681,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             const code = generateVerificationCode();
 
             // Step 5: Save Data to Send_to_Users Collection
-            await addDoc(collection(db, 'Send_to_Users'), {
+            await addDoc(collection(db!, 'Send_to_Users'), {
                 request_id: request.id,
                 requester_user_id: request.requesterId,
                 requester_name: request.requesterName,
@@ -596,7 +720,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
         // Material type filter (only show requests where ALL items match the filter type)
         const matchesMaterialType = !materialTypeFilter ||
-            r.items.every(item => item.materialType === materialTypeFilter);
+            r.items.every(item => (item.materialType?.toLowerCase() || '') === materialTypeFilter.toLowerCase());
 
         return matchesSearch && matchesMaterialType;
     });
@@ -613,10 +737,14 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         );
     }
 
-    const themeColor = effectiveRole === 'department_head' ? 'orange' :
+    const themeColor = effectiveRole === 'academic_coordinator' ? 'amber' :
         effectiveRole === 'managing_director' ? 'indigo' :
-            effectiveRole === 'general_service' ? 'violet' :
-                effectiveRole === 'team_leader' ? 'teal' : 'lime';
+            effectiveRole === 'general_service' ? 'emerald' :
+                effectiveRole === 'dormitory_leader' ? 'blue' :
+                    effectiveRole === 'cafeteria_leader' ? 'orange' :
+                        effectiveRole === 'sports_leader' ? 'rose' :
+                            effectiveRole === 'student_service_leader' ? 'violet' :
+                                'blue';
 
     return (
         <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
@@ -796,23 +924,31 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
                             {/* Actions */}
                             <div className="p-8 bg-slate-50/80 backdrop-blur-md border-t border-slate-100 flex items-center gap-4 relative z-10">
-                                {effectiveRole === 'stock_clerk' ? (
-                                    <button
-                                        onClick={() => handleValidate(request)}
-                                        className={`flex-1 py-5 bg-${themeColor}-600 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] hover:bg-${themeColor}-500 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0)] hover:shadow-[0_20px_40px_-5px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 group/btn active:scale-95`}
-                                    >
-                                        {processingId === request.id ? (
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                <span>Processing...</span>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                Validate / Forwarded
-                                                <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
-                                            </>
-                                        )}
-                                    </button>
+                                {effectiveRole.includes('stock_clerk') || effectiveRole.includes('store_keeper') ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleApprove(request)}
+                                            className={`flex-1 py-5 bg-${themeColor}-600 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] hover:bg-${themeColor}-500 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0)] hover:shadow-[0_20px_40px_-5px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 group/btn active:scale-95`}
+                                        >
+                                            {processingId === request.id ? (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                    <span>Processing...</span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {effectiveRole.includes('store_keeper') ? 'Finalize & Complete' : 'Validate & Forward'}
+                                                    <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleReject(request)}
+                                            className="px-8 py-5 bg-white border-2 border-slate-100 text-slate-400 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3 group/reject"
+                                        >
+                                            <FiXCircle className="text-2xl group-hover/reject:rotate-90 transition-transform duration-500" />
+                                        </button>
+                                    </>
                                 ) : effectiveRole === 'general_service' ? (
                                     <button
                                         onClick={() => handleApprove(request)}

@@ -59,20 +59,16 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
         <>
             {/* Backdrop Overlay for Mobile */}
             {isOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
-                    onClick={closeSidebar}
-                />
+                <div className="fixed inset-0 bg-black/80 z-[140] lg:hidden backdrop-blur-md" onClick={closeSidebar} />
             )}
 
-            {/* Sidebar */}
             <div className={`
                 fixed lg:sticky top-0
-                bg-slate-950 text-slate-300 h-screen
-                flex flex-col shadow-2xl border-r border-slate-900
-                transition-all duration-300 ease-in-out
-                ${isOpen ? 'w-72 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-                z-30 overflow-hidden
+                bg-[#020617] text-slate-400 h-screen
+                flex flex-col border-r border-indigo-500/10
+                transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)
+                ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}
+                z-[150] overflow-hidden
             `}>
                 <div className="w-72 flex flex-col h-full flex-shrink-0">
                     {/* Header */}

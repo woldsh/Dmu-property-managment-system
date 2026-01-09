@@ -39,6 +39,7 @@ interface RequestJourney {
 
 const JOURNEY_STEPS = [
     { id: 'submission', label: 'Submission', status: 'pending', icon: FiFileText, description: 'Request submitted to Dept Head' },
+    { id: 'student_service_leader', label: 'Student Service Leader', status: 'pending_student_service_leader', icon: FiUserCheck, description: 'Student Service Leader Approval' },
     { id: 'dept_head', label: 'Dept Head', status: 'approved_by_head', icon: FiUserCheck, description: 'Department Head Approval' },
     { id: 'coordinator', label: 'Coordinator', status: 'approved_by_coordinator', icon: FiShield, description: 'Academic Coordinator Review' },
     { id: 'md', label: 'Director', status: 'approved_by_md', icon: FiBriefcase, description: 'Managing Director Authorization' },
@@ -111,13 +112,18 @@ export default function RequestJourneyView() {
         // Map current request status to an index in our JOURNEY_STEPS array
         const statusMap: Record<string, number> = {
             'pending': 0,
-            'approved_by_head': 1,
-            'approved_by_coordinator': 2,
-            'approved_by_md': 3,
-            'forwarded_to_team_leader': 4,
-            'approved_by_procurement_team_leader': 5,
-            'approved_by_clerk': 6,
-            'completed': 7
+            'pending_student_service_leader': 1,
+            'approved_by_student_service_leader': 1,
+            'pending_managing_director': 4,
+            'approved_by_head': 2,
+            'approved_by_coordinator': 3,
+            'approved_by_md': 4,
+            'pending_general_service': 5,
+            'forwarded_to_team_leader': 5,
+            'pending_procurement': 5,
+            'approved_by_procurement_team_leader': 6,
+            'approved_by_clerk': 7,
+            'completed': 8
         };
 
         const currentStepIndex = statusMap[requestStatus] ?? -1;
@@ -226,23 +232,48 @@ export default function RequestJourneyView() {
 
                                         <div className="grid grid-cols-1 lg:grid-cols-8 gap-8 relative z-10">
                                             {JOURNEY_STEPS.filter(step => {
-                                                // For Dept Head, skip ONLY the 'submission' step. 
-                                                // 'dept_head' becomes Step 1.
-                                                if (userData?.userRole?.includes('_head') && step.id === 'submission') return false;
+                                                // For Top-Level Leaders (SSL, HRM, Finance), skip to MD directly (no SSL step)
+                                                const isTopLeader = userData?.userRole === 'student_service_leader' ||
+                                                    userData?.userRole === 'hrm_leader' ||
+                                                    userData?.userRole === 'finance_leader';
+                                                if (isTopLeader && (step.id === 'submission' || step.id === 'student_service_leader' || step.id === 'dept_head' || step.id === 'coordinator')) return false;
 
-                                                // For Academic Coordinator, skip 'submission' and 'dept_head' steps (Start at Step 3: Coordinator as Submission)
-                                                if (userData?.userRole === 'academic_coordinator' && (step.id === 'submission' || step.id === 'dept_head')) return false;
+                                                // For Dorm/Sport/Cafeteria Leaders, skip regular employee steps, show SSL -> MD -> GS -> PTL -> Clerk -> Store
+                                                const isServiceLeader = userData?.userRole === 'student_service_dormitory_leader' ||
+                                                    userData?.userRole === 'student_service_sport_leader' ||
+                                                    userData?.userRole === 'student_service_cafeteria_leader';
 
-                                                // For Managing Director, skip 'submission', 'dept_head', and 'coordinator' steps (Start at Step 4: MD as Submission)
-                                                // Check for both possible role strings to be safe
+                                                // For HRM and Finance Employees/Leaders
+                                                const isHRMFlow = userData?.userRole?.includes('hrm');
+                                                const isFinanceFlow = userData?.userRole?.includes('finance');
+
+                                                if (isHRMFlow || isFinanceFlow) {
+                                                    // Hide submission (step 0), SSL (step 1), coordinator (step 3)
+                                                    // Step 2 (Dept Head) will be renamed to HRM/Finance Leader
+                                                    if (step.id === 'submission' || step.id === 'student_service_leader' || step.id === 'coordinator') return false;
+                                                }
+
+                                                if (isServiceLeader && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator')) return false;
+
+                                                // For regular employees (teachers, dept heads, etc.) skip the Student Service Leader step
+                                                const isRegularEmployee = !isServiceLeader && !isTopLeader && userData?.userRole?.includes('teacher');
+                                                if (isRegularEmployee && step.id === 'student_service_leader') return false;
+
+                                                // For Dept Head, skip ONLY the 'submission' step and student_service_leader
+                                                if (userData?.userRole?.includes('_head') && (step.id === 'submission' || step.id === 'student_service_leader')) return false;
+
+                                                // For Academic Coordinator, skip 'submission', 'dept_head', and student_service_leader steps
+                                                if (userData?.userRole === 'academic_coordinator' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'student_service_leader')) return false;
+
+                                                // For Managing Director, skip 'submission', 'dept_head', student_service_leader, and 'coordinator' steps
                                                 const isMD = userData?.userRole === 'managing_director' || userData?.userRole === 'managing_director_leader';
-                                                if (isMD && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator')) return false;
+                                                if (isMD && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator' || step.id === 'student_service_leader')) return false;
 
-                                                // For Team Leader, skip 'submission', 'dept_head', 'coordinator', 'md', and 'gs' (Start at Step 5: Team Leader as Submission)
-                                                if (userData?.userRole === 'procurement_team_leader' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator' || step.id === 'md' || step.id === 'gs')) return false;
+                                                // For Team Leader, skip early steps
+                                                if (userData?.userRole === 'procurement_team_leader' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'coordinator' || step.id === 'md' || step.id === 'gs' || step.id === 'student_service_leader')) return false;
 
-                                                // For General Service, skip 'submission', 'dept_head', 'coordinator', and 'md' (Start at Step 4 (Index 4): GS as Submission)
-                                                if (userData?.userRole === 'general_service_leader' && (step.id === 'submission' || step.id === 'dept_head')) return false;
+                                                // For General Service, skip early steps
+                                                if (userData?.userRole === 'general_service_leader' && (step.id === 'submission' || step.id === 'dept_head' || step.id === 'student_service_leader')) return false;
 
                                                 return true;
                                             }).map((step, index) => {
@@ -272,6 +303,12 @@ export default function RequestJourneyView() {
                                                 if (userData?.userRole?.includes('_head') && step.id === 'dept_head') {
                                                     label = 'Submission';
                                                     description = 'Request submitted to academic coordinator';
+                                                }
+
+                                                const isHRMOrFinance = userData?.userRole?.includes('hrm') || userData?.userRole?.includes('finance');
+                                                if (isHRMOrFinance && step.id === 'dept_head') {
+                                                    label = isHRMOrFinance && userData?.userRole?.includes('leader') ? 'Submission' : 'Leader Approval';
+                                                    description = userData?.userRole?.includes('hrm') ? 'HRM Leader Review' : 'Finance Leader Review';
                                                 }
 
                                                 if ((userData?.userRole === 'academic_coordinator' || userData?.userRole === 'general_service_leader')) {

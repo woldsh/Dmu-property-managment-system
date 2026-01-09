@@ -3,7 +3,7 @@
 import Header from '@/components/Header';
 import StoreSidebar from '@/components/StoreSidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
-import StoreRequestVerification from '@/components/StoreRequestVerification';
+import MaterialRequestView from '@/components/MaterialRequestView';
 
 export default function StoreConsumableRequestsPage() {
     return (
@@ -14,10 +14,10 @@ export default function StoreConsumableRequestsPage() {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
-                    <Header title="View Requests" subtitle="Consumable Material Handout Verification" />
+                    <Header title="View Requests" subtitle="Consumable Material Requests" />
 
                     <main className="flex-1 overflow-y-auto custom-scrollbar">
-                        <StoreRequestVerification storeType="consumable" />
+                        <MaterialRequestView roleOverride="consumable_item_store_keeper" materialTypeFilter="consumable" />
                     </main>
                 </div>
             </div>
