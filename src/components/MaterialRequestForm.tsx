@@ -68,7 +68,7 @@ export default function MaterialRequestForm() {
     useEffect(() => {
         const fetchUserProfile = async () => {
             if (user && db) {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
                 }
@@ -77,7 +77,7 @@ export default function MaterialRequestForm() {
         fetchUserProfile();
 
         if (!db) return;
-        const q = query(collection(db, 'materials'), orderBy('materialName', 'asc'));
+        const q = query(collection(db!, 'materials'), orderBy('materialName', 'asc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const materialList = snapshot.docs.map(doc => ({
                 id: doc.id,

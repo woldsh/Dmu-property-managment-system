@@ -116,6 +116,7 @@ export default function AddItemForm({ type }: AddItemFormProps) {
         delete submissionData.dateField;
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             await addDoc(collection(db, "materials"), submissionData);
             setSubmitStatus({
                 type: 'success',

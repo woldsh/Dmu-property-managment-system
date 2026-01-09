@@ -39,19 +39,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (!db) throw new Error("Firebase not initialized");
       // Login user
       await login(email, password);
 
       // Wait a moment for auth state to settle
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        throw new Error('Authentication failed. Please try again.');
+      const currentUser = auth?.currentUser;
+      if (!currentUser || !db) {
+        throw new Error('Authentication failed or system not initialized. Please try again.');
       }
 
       // Check if user is an admin
       try {
+        if (!db) return; // Added null check for db
         const adminsRef = collection(db, 'admins');
         const q = query(adminsRef, where('email', '==', email));
         const adminSnapshot = await getDocs(q);
@@ -68,6 +70,9 @@ export default function LoginPage() {
       }
 
       // Get user role from Firestore
+      if (!db || !currentUser) { // Added null checks for db and currentUser
+        throw new Error('Database or current user not available for role lookup.');
+      }
       const userDocRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userDocRef);
 

@@ -60,6 +60,7 @@ export default function MaterialList({ typeFilter }: MaterialListProps) {
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
 
     useEffect(() => {
+        if (!db) return;
         const q = query(collection(db, 'materials'), orderBy('createdAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

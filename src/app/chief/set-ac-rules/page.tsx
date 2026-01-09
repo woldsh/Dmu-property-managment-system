@@ -47,6 +47,7 @@ export default function SetACRulesPage() {
     // Fetch fixed assets
     useEffect(() => {
         const fetchFixedAssets = async () => {
+            if (!db) return;
             try {
                 // 1. Fetch all fixed asset materials
                 const q = query(collection(db, 'materials'), where('materialType', '==', 'fixed_asset'));
@@ -76,7 +77,7 @@ export default function SetACRulesPage() {
     // Fetch existing rule for selected material
     useEffect(() => {
         const fetchExistingRule = async () => {
-            if (!selectedMaterial) return;
+            if (!selectedMaterial || !db) return;
             try {
                 const ruleDoc = await getDoc(doc(db, 'AC_rules', selectedMaterial.id));
                 if (ruleDoc.exists()) {
@@ -113,6 +114,7 @@ export default function SetACRulesPage() {
         setStatus({ type: null, message: '' });
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             await setDoc(doc(db, 'AC_rules', selectedMaterial.id), {
                 materialId: selectedMaterial.id,
                 materialName: selectedMaterial.materialName,

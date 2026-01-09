@@ -52,6 +52,7 @@ export default function UpdateACRulesPage() {
     // Fetch materials with existing rules
     useEffect(() => {
         const fetchRuledMaterials = async () => {
+            if (!db) return;
             try {
                 // 1. Fetch all rules
                 const rulesSnapshot = await getDocs(collection(db, 'AC_rules'));
@@ -119,6 +120,7 @@ export default function UpdateACRulesPage() {
         setStatus({ type: null, message: '' });
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             await setDoc(doc(db, 'AC_rules', selectedMaterial.id), {
                 materialId: selectedMaterial.id,
                 materialName: selectedMaterial.materialName,
@@ -151,6 +153,7 @@ export default function UpdateACRulesPage() {
         setStatus({ type: null, message: '' });
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             await deleteDoc(doc(db, 'AC_rules', selectedMaterial.id));
 
             // Remove from local list

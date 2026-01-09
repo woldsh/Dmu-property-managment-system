@@ -30,9 +30,10 @@ export default function VerifyMaterialRequest({ onSuccess }: VerificationProps) 
         }
 
         try {
+            if (!db) throw new Error("Firebase not initialized");
             // Validate code
             const q = query(
-                collection(db, 'Send_to_Users'),
+                collection(db!, 'Send_to_Users'),
                 where('verification_code', '==', code),
                 where('status', '==', 'code_sent')
             );
@@ -58,7 +59,7 @@ export default function VerifyMaterialRequest({ onSuccess }: VerificationProps) 
             setData(docData);
 
             // Step 7: Save to Send_to_Store
-            await addDoc(collection(db, 'Send_to_Store'), {
+            await addDoc(collection(db!, 'Send_to_Store'), {
                 request_id: docData.request_id,
                 requester_user_id: docData.requester_user_id,
                 requester_name: docData.requester_name,
@@ -69,7 +70,7 @@ export default function VerifyMaterialRequest({ onSuccess }: VerificationProps) 
             });
 
             // Update status in Send_to_Users to prevent reuse
-            await updateDoc(doc(db, 'Send_to_Users', docId), {
+            await updateDoc(doc(db!, 'Send_to_Users', docId), {
                 status: 'verified'
             });
 
