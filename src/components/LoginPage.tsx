@@ -54,7 +54,7 @@ export default function LoginPage() {
       // Check if user is an admin
       try {
         if (!db) return; // Added null check for db
-        const adminsRef = collection(db, 'admins');
+        const adminsRef = collection(db!, 'admins');
         const q = query(adminsRef, where('email', '==', email));
         const adminSnapshot = await getDocs(q);
 
@@ -73,7 +73,7 @@ export default function LoginPage() {
       if (!db || !currentUser) { // Added null checks for db and currentUser
         throw new Error('Database or current user not available for role lookup.');
       }
-      const userDocRef = doc(db, 'users', currentUser.uid);
+      const userDocRef = doc(db!, 'users', currentUser.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (userDoc.exists()) {

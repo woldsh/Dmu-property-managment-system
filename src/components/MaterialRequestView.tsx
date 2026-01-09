@@ -538,7 +538,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 const itemsWithACRule = request.items.filter(item => item.AC_decition === 'need AC decision');
 
                 if (itemsWithACRule.length > 0) {
-                    await addDoc(collection(db, 'Need_AC_decition'), {
+                    await addDoc(collection(db!, 'Need_AC_decition'), {
                         ...request,
                         originalRequestId: request.id,
                         coordinatorId: user.uid,

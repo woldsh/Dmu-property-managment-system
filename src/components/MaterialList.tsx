@@ -61,7 +61,7 @@ export default function MaterialList({ typeFilter }: MaterialListProps) {
 
     useEffect(() => {
         if (!db) return;
-        const q = query(collection(db, 'materials'), orderBy('createdAt', 'desc'));
+        const q = query(collection(db!, 'materials'), orderBy('createdAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const materialList = snapshot.docs.map(doc => ({

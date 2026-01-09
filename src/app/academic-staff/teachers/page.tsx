@@ -28,7 +28,7 @@ export default function TeachersPage() {
         if (!user?.uid || !db) return;
 
         const q = query(
-            collection(db, 'Request_materials'),
+            collection(db!, 'Request_materials'),
             where('requester_id', '==', user.uid)
         );
 

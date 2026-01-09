@@ -22,7 +22,7 @@ export default function MeetingChat() {
         if (!db) return;
 
         const q = query(
-            collection(db, "meeting_messages"),
+            collection(db!, "meeting_messages"),
             orderBy("createdAt", "desc"),
             limit(50)
         );
@@ -100,7 +100,7 @@ export default function MeetingChat() {
                 createdAt: serverTimestamp()
             };
             console.log('Adding document to Firestore:', messageData);
-            await addDoc(collection(db, "meeting_messages"), messageData);
+            await addDoc(collection(db!, "meeting_messages"), messageData);
             setNewMessage('');
             setSelectedFile(null);
             if (fileInputRef.current) fileInputRef.current.value = '';

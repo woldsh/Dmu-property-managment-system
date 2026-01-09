@@ -55,7 +55,7 @@ export default function UpdateACRulesPage() {
             if (!db) return;
             try {
                 // 1. Fetch all rules
-                const rulesSnapshot = await getDocs(collection(db, 'AC_rules'));
+                const rulesSnapshot = await getDocs(collection(db!, 'AC_rules'));
                 const rulesData = rulesSnapshot.docs.reduce((acc, doc) => {
                     acc[doc.id] = doc.data() as ACRule;
                     return acc;
@@ -71,7 +71,7 @@ export default function UpdateACRulesPage() {
                 // 2. Fetch corresponding materials to get latest stock/image
                 // Note: Firestore 'in' query is limited to 10-30 IDs usually, 
                 // but since we want to show all governed materials, we fetch them.
-                const materialsSnapshot = await getDocs(collection(db, 'materials'));
+                const materialsSnapshot = await getDocs(collection(db!, 'materials'));
                 const allMaterials = materialsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -121,7 +121,7 @@ export default function UpdateACRulesPage() {
 
         try {
             if (!db) throw new Error("Firebase not initialized");
-            await setDoc(doc(db, 'AC_rules', selectedMaterial.id), {
+            await setDoc(doc(db!, 'AC_rules', selectedMaterial.id), {
                 materialId: selectedMaterial.id,
                 materialName: selectedMaterial.materialName,
                 materialCode: selectedMaterial.materialCode,
@@ -154,7 +154,7 @@ export default function UpdateACRulesPage() {
 
         try {
             if (!db) throw new Error("Firebase not initialized");
-            await deleteDoc(doc(db, 'AC_rules', selectedMaterial.id));
+            await deleteDoc(doc(db!, 'AC_rules', selectedMaterial.id));
 
             // Remove from local list
             setMaterials(prev => prev.filter(m => m.id !== selectedMaterial.id));

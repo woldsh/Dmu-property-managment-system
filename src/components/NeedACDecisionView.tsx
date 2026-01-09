@@ -55,7 +55,8 @@ export default function NeedACDecisionView() {
 
     useEffect(() => {
         const fetchMaterialImages = async () => {
-            const materialsSnap = await getDocs(collection(db, 'materials'));
+            if (!db) return;
+            const materialsSnap = await getDocs(collection(db!, 'materials'));
             const imageMap: Record<string, string> = {};
             materialsSnap.docs.forEach(doc => {
                 const data = doc.data();
@@ -69,8 +70,9 @@ export default function NeedACDecisionView() {
     }, []);
 
     useEffect(() => {
+        if (!db) return;
         const q = query(
-            collection(db, 'Need_AC_decition')
+            collection(db!, 'Need_AC_decition')
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {

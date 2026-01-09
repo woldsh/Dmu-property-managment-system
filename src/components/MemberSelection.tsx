@@ -94,7 +94,7 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
         const fetchStaff = async () => {
             if (!db) return;
             try {
-                const querySnapshot = await getDocs(collection(db, "users"));
+                const querySnapshot = await getDocs(collection(db!, "users"));
                 const filteredStaff: StaffUser[] = [];
                 const deptSet = new Set<string>();
 

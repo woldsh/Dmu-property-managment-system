@@ -123,8 +123,9 @@ export default function EmployeeReportView({
 
     // Real-time tracking of User-Report collection
     useEffect(() => {
+        if (!db) return;
         const q = query(
-            collection(db, 'User-Report'),
+            collection(db!, 'User-Report'),
             orderBy('createdAt', 'desc')
         );
 
@@ -201,7 +202,7 @@ export default function EmployeeReportView({
                     for (let i = 0; i < codesToFetch.length; i += 10) {
                         const chunk = codesToFetch.slice(i, i + 10);
                         const q = query(
-                            collection(db, 'materials'),
+                            collection(db!, 'materials'),
                             where('materialCode', 'in', chunk)
                         );
                         const snap = await getDocs(q);
@@ -235,7 +236,7 @@ export default function EmployeeReportView({
             for (const emp of employees) {
                 if (!newProfiles[emp.uid]) {
                     try {
-                        const userDoc = await getDoc(doc(db, 'users', emp.uid));
+                        const userDoc = await getDoc(doc(db!, 'users', emp.uid));
                         if (userDoc.exists()) {
                             const data = userDoc.data();
                             newProfiles[emp.uid] = {

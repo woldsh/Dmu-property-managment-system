@@ -117,7 +117,7 @@ export default function AddItemForm({ type }: AddItemFormProps) {
 
         try {
             if (!db) throw new Error("Firebase not initialized");
-            await addDoc(collection(db, "materials"), submissionData);
+            await addDoc(collection(db!, "materials"), submissionData);
             setSubmitStatus({
                 type: 'success',
                 message: `${isFixed ? 'Fixed Asset' : 'Consumable'} Registered Successfully!`

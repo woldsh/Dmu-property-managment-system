@@ -25,13 +25,13 @@ export default function AdminTeamLeaderPage() {
 
         // 1. Snapshot for My Own Requests
         const myRequestsQuery = query(
-            collection(db, 'Request_materials'),
+            collection(db!, 'Request_materials'),
             where('requester_id', '==', user.uid)
         );
 
         // 2. Snapshot for Requests Pending My Approval (Leader Role)
         const pendingForMeQuery = query(
-            collection(db, 'Request_materials'),
+            collection(db!, 'Request_materials'),
             where('currentApproverRole', '==', userRole),
             where('status', 'in', ['pending', 'pending_department_leader']) // Adjust as per your logic
         );

@@ -32,7 +32,7 @@ export default function MaterialLookup({ storeType }: MaterialLookupProps) {
         try {
             // 1. Fetch Material details from 'materials'
             const matQuery = query(
-                collection(db, 'materials'),
+                collection(db!, 'materials'),
                 where('materialCode', '==', searchCode.trim())
             );
             const matSnap = await getDocs(matQuery);
@@ -44,7 +44,7 @@ export default function MaterialLookup({ storeType }: MaterialLookupProps) {
             // 2. Fetch Handout History from 'Send_to_Users'
             // Since material_details is an array, we fetch recent records and filter client-side
             const handoutQuery = query(
-                collection(db, 'Send_to_Users'),
+                collection(db!, 'Send_to_Users'),
                 orderBy('created_at', 'desc'),
                 limit(50)
             );

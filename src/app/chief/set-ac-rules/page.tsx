@@ -50,7 +50,7 @@ export default function SetACRulesPage() {
             if (!db) return;
             try {
                 // 1. Fetch all fixed asset materials
-                const q = query(collection(db, 'materials'), where('materialType', '==', 'fixed_asset'));
+                const q = query(collection(db!, 'materials'), where('materialType', '==', 'fixed_asset'));
                 const snapshot = await getDocs(q);
                 const materialsList = snapshot.docs.map(doc => ({
                     id: doc.id,
@@ -58,7 +58,7 @@ export default function SetACRulesPage() {
                 })) as Material[];
 
                 // 2. Fetch all existing rules to filter them out
-                const rulesSnapshot = await getDocs(collection(db, 'AC_rules'));
+                const rulesSnapshot = await getDocs(collection(db!, 'AC_rules'));
                 const ruledMaterialIds = new Set(rulesSnapshot.docs.map(doc => doc.id));
 
                 // 3. Filter materials that don't have rules yet
@@ -79,7 +79,7 @@ export default function SetACRulesPage() {
         const fetchExistingRule = async () => {
             if (!selectedMaterial || !db) return;
             try {
-                const ruleDoc = await getDoc(doc(db, 'AC_rules', selectedMaterial.id));
+                const ruleDoc = await getDoc(doc(db!, 'AC_rules', selectedMaterial.id));
                 if (ruleDoc.exists()) {
                     const data = ruleDoc.data() as ACRule;
                     setFormData({
@@ -115,7 +115,7 @@ export default function SetACRulesPage() {
 
         try {
             if (!db) throw new Error("Firebase not initialized");
-            await setDoc(doc(db, 'AC_rules', selectedMaterial.id), {
+            await setDoc(doc(db!, 'AC_rules', selectedMaterial.id), {
                 materialId: selectedMaterial.id,
                 materialName: selectedMaterial.materialName,
                 materialCode: selectedMaterial.materialCode,
