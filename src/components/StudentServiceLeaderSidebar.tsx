@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useRequestNotification } from '../hooks/useRequestNotification';
 import { FaChartPie, FaUsers, FaEnvelope, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaUserGraduate, FaBox } from 'react-icons/fa';
 
 export default function StudentServiceLeaderSidebar() {
@@ -11,6 +13,8 @@ export default function StudentServiceLeaderSidebar() {
     const basePath = '/admin-staff/team-leader';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
+    const { userRole } = useAuth();
+    const requestCount = useRequestNotification(userRole, undefined);
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
@@ -19,7 +23,6 @@ export default function StudentServiceLeaderSidebar() {
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaUsers },
-        { label: t('leader_requests'), href: `${basePath}/leader-requests`, icon: FaUserTie },
         { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaBox },
         { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
         { label: t('messages'), href: `${basePath}/messages`, icon: FaEnvelope },
@@ -87,7 +90,15 @@ export default function StudentServiceLeaderSidebar() {
                                         <Icon className={`text-lg transition-all duration-300 ${isActive ? 'text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'text-slate-500 group-hover:text-purple-400'}`} />
                                     </div>
 
-                                    <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>{item.label}</span>
+                                    <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>
+                                        {item.label}
+                                    </span>
+
+                                    {item.label === t('view_requests') && requestCount > 0 && (
+                                        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-purple-500 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.6)] animate-pulse">
+                                            <span className="text-[10px] font-black text-white">{requestCount}</span>
+                                        </div>
+                                    )}
                                 </Link>
                             );
                         })}

@@ -9,6 +9,7 @@ import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FaChartPie, FaClipboardList, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaGraduationCap, FaVideo, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaGavel, FaBell } from 'react-icons/fa';
+import { useRequestNotification } from '../hooks/useRequestNotification';
 
 export default function AcademicCoordinatorSidebar() {
     const pathname = usePathname();
@@ -18,6 +19,7 @@ export default function AcademicCoordinatorSidebar() {
     const { userRole } = useAuth();
     const { t } = useLanguage();
     const [meetingInvite, setMeetingInvite] = useState<any>(null);
+    const requestCount = useRequestNotification(userRole, undefined);
 
     useEffect(() => {
         if (!db) return;
@@ -157,6 +159,12 @@ export default function AcademicCoordinatorSidebar() {
                                     <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>
                                         {item.label}
                                     </span>
+
+                                    {item.label === t('view_requests') && requestCount > 0 && (
+                                        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-lime-500 rounded-full shadow-[0_0_15px_rgba(132,204,22,0.6)] animate-pulse">
+                                            <span className="text-[10px] font-black text-white">{requestCount}</span>
+                                        </div>
+                                    )}
 
                                     {/* Hover Arrow */}
                                     <div className={`opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0

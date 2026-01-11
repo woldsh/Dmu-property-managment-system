@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useRequestNotification } from '../hooks/useRequestNotification';
 import {
     FaChartPie,
     FaEye,
@@ -31,6 +33,8 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
     const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
+    const { userRole, department } = useAuth();
+    const requestCount = useRequestNotification(userRole, department);
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) {
@@ -124,6 +128,11 @@ export default function StockClerkSidebar({ stockType }: StockClerkSidebarProps)
                                         )}
                                         <Icon className={`text-lg transition-colors ${isActive ? (isFixed ? 'text-cyan-400' : 'text-teal-400') : `text-slate-500 group-hover:${isFixed ? 'text-cyan-400' : 'text-teal-400'}`}`} />
                                         <span className="flex-1">{item.label}</span>
+                                        {item.label === t('view_requests') && requestCount > 0 && (
+                                            <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[18px] h-4.5 px-1 bg-${isFixed ? 'cyan' : 'teal'}-500 rounded-full shadow-lg ${isFixed ? 'shadow-cyan-500/40' : 'shadow-teal-500/40'} animate-pulse`}>
+                                                <span className="text-[9px] font-black text-white">{requestCount}</span>
+                                            </div>
+                                        )}
                                     </Link>
                                 </div>
                             );

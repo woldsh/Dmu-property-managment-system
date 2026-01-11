@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaChartPie,
@@ -28,6 +29,7 @@ export default function ChiefSidebar() {
     const basePath = '/portal';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
+    const { userRole } = useAuth();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 1024) closeSidebar();
@@ -35,7 +37,6 @@ export default function ChiefSidebar() {
 
     const menuItems = [
         { label: t('dashboard'), href: '/chief', icon: FaChartPie },
-        { label: t('view_requests'), href: `${basePath}/view-requests-md`, icon: FaClipboardList },
         { label: t('approve_send_md'), href: `${basePath}/send-ac-decision`, icon: FaPaperPlane },
         { label: t('request_to_md'), href: `${basePath}/request-material`, icon: FaUserTie },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },

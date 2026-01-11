@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useRequestNotification } from '../hooks/useRequestNotification';
 import { FaChartPie, FaClipboardList, FaFileInvoice, FaEnvelope, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaStore, FaUsers, FaCog, FaTasks, FaLayerGroup } from 'react-icons/fa';
 
 export default function ProcurementTeamLeaderSidebar() {
@@ -11,6 +13,8 @@ export default function ProcurementTeamLeaderSidebar() {
     const basePath = '/workspace';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
+    const { userRole, department } = useAuth();
+    const requestCount = useRequestNotification(userRole, department);
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
@@ -96,7 +100,15 @@ export default function ProcurementTeamLeaderSidebar() {
                                         <Icon className={`text-lg transition-all duration-300 ${isActive ? 'text-teal-400 drop-shadow-[0_0_8px_rgba(20,184,166,0.5)]' : 'text-slate-500 group-hover:text-teal-400'}`} />
                                     </div>
 
-                                    <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>{item.label}</span>
+                                    <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>
+                                        {item.label}
+                                    </span>
+
+                                    {item.label === t('view_requests') && requestCount > 0 && (
+                                        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-teal-500 rounded-full shadow-[0_0_15px_rgba(20,184,166,0.6)] animate-pulse">
+                                            <span className="text-[10px] font-black text-white">{requestCount}</span>
+                                        </div>
+                                    )}
 
                                     <div className={`opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0 ${isActive ? 'opacity-100 translate-x-0' : ''}`}>
                                         <svg className="w-4 h-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
