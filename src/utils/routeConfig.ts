@@ -57,21 +57,24 @@ export const ROUTE_MAPPINGS: RouteMapping[] = [
     // Admin Staff
     { userRole: 'hrm_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'HRM Leader' },
     { userRole: 'finance_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Finance Leader' },
-    { userRole: 'hrm_employee', cleanUrl: '/admin-staff/employees', displayName: 'HRM Employee' },
-    { userRole: 'finance_employee', cleanUrl: '/admin-staff/employees', displayName: 'Finance Employee' },
+    { userRole: 'hrm_employee', cleanUrl: '/admin-panel', displayName: 'HRM Employee' },
+    { userRole: 'finance_employee', cleanUrl: '/admin-panel', displayName: 'Finance Employee' },
     { userRole: 'student_service_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Student Service Leader' },
 
     // Student Service - Dormitory
     { userRole: 'student_service_dormitory_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Dormitory Leader' },
-    { userRole: 'student_service_dormitory_employee', cleanUrl: '/admin-staff/employees', displayName: 'Dormitory Employee' },
+    { userRole: 'student_service_dormitory_employee', cleanUrl: '/admin-panel', displayName: 'Dormitory Employee' },
 
     // Student Service - Cafeteria
     { userRole: 'student_service_cafeteria_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Cafeteria Leader' },
-    { userRole: 'student_service_cafeteria_employee', cleanUrl: '/admin-staff/employees', displayName: 'Cafeteria Employee' },
+    { userRole: 'student_service_cafeteria_employee', cleanUrl: '/admin-panel', displayName: 'Cafeteria Employee' },
 
     // Student Service - Sport
     { userRole: 'student_service_sport_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Sport Leader' },
-    { userRole: 'student_service_sport_employee', cleanUrl: '/admin-staff/employees', displayName: 'Sport Employee' },
+    { userRole: 'student_service_sport_employee', cleanUrl: '/admin-panel', displayName: 'Sport Employee' },
+
+    // Generic Student Service
+    { userRole: 'student_service_employee', cleanUrl: '/admin-panel', displayName: 'Student Service Employee' },
 ];
 
 // Helper to check if a user is an employee

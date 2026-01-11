@@ -8,8 +8,17 @@ import { SidebarProvider } from '@/contexts/SidebarContext';
 import ProcurementTeamLeaderSidebar from '@/components/ProcurementTeamLeaderSidebar';
 import StockClerkSidebar from '@/components/StockClerkSidebar';
 import StoreSidebar from '@/components/StoreSidebar';
+import EmployeeSidebar from '@/components/EmployeeSidebar';
+import ChiefSidebar from '@/components/ChiefSidebar';
+import AcademicCoordinatorSidebar from '@/components/AcademicCoordinatorSidebar';
+import DepartmentHeadSidebar from '@/components/DepartmentHeadSidebar';
+import TeacherSidebar from '@/components/TeacherSidebar';
+import AdminTeamLeaderSidebar from '@/components/AdminTeamLeaderSidebar';
+import ManagingDirectorSidebar from '@/components/ManagingDirectorSidebar';
+import GeneralServiceSidebar from '@/components/GeneralServiceSidebar';
 import Header from '@/components/Header';
 import { Loader2 } from 'lucide-react';
+import { isEmployeeRole, getDisplayNameForRole, isLeaderRole } from '@/utils/routeConfig';
 
 export default function WorkspaceLayout({
     children,
@@ -44,28 +53,27 @@ export default function WorkspaceLayout({
     const renderSidebar = () => {
         if (!userRole) return <ProcurementTeamLeaderSidebar />;
 
-        if (userRole === 'procurement_team_leader') {
-            return <ProcurementTeamLeaderSidebar />;
-        }
+        // Procurement Specific
+        if (userRole === 'procurement_team_leader') return <ProcurementTeamLeaderSidebar />;
+        if (userRole.includes('stock_clerk')) return <StockClerkSidebar stockType={stockType} />;
+        if (userRole.includes('store_keeper')) return <StoreSidebar storeType={stockType} />;
 
-        if (userRole.includes('stock_clerk')) {
-            return <StockClerkSidebar stockType={stockType} />;
-        }
+        // Other Roles
+        if (userRole === 'chief') return <ChiefSidebar />;
+        if (userRole === 'managing_director_leader') return <ManagingDirectorSidebar />;
+        if (userRole === 'academic_coordinator') return <AcademicCoordinatorSidebar />;
+        if (userRole === 'general_service_leader') return <GeneralServiceSidebar />;
+        if (userRole.endsWith('_head')) return <DepartmentHeadSidebar />;
+        if (userRole.endsWith('_teacher')) return <TeacherSidebar />;
+        if (isEmployeeRole(userRole)) return <EmployeeSidebar />;
+        if (isLeaderRole(userRole)) return <AdminTeamLeaderSidebar />;
 
-        if (userRole.includes('store_keeper')) {
-            return <StoreSidebar storeType={stockType} />;
-        }
-
-        // Default
         return <ProcurementTeamLeaderSidebar />;
     };
 
     const getTitle = () => {
         if (!userRole) return 'Workspace';
-        if (userRole === 'procurement_team_leader') return 'Procurement Workspace';
-        if (userRole.includes('stock_clerk')) return 'Stock Clerk Workspace';
-        if (userRole.includes('store_keeper')) return 'Store Keeper Workspace';
-        return 'Workspace';
+        return getDisplayNameForRole(userRole);
     };
 
     return (

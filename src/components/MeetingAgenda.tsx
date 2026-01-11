@@ -22,7 +22,7 @@ export default function MeetingAgenda() {
         if (!db) return;
         try {
             const q = query(
-                collection(db!, "requested_materials"),
+                collection(db!, "Request_materials"),
                 where("status", "in", ["pending", "pending_head", "pending_md", "approved_by_head"]),
                 orderBy("createdAt", "desc"),
                 limit(5)

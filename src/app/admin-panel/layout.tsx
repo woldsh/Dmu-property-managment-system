@@ -32,18 +32,26 @@ export default function AdminPanelLayout({
 
     return (
         <SidebarProvider>
-            <div className="min-h-screen bg-gray-50 flex">
-                {isEmployee ? <EmployeeSidebar /> : <AdminTeamLeaderSidebar />}
-                <div className="flex-1 flex flex-col min-w-0">
-                    <div className="sticky top-0 z-40">
-                        <Header
-                            title={getDisplayNameForRole(userRole || '')}
-                            subtitle={isEmployee ? "Administrative Staff" : "Management Console"}
-                        />
+            <div className="min-h-screen bg-[#020617] flex relative">
+                {/* Global Decorative Mesh Gradient for Admin Panel */}
+                <div className="fixed inset-0 pointer-events-none opacity-40 z-0">
+                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-teal-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+                </div>
+
+                <div className="relative z-10 flex w-full">
+                    {isEmployee ? <EmployeeSidebar /> : <AdminTeamLeaderSidebar />}
+                    <div className="flex-1 flex flex-col min-w-0">
+                        <div className="sticky top-0 z-40">
+                            <Header
+                                title={getDisplayNameForRole(userRole || '')}
+                                subtitle={isEmployee ? "Administrative Staff" : "Management Console"}
+                            />
+                        </div>
+                        <main className="flex-1 overflow-y-auto relative z-0">
+                            {children}
+                        </main>
                     </div>
-                    <main className="flex-1 overflow-y-auto relative z-0">
-                        {children}
-                    </main>
                 </div>
             </div>
         </SidebarProvider>

@@ -44,7 +44,6 @@ export default function DepartmentHeadSidebar() {
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
         { label: t('need_ac'), href: `${basePath}/ac-decision`, icon: FaClock },
         { label: t('messages_ac'), href: `${basePath}/messages-ac`, icon: FaEnvelope },
-        { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckCircle },
         { label: t('join_meeting'), href: '/dashboard/meeting', icon: FaVideo },
         { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaUserTie },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },

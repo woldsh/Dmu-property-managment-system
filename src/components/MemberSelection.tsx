@@ -214,7 +214,7 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
                             ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 scale-105'
                             : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                        <FaGlobe size={14} /> PUBLIC
+                        <FaGlobe size={14} /> PUBLIC (HEADS & AC)
                     </button>
                     <button
                         onClick={() => setIsPublic(false)}
@@ -322,7 +322,7 @@ export default function MemberSelection({ onStartMeeting }: MemberSelectionProps
                     : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
                     }`}
             >
-                {isPublic ? 'START PUBLIC MEETING (EVERYONE)' : `START PRIVATE & SEND INVITES (${selectedRoles.length + selectedDepartments.length})`}
+                {isPublic ? 'START PUBLIC MEETING (HEADS & AC)' : `START PRIVATE & SEND INVITES (${selectedRoles.length + selectedDepartments.length})`}
                 <FaPaperPlane className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </button>
         </div>

@@ -14,7 +14,8 @@ import {
     FiFileText,
     FiRepeat,
     FiClock,
-    FiCpu
+    FiCpu,
+    FiBox
 } from 'react-icons/fi';
 
 export default function EmployeeSidebar() {
@@ -31,13 +32,14 @@ export default function EmployeeSidebar() {
 
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FiPieChart },
-        { label: t('request_to_tl'), href: `${basePath}/request-material`, icon: FiUserPlus },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FiBox },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FiDownloadCloud },
         { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FiRotateCcw },
         { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FiTruck },
         { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FiFileText },
         { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FiRepeat },
         { label: t('waiting_ac'), href: `${basePath}/ac-decision`, icon: FiClock },
+        { label: t('properties'), href: `/workspace/properties`, icon: FiBox },
     ];
 
     const containerVariants = {
@@ -113,35 +115,40 @@ export default function EmployeeSidebar() {
 
                                 return (
                                     <motion.div key={index} variants={itemVariants}>
+                                        {index === menuItems.length - 1 && (
+                                            <div className="px-5 py-4 text-[10px] font-black text-orange-500/40 uppercase tracking-[0.3em] mt-4">
+                                                {t('settings')}
+                                            </div>
+                                        )}
                                         <Link
                                             href={item.href}
                                             onClick={handleLinkClick}
                                             className={`
-                                                flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden
-                                                ${isActive
-                                                    ? 'bg-white text-black font-black italic border border-white/10 shadow-[0_10px_30px_rgba(255,255,255,0.1)]'
+                                                    flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden
+                                                    ${isActive
+                                                    ? 'bg-white/10 text-white font-black italic border border-white/20 shadow-[0_0_20px_rgba(249,115,22,0.15)] backdrop-blur-md'
                                                     : 'hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5'
                                                 }
-                                            `}
+                                                `}
                                         >
-                                            {/* Dynamic Indicator for Active Link */}
+                                            {/* Dynamic Glow Line for Active Link */}
                                             {isActive && (
                                                 <motion.div
-                                                    layoutId="sidebar-active"
-                                                    className="absolute inset-0 bg-white z-0"
+                                                    layoutId="sidebar-active-glow"
+                                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-3/5 bg-orange-500 rounded-r-full shadow-[0_0_15px_rgba(249,115,22,0.8)]"
                                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                                 />
                                             )}
 
                                             <Icon className={`
-                                                relative z-10 text-2xl transition-all duration-300
-                                                ${isActive ? 'text-black' : 'text-slate-600 group-hover:text-orange-400 group-hover:scale-110'}
-                                            `} />
+                                                    relative z-10 text-2xl transition-all duration-300
+                                                    ${isActive ? 'text-orange-500 scale-110 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'text-slate-600 group-hover:text-orange-400 group-hover:scale-110'}
+                                                `} />
 
                                             <span className={`
-                                                relative z-10 flex-1 text-sm uppercase tracking-widest font-black transition-all
-                                                ${isActive ? 'text-black' : 'group-hover:translate-x-1'}
-                                            `}>
+                                                    relative z-10 flex-1 text-sm uppercase tracking-widest font-black transition-all
+                                                    ${isActive ? 'text-white' : 'group-hover:translate-x-1'}
+                                                `}>
                                                 {item.label}
                                             </span>
 
@@ -149,7 +156,7 @@ export default function EmployeeSidebar() {
                                                 <motion.div
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
-                                                    className="relative z-10 w-1.5 h-1.5 rounded-full bg-orange-500"
+                                                    className="relative z-10 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,1)]"
                                                 />
                                             )}
                                         </Link>

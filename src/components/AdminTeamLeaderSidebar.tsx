@@ -10,8 +10,8 @@ import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoadi
 export default function AdminTeamLeaderSidebar() {
     const pathname = usePathname();
     const { userRole } = useAuth();
-    const isHRMOrFinance = userRole === 'hrm_leader' || userRole === 'finance_leader';
-    const basePath = isHRMOrFinance ? '/admin-staff/team-leader' : '/admin-panel';
+    const isHRMOrFinanceOrService = userRole === 'hrm_leader' || userRole === 'finance_leader' || userRole === 'student_service_leader';
+    const basePath = isHRMOrFinanceOrService ? '/admin-staff/team-leader' : '/admin-panel';
     const { isOpen, closeSidebar } = useSidebar();
     const { t } = useLanguage();
 
@@ -22,10 +22,9 @@ export default function AdminTeamLeaderSidebar() {
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaUsers },
-        ...(isHRMOrFinance ? [{ label: t('leader_requests'), href: `${basePath}/leader-requests`, icon: FaUserTie }] : []),
         { label: t('messages_md'), href: `${basePath}/messages-md`, icon: FaEnvelope },
         { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckDouble },
-        { label: t('request_to_md'), href: `${basePath}${isHRMOrFinance ? '/request-material' : '/request-material'}`, icon: FaBox },
+        { label: t('request_to_md'), href: `${basePath}/request-material`, icon: FaBox },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
         { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },

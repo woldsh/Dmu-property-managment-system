@@ -157,7 +157,7 @@ export default function Header({ title, subtitle, isDark }: HeaderProps) {
                                         {/* Actions */}
                                         <div className="p-4 space-y-1">
                                             <Link
-                                                href={`${basePath}/properties`}
+                                                href="/workspace/properties"
                                                 onClick={() => setIsProfileOpen(false)}
                                                 className="flex items-center gap-4 px-5 py-4 rounded-3xl text-slate-600 hover:bg-gradient-to-r hover:from-white hover:to-indigo-50/50 hover:text-indigo-600 hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 font-black text-sm group"
                                             >
