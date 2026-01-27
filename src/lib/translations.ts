@@ -431,7 +431,16 @@ export const translations = {
         sku_label: "SKU",
         live_efficiency: "Live Efficiency",
         peak_performance_msg: "System is operating at peak performance with zero downtime recorded.",
-        fulfillment_rate: "Fulfillment Rate"
+        fulfillment_rate: "Fulfillment Rate",
+
+        // Geo-Restriction
+        geoBlockTitle: "Service Not Available",
+        geoBlockMessage: "This system is only available in Ethiopia",
+        geoBlockDetail: "We detected that you are accessing from outside Ethiopia. This service is restricted to users within Ethiopia only.",
+        geoBlockRegionalRestriction: "Regional Restriction",
+        geoBlockIpDetection: "IP-based Geolocation Detection",
+        geoBlockSupport: "For support, contact the IT Systems Department",
+        geoBlockSecure: "Secure • Regional • Restricted"
     },
     am: {
         // Nav
@@ -863,6 +872,15 @@ export const translations = {
         sku_label: "SKU",
         live_efficiency: "የቀጥታ ውጤታማነት",
         peak_performance_msg: "ስርዓቱ ያለ ምንም መቆራረጥ በከፍተኛ ብቃት ላይ ይገኛል።",
-        fulfillment_rate: "የአቅርቦት መጠን"
+        fulfillment_rate: "የአቅርቦት መጠን",
+
+        // Geo-Restriction
+        geoBlockTitle: "አገልግሎት አይገኝም",
+        geoBlockMessage: "ይህ ስርዓት በኢትዮጵያ ውስጥ ብቻ ይገኛል",
+        geoBlockDetail: "ከኢትዮጵያ ውጭ እየገቡ መሆኑን ተገንዝበናል። ይህ አገልግሎት በኢትዮጵያ ውስጥ ላሉ ተጠቃሚዎች ብቻ የተገደበ ነው።",
+        geoBlockRegionalRestriction: "የክልል ገደብ",
+        geoBlockIpDetection: "የአይፒ አድራሻ ላይ የተመሠረተ ቦታ ማወቂያ",
+        geoBlockSupport: "ለበለጠ ድጋፍ የኢንፎርሜሽን ቴክኖሎጂ ክፍልን ያነጋግሩ",
+        geoBlockSecure: "ደህንነቱ የተጠበቀ • ክልላዊ • የተገደበ"
     }
 };

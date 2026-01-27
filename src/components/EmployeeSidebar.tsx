@@ -65,7 +65,7 @@ export default function EmployeeSidebar() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 z-[140] lg:hidden backdrop-blur-md transition-opacity duration-500"
+                        className="fixed inset-0 bg-black/40 z-[140] lg:hidden backdrop-blur-md transition-opacity duration-500"
                         onClick={closeSidebar}
                     />
                 )}
@@ -74,38 +74,58 @@ export default function EmployeeSidebar() {
             {/* Premium Sidebar */}
             <div className={`
                 fixed lg:sticky top-0
-                bg-[#020205] text-slate-400 h-screen
-                flex flex-col border-r border-white/5
-                transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)
+                h-screen flex flex-col z-[150] overflow-hidden
+                transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
                 ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-                z-[150] overflow-hidden
             `}>
-                <div className="w-80 flex flex-col h-full flex-shrink-0 relative">
+                {/* Ultra Premium White Mesh Gradient */}
+                <div className="absolute inset-0 bg-white" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(59,130,246,0.03)_0%,_transparent_50%),radial-gradient(circle_at_80%_80%,_rgba(99,102,241,0.03)_0%,_transparent_50%)]" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/30 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                    {/* Abstract Decorative Glows */}
-                    <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-orange-500/10 to-transparent pointer-events-none opacity-30" />
-                    <div className="absolute bottom-0 right-0 w-32 h-32 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none" />
+                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200/60 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.03)] selection:bg-blue-50">
 
                     {/* Header Section */}
-                    <div className="p-8 pb-10 flex flex-col items-center gap-6 relative z-10">
+                    <div className="p-8 pb-7 flex flex-col items-center gap-5 relative z-10">
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
+
                         <motion.div
-                            whileHover={{ scale: 1.1, rotate: 5 }}
-                            className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.1)] border border-white/10 group overflow-hidden"
+                            whileHover={{ scale: 1.05, rotate: 2 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="relative group/logo cursor-pointer"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-transparent to-teal-500/20 group-hover:opacity-100 opacity-0 transition-opacity duration-500" />
-                            <FiCpu className="text-3xl text-black group-hover:scale-110 transition-transform duration-500" />
+                            <div className="absolute -inset-3 bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-400 rounded-[2rem] blur-2xl opacity-10 group-hover/logo:opacity-30 transition-all duration-700" />
+                            <div className="relative w-16 h-16 rounded-2xl bg-white shadow-[0_10px_35px_rgb(0,0,0,0.05)] border border-slate-100 flex items-center justify-center transition-all duration-500 group-hover/logo:shadow-blue-500/20 group-hover/logo:border-blue-100">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
+                                <FiCpu className="text-3xl text-blue-600 drop-shadow-sm" />
+                            </div>
                         </motion.div>
-                        <div className="text-center">
-                            <h2 className="text-3xl font-black text-white tracking-tighter uppercase italic leading-none mb-1">
+
+                        <div className="text-center relative">
+                            <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase italic leading-none mb-1.5">
                                 {t('staff_portal')}
                             </h2>
-                            <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.5em] opacity-60">System Authorized</p>
+                            <div className="flex items-center justify-center gap-2">
+                                <div className="relative">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                    <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping opacity-40" />
+                                </div>
+                                <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-[0.4em] font-mono">System Authorized</p>
+                            </div>
                         </div>
                     </div>
 
                     {/* Navigation Links */}
-                    <nav className="flex-1 overflow-y-auto py-4 px-6 space-y-2 custom-scrollbar relative z-10">
-                        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-1.5">
+                    <nav className="flex-1 overflow-y-auto py-2 px-4 space-y-1 custom-scrollbar relative z-10">
+                        <style jsx global>{`
+                            .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+                            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+                        `}</style>
+
+                        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-1">
                             {menuItems.map((item, index) => {
                                 const isActive = item.href === basePath
                                     ? pathname === basePath
@@ -116,49 +136,57 @@ export default function EmployeeSidebar() {
                                 return (
                                     <motion.div key={index} variants={itemVariants}>
                                         {index === menuItems.length - 1 && (
-                                            <div className="px-5 py-4 text-[10px] font-black text-orange-500/40 uppercase tracking-[0.3em] mt-4">
+                                            <div className="px-5 py-3 text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 mb-2 flex items-center gap-2">
+                                                <div className="h-[1px] flex-1 bg-slate-100" />
                                                 {t('settings')}
+                                                <div className="h-[1px] flex-1 bg-slate-100" />
                                             </div>
                                         )}
                                         <Link
                                             href={item.href}
                                             onClick={handleLinkClick}
                                             className={`
-                                                    flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden
-                                                    ${isActive
-                                                    ? 'bg-white/10 text-white font-black italic border border-white/20 shadow-[0_0_20px_rgba(249,115,22,0.15)] backdrop-blur-md'
-                                                    : 'hover:bg-white/5 hover:text-white border border-transparent hover:border-white/5'
+                                                flex items-center gap-4 px-5 py-4 rounded-[1.25rem] transition-all duration-500 group relative overflow-hidden
+                                                ${isActive
+                                                    ? 'bg-white shadow-[0_12px_30px_-8px_rgba(37,99,235,0.12)] border border-blue-50 text-blue-600 font-black'
+                                                    : 'text-slate-500 hover:text-slate-900 border border-transparent'
                                                 }
-                                                `}
+                                            `}
                                         >
-                                            {/* Dynamic Glow Line for Active Link */}
-                                            {isActive && (
-                                                <motion.div
-                                                    layoutId="sidebar-active-glow"
-                                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-3/5 bg-orange-500 rounded-r-full shadow-[0_0_15px_rgba(249,115,22,0.8)]"
-                                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                                />
-                                            )}
+                                            {/* Hover Glow Shine */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
 
-                                            <Icon className={`
-                                                    relative z-10 text-2xl transition-all duration-300
-                                                    ${isActive ? 'text-orange-500 scale-110 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'text-slate-600 group-hover:text-orange-400 group-hover:scale-110'}
+                                            {/* Left Active Indicator */}
+                                            <div className={`
+                                                absolute left-0 top-1/2 -translate-y-1/2 w-1.5 rounded-r-full transition-all duration-500
+                                                ${isActive ? 'h-7 bg-blue-600 shadow-[2px_0_12px_rgba(37,99,235,0.4)]' : 'h-0 bg-slate-200 group-hover:h-3'}
+                                            `} />
+
+                                            <div className={`
+                                                relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-500
+                                                ${isActive ? 'bg-blue-50 shadow-inner' : 'bg-slate-50 group-hover:bg-blue-50 group-hover:scale-110 group-hover:rotate-2'}
+                                            `}>
+                                                <Icon className={`
+                                                    text-xl transition-all duration-500
+                                                    ${isActive ? 'text-blue-600 scale-110' : 'text-slate-400 group-hover:text-blue-500'}
                                                 `} />
+                                            </div>
 
                                             <span className={`
-                                                    relative z-10 flex-1 text-sm uppercase tracking-widest font-black transition-all
-                                                    ${isActive ? 'text-white' : 'group-hover:translate-x-1'}
-                                                `}>
+                                                relative z-10 flex-1 text-sm tracking-tight transition-all duration-300
+                                                ${isActive ? 'text-blue-700' : 'font-bold group-hover:translate-x-1'}
+                                            `}>
                                                 {item.label}
                                             </span>
 
-                                            {isActive && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    className="relative z-10 w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,1)]"
-                                                />
-                                            )}
+                                            <div className={`
+                                                transition-all duration-500 transform 
+                                                ${isActive ? 'opacity-100 translate-x-0 rotate-90 text-blue-500' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'}
+                                            `}>
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </div>
                                         </Link>
                                     </motion.div>
                                 );
@@ -167,16 +195,22 @@ export default function EmployeeSidebar() {
                     </nav>
 
                     {/* Sidebar Footer / User Identification */}
-                    <div className="p-6 relative z-10">
-                        <div className="bg-white/5 border border-white/5 rounded-3xl p-4 flex items-center gap-4 group hover:bg-white/10 transition-all duration-500 border-dashed hover:border-orange-500/30 cursor-pointer">
-                            <div className="w-10 h-10 rounded-2xl bg-black flex items-center justify-center border border-white/10 shadow-inner group-hover:rotate-6 transition-transform">
-                                <span className="text-xs font-black text-orange-400">EP</span>
+                    <div className="p-6 pt-2 relative z-10">
+                        <motion.div
+                            whileHover={{ y: -5 }}
+                            className="bg-white border-2 border-slate-50 rounded-[2rem] p-5 flex items-center gap-4 group hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] transition-all duration-500 cursor-pointer"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity" />
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg transition-all duration-500 group-hover:rotate-6 group-hover:scale-110">
+                                    <span className="text-sm font-black text-white">EP</span>
+                                </div>
                             </div>
-                            <div className="overflow-hidden">
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-0.5">Authorized Identity</p>
-                                <p className="text-sm font-black text-white truncate italic tracking-tight">{t('employee')}</p>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="text-[10px] font-black text-blue-600/50 uppercase tracking-[0.2em] mb-0.5">{t('authorized_access')}</p>
+                                <p className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate italic tracking-tighter">{t('employee')}</p>
                             </div>
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
             </div>

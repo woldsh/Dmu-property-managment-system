@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_Ethiopic } from "next/font/google";
 import "./globals.css";
 import { AuthProviderWrapper } from "@/components/AuthProviderWrapper";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,12 @@ export default function RootLayout({
         <AuthProviderWrapper>
           {children}
         </AuthProviderWrapper>
+        <Script
+          src="https://app.livechatai.com/embed.js"
+          data-id="cmkk2ryey0001l404b4c99goi"
+          async
+          defer
+        />
       </body>
     </html>
   );
