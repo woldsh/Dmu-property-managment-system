@@ -26,29 +26,41 @@ export async function isUserInEthiopia(): Promise<boolean> {
             return cachedGeoLocation.isEthiopia;
         }
 
-        console.log('🌍 Fetching geolocation from API...');
+        console.log('🌍 Fetching geolocation from multiple sources...');
 
-        // Fetch geolocation from ipapi.co (free tier: 1,000 requests/day)
-        const response = await fetch('https://ipapi.co/json/', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`Geolocation API responded with status: ${response.status}`);
+        // SOURCE 1: ipapi.co
+        let isEthiopia = false;
+        try {
+            const response = await fetch('https://ipapi.co/json/', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                isEthiopia = data.country_code === 'ET';
+                if (isEthiopia) {
+                    console.log('🌍 Detected ET via ipapi.co');
+                }
+            }
+        } catch (e) {
+            console.warn('⚠️ ipapi.co failed');
         }
 
-        const data: GeoLocationResponse = await response.json();
-        console.log('🌍 Geolocation API response:', {
-            country: data.country_name,
-            code: data.country_code,
-            city: data.city,
-        });
-
-        // Check if country code is Ethiopia (ET)
-        const isEthiopia = data.country_code === 'ET';
+        // SOURCE 2: ip-api.com (Fallback)
+        if (!isEthiopia) {
+            try {
+                const response = await fetch('http://ip-api.com/json/');
+                if (response.ok) {
+                    const data = await response.json();
+                    isEthiopia = data.countryCode === 'ET';
+                    if (isEthiopia) {
+                        console.log('🌍 Detected ET via ip-api.com');
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ ip-api.com failed');
+            }
+        }
 
         // Cache the result
         cachedGeoLocation = {
@@ -59,12 +71,7 @@ export async function isUserInEthiopia(): Promise<boolean> {
         return isEthiopia;
     } catch (error) {
         console.error('❌ Geolocation check failed:', error);
-
-        // IMPORTANT: On API failure, allow access by default
-        // This prevents legitimate users from being locked out if the API is down
-        // Change this to 'return false' if you want to block access on API failures
-        console.warn('⚠️ Allowing access due to geolocation API failure (fail-open mode)');
-        return true;
+        return true; // Fail-open
     }
 }
 

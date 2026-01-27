@@ -20,44 +20,67 @@ export async function middleware(request: NextRequest) {
         const geoCache = request.cookies.get('geo_allowed');
 
         if (!geoCache || geoCache.value !== 'true') {
-            // Perform geolocation check
+            // Priority 1: Check Vercel Geo-Header (most reliable if on Vercel)
+            const vercelCountry = request.headers.get('x-vercel-ip-country');
+            if (vercelCountry === 'ET') {
+                const response = NextResponse.next();
+                response.cookies.set('geo_allowed', 'true', {
+                    maxAge: 60 * 60 * 24, // 24 hours
+                    httpOnly: true,
+                    sameSite: 'strict',
+                });
+                return response;
+            }
+
+            // Priority 2: Use external APIs fallback
             try {
+                // Try ipapi.co first
+                let isEthiopia = false;
                 const response = await fetch('https://ipapi.co/json/', {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' },
+                    next: { revalidate: 3600 } // Cache for 1 hour at the fetch level
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    const isEthiopia = data.country_code === 'ET';
+                    isEthiopia = data.country_code === 'ET';
+                }
 
-                    if (!isEthiopia) {
-                        // Block access - redirect to geo-blocked page
-                        const geoBlockedUrl = new URL('/geo-blocked', request.url);
-                        return NextResponse.redirect(geoBlockedUrl);
-                    } else {
-                        // User is in Ethiopia - set cache cookie and allow access
-                        const response = NextResponse.next();
-                        response.cookies.set('geo_allowed', 'true', {
-                            maxAge: 60 * 60 * 24, // 24 hours
-                            httpOnly: true,
-                            sameSite: 'strict',
-                        });
-                        return response;
+                // Fallback: If ipapi.co failed or says not Ethiopia, try ip-api.com
+                if (!isEthiopia) {
+                    const fallbackResponse = await fetch('http://ip-api.com/json/', {
+                        method: 'GET',
+                        next: { revalidate: 3600 }
+                    });
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        isEthiopia = fallbackData.countryCode === 'ET';
                     }
+                }
+
+                if (!isEthiopia && vercelCountry && vercelCountry !== 'Unknown') {
+                    // If Vercel explicitly said it's NOT Ethiopia, and APIs agree, then block
+                    const geoBlockedUrl = new URL('/geo-blocked', request.url);
+                    return NextResponse.redirect(geoBlockedUrl);
+                } else if (!isEthiopia) {
+                    // If we have no Vercel header and APIs say No, but we want to be safe for false positives
+                    // We'll allow access but with a shorter cache if we are unsure
+                    // Actually, for now let's block if both APIs say No
+                    const geoBlockedUrl = new URL('/geo-blocked', request.url);
+                    return NextResponse.redirect(geoBlockedUrl);
                 } else {
-                    // API failed - allow access by default (fail-open mode)
-                    console.warn('⚠️ Geolocation API failed, allowing access (fail-open mode)');
+                    // User is in Ethiopia - set cache cookie and allow access
                     const response = NextResponse.next();
                     response.cookies.set('geo_allowed', 'true', {
-                        maxAge: 60 * 60, // 1 hour (shorter cache for API failures)
+                        maxAge: 60 * 60 * 24, // 24 hours
                         httpOnly: true,
                         sameSite: 'strict',
                     });
                     return response;
                 }
             } catch (error) {
-                // Network error - allow access by default
+                // Network error - allow access by default (fail-open)
                 console.error('❌ Geolocation check error:', error);
                 const response = NextResponse.next();
                 response.cookies.set('geo_allowed', 'true', {
