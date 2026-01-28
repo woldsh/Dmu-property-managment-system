@@ -18,7 +18,8 @@ import {
     FiFileText,
     FiLayers,
     FiCheckSquare,
-    FiGrid
+    FiGrid,
+    FiPieChart
 } from 'react-icons/fi';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
