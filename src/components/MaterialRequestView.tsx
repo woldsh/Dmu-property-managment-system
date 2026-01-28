@@ -765,25 +765,23 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             )}
 
             {/* Header Section */}
-            <div className={`flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative overflow-hidden`}>
-                <div className={`absolute top-0 right-0 w-80 h-80 bg-${themeColor}-50 rounded-full -mr-40 -mt-40 blur-[100px] opacity-60`}></div>
-                <div className={`absolute bottom-0 left-0 w-64 h-64 bg-slate-50 rounded-full -ml-32 -mb-32 blur-[80px] opacity-40`}></div>
+            <div className={`flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-[2.5rem] border border-slate-200 relative overflow-hidden`}>
 
                 <div className="relative z-10">
-                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-${themeColor}-100 text-${themeColor}-700 text-[10px] font-black uppercase tracking-[0.2em] mb-4 shadow-sm`}>
-                        <FiActivity className="animate-pulse" /> Security Protocol Active
+                    <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-blue-700 text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-blue-100`}>
+                        <FiActivity /> Security Protocol Active
                     </div>
                     <h2 className="text-4xl font-black text-slate-800 tracking-tighter flex items-center gap-4">
                         {effectiveRole === 'academic_coordinator' ? (
-                            <>Departmental <span className={`text-${themeColor}-600`}>Submissions</span></>
+                            <>Departmental <span className={`text-blue-600`}>Submissions</span></>
                         ) : effectiveRole === 'managing_director' ? (
-                            <>Executive <span className={`text-${themeColor}-600`}>Directives</span></>
+                            <>Executive <span className={`text-blue-600`}>Directives</span></>
                         ) : effectiveRole === 'general_service' ? (
-                            <>Validated <span className={`text-${themeColor}-600`}>Requests</span></>
+                            <>Validated <span className={`text-blue-600`}>Requests</span></>
                         ) : effectiveRole === 'team_leader' ? (
-                            <>Procurement <span className={`text-${themeColor}-600`}>Oversight</span></>
+                            <>Procurement <span className={`text-blue-600`}>Oversight</span></>
                         ) : (
-                            <>Pending <span className={`text-${themeColor}-600`}>Requests</span></>
+                            <>Pending <span className={`text-blue-600`}>Requests</span></>
                         )}
                     </h2>
                     <p className="text-slate-500 font-bold mt-2 uppercase text-[10px] tracking-[0.3em] opacity-60">
@@ -796,20 +794,20 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 </div>
 
                 <div className="relative group w-full md:w-[28rem] z-10">
-                    <FiSearch className={`absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-${themeColor}-500 transition-colors text-xl`} />
+                    <FiSearch className={`absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-xl`} />
                     <input
                         type="text"
                         placeholder="Search by teacher or material..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className={`w-full pl-14 pr-6 py-5 bg-slate-50/50 border-2 border-slate-100 rounded-3xl focus:ring-8 focus:ring-${themeColor}-500/5 focus:border-${themeColor}-500 focus:bg-white outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300 shadow-inner`}
+                        className={`w-full pl-14 pr-6 py-5 bg-white border-2 border-slate-100 rounded-3xl focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300`}
                     />
                 </div>
             </div>
 
             {filteredRequests.length === 0 ? (
                 <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-32 text-center space-y-6">
-                    <div className={`w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200 border-2 border-slate-50 shadow-inner`}>
+                    <div className={`w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto text-slate-200 border-2 border-slate-100`}>
                         <FiClock className="text-5xl" />
                     </div>
                     <div className="space-y-2">
@@ -822,27 +820,20 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                     {filteredRequests.map(request => (
                         <div
                             key={request.id}
-                            className={`group relative bg-white border-2 rounded-[3rem] transition-all duration-700 hover:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] hover:-translate-y-2 flex flex-col overflow-hidden ${effectiveRole === 'academic_coordinator' ? 'border-slate-100 hover:border-lime-200 shadow-lime-500/5' :
-                                effectiveRole === 'managing_director' ? 'border-slate-100 hover:border-indigo-200 shadow-indigo-500/5' :
-                                    effectiveRole === 'general_service' ? 'border-slate-100 hover:border-violet-300 shadow-violet-500/5 bg-gradient-to-b from-white to-violet-50/20' :
-                                        effectiveRole === 'team_leader' ? 'border-slate-100 hover:border-teal-300 shadow-teal-500/5 bg-gradient-to-b from-white to-teal-50/20' :
-                                            'border-slate-100 hover:border-orange-200'
+                            className={`group relative bg-white border-2 rounded-[3rem] transition-all duration-700 flex flex-col overflow-hidden ${effectiveRole === 'academic_coordinator' ? 'border-slate-100' :
+                                effectiveRole === 'managing_director' ? 'border-slate-100' :
+                                    effectiveRole === 'general_service' ? 'border-slate-100' :
+                                        effectiveRole === 'team_leader' ? 'border-slate-100' :
+                                            'border-slate-100'
                                 } ${processingId === request.id ? 'opacity-50 pointer-events-none' : ''}`}
                         >
-                            {/* Premium Glow Effect */}
-                            <div className={`absolute -inset-1 bg-gradient-to-r ${effectiveRole === 'department_head' ? 'from-orange-500/20 to-amber-500/20' :
-                                effectiveRole === 'general_service' ? 'from-violet-500/20 to-purple-500/20' :
-                                    'from-transparent to-transparent'
-                                } rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition duration-700`}></div>
-
-                            {/* Decorative Corner Accent */}
-                            <div className={`absolute top-0 right-0 w-48 h-48 bg-${themeColor}-50/50 rounded-full -mr-24 -mt-24 blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700`}></div>
+                            {/* Removed glow/accent effects for pure white theme */}
 
                             {/* Request Card Top Bar */}
-                            <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between relative z-10">
+                            <div className="px-8 py-6 bg-white border-b border-slate-100 flex items-center justify-between relative z-10">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-14 h-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center shadow-sm group-hover:border-${themeColor}-100 transition-colors`}>
-                                        <FiUser className={`text-2xl text-${themeColor}-600`} />
+                                    <div className={`w-14 h-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center transition-colors`}>
+                                        <FiUser className={`text-2xl text-blue-600`} />
                                     </div>
                                     <div>
                                         <h4 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-black transition-colors">{request.requesterName}</h4>
@@ -858,12 +849,12 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                                 </div>
                                 <div className="text-right">
                                     <div className="mb-2">
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-${themeColor}-100/50 text-${themeColor}-700 text-[10px] font-black uppercase tracking-tighter shadow-sm border border-${themeColor}-200/50`}>
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-blue-700 text-[10px] font-black uppercase tracking-tighter border border-blue-200/50`}>
                                             <FiCheckCircle className="text-xs" /> {request.status.replace(/_/g, ' ')}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-end gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/50 px-3 py-1.5 rounded-xl border border-slate-100/50">
-                                        <FiCalendar className={`text-${themeColor}-500`} />
+                                    <div className="flex items-center justify-end gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-xl border border-slate-100/50">
+                                        <FiCalendar className={`text-blue-500`} />
                                         {request.createdAt?.toDate().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) || 'N/A'}
                                     </div>
                                 </div>
@@ -873,13 +864,13 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             <div className="p-8 flex-1 space-y-6 relative z-10">
                                 <div className="space-y-4">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                                        <FiBox className={`text-${themeColor}-500`} /> Material Payload ({request.items.length})
+                                        <FiBox className={`text-blue-500`} /> Material Payload ({request.items.length})
                                     </p>
                                     <div className="space-y-3">
                                         {request.items.map((item, idx) => (
-                                            <div key={idx} className={`group/item flex items-center justify-between p-4 bg-slate-50/50 rounded-3xl border-2 border-slate-100/50 hover:bg-white hover:border-${themeColor}-200 hover:shadow-md transition-all`}>
+                                            <div key={idx} className={`group/item flex items-center justify-between p-4 bg-white rounded-3xl border-2 border-slate-100/50 hover:border-blue-200 transition-all`}>
                                                 <div className="flex items-center gap-5">
-                                                    <div className="w-16 h-16 rounded-[1.25rem] bg-white border-2 border-slate-100 flex items-center justify-center relative overflow-hidden shadow-sm flex-shrink-0 group-hover/item:border-${themeColor}-100 transition-colors">
+                                                    <div className="w-16 h-16 rounded-[1.25rem] bg-white border-2 border-slate-100 flex items-center justify-center relative overflow-hidden flex-shrink-0 transition-colors">
                                                         {(item.image || materialImages[item.materialId]) ? (
                                                             <Image
                                                                 src={item.image || materialImages[item.materialId]}
@@ -897,10 +888,10 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                                                             {(effectiveRole === 'stock_clerk' || effectiveRole === 'team_leader') && (
                                                                 <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg font-mono">{item.materialCode}</span>
                                                             )}
-                                                            <span className={`text-[10px] font-black bg-${themeColor}-600/10 text-${themeColor}-700 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-${themeColor}-200/50`}>{item.materialType?.replace('_', ' ')}</span>
+                                                            <span className={`text-[10px] font-black bg-blue-600/10 text-blue-700 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-blue-200/50`}>{item.materialType?.replace('_', ' ')}</span>
                                                             {item.AC_decition === 'need AC decision' && (
-                                                                <span className="text-[10px] font-black bg-red-500 text-white px-2.5 py-1 rounded-lg uppercase flex items-center gap-1.5 shadow-lg shadow-red-500/20">
-                                                                    <FiAlertCircle className="animate-pulse" /> Commission Review
+                                                                <span className="text-[10px] font-black bg-red-500 text-white px-2.5 py-1 rounded-lg uppercase flex items-center gap-1.5">
+                                                                    <FiAlertCircle /> Commission Review
                                                                 </span>
                                                             )}
                                                         </div>
@@ -923,7 +914,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             </div>
 
                             {/* Actions */}
-                            <div className="p-8 bg-slate-50/80 backdrop-blur-md border-t border-slate-100 flex items-center gap-4 relative z-10">
+                            <div className="p-8 bg-white border-t border-slate-100 flex items-center gap-4 relative z-10">
                                 {effectiveRole.includes('stock_clerk') || effectiveRole.includes('store_keeper') ? (
                                     <>
                                         <button
@@ -1007,17 +998,14 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 </div>
             )}
 
-            {/* Decorative Protocol Card */}
-            <div className={`mt-12 bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl border-b-[12px] border-${themeColor}-600`}>
-                <div className={`absolute top-0 right-0 w-[30rem] h-[30rem] bg-${themeColor}-500/10 rounded-full -mr-60 -mt-60 blur-[120px]`}></div>
-                <div className="absolute bottom-0 left-0 w-80 h-80 bg-slate-800/20 rounded-full -ml-40 -mb-40 blur-[100px]"></div>
-
+            {/* Protocol Card */}
+            <div className={`mt-12 bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden border-b-[12px] border-blue-600`}>
                 <div className="flex flex-col md:flex-row items-center gap-10 relative z-10 text-center md:text-left">
-                    <div className={`w-28 h-28 bg-${themeColor}-500/20 rounded-[2.5rem] flex items-center justify-center flex-shrink-0 border-2 border-${themeColor}-500/20 shadow-2xl backdrop-blur-xl animate-float`}>
-                        <FiInfo className={`text-5xl text-${themeColor}-400`} />
+                    <div className={`w-28 h-28 bg-white/10 rounded-[2.5rem] flex items-center justify-center flex-shrink-0 border-2 border-white/20 animate-float`}>
+                        <FiInfo className={`text-5xl text-blue-400`} />
                     </div>
                     <div className="space-y-4">
-                        <div className={`inline-block px-4 py-1.5 rounded-full bg-${themeColor}-500/10 text-${themeColor}-400 text-[10px] font-black uppercase tracking-[0.3em] border border-${themeColor}-500/20`}>
+                        <div className={`inline-block px-4 py-1.5 rounded-full bg-white/10 text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] border border-white/20`}>
                             Operational Policy
                         </div>
                         <h4 className="text-3xl font-black tracking-tighter italic">

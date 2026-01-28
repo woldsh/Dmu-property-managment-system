@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
 import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, getDoc, where, getDocs } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,6 +46,127 @@ interface CartItem extends Material {
     requestedQuantity: number;
 }
 
+interface ImageMagnifierProps {
+    src: string;
+    alt: string;
+    width: number | string;
+    height: number | string;
+    zoomLevel?: number;
+}
+
+function ImageMagnifier({ src, alt, width, height, zoomLevel = 3 }: ImageMagnifierProps) {
+    const [showMagnifier, setShowMagnifier] = useState(false);
+    const [[x, y], setXY] = useState([0, 0]);
+    const [[imgWidth, imgHeight], setSize] = useState([0, 0]);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
+
+    // Lens dimensions - Enlarged for a broader viewing section
+    const lensWidth = 250;
+    const lensHeight = 250;
+
+    return (
+        <div className="relative w-full h-full flex flex-col items-center">
+            {/* Original Image Container */}
+            <div
+                className="relative overflow-hidden cursor-crosshair rounded-2xl md:rounded-3xl border border-slate-100 bg-white group aspect-square w-full"
+                onMouseEnter={(e) => {
+                    const elem = e.currentTarget;
+                    const { width, height } = elem.getBoundingClientRect();
+                    setSize([width, height]);
+                    setShowMagnifier(true);
+                }}
+                onMouseMove={(e) => {
+                    const elem = e.currentTarget;
+                    const { top, left, width, height } = elem.getBoundingClientRect();
+
+                    // Calculate mouse position relative to image
+                    let mouseX = e.pageX - left - window.pageXOffset;
+                    let mouseY = e.pageY - top - window.pageYOffset;
+
+                    // Constrain mouse coordinates for absolute accuracy
+                    mouseX = Math.max(0, Math.min(mouseX, width));
+                    mouseY = Math.max(0, Math.min(mouseY, height));
+
+                    setXY([mouseX, mouseY]);
+
+                    // Update panel size if shown for precise centering
+                    if (panelRef.current) {
+                        const { width: pw, height: ph } = panelRef.current.getBoundingClientRect();
+                        setPanelSize({ w: pw, h: ph });
+                    }
+                }}
+                onMouseLeave={() => {
+                    setShowMagnifier(false);
+                }}
+            >
+                <Image
+                    src={src}
+                    alt={alt}
+                    fill
+                    className="object-contain p-4"
+                />
+
+                {/* Lens Overlay on Original Image */}
+                {showMagnifier && (
+                    <div
+                        className="pointer-events-none absolute border-2 border-slate-900/10 bg-white/20 backdrop-blur-[1px] shadow-sm transition-opacity duration-300"
+                        style={{
+                            width: `${lensWidth}px`,
+                            height: `${lensHeight}px`,
+                            top: `${y - lensHeight / 2}px`,
+                            left: `${x - lensWidth / 2}px`,
+                            borderRadius: '0.75rem',
+                            zIndex: 10,
+                        }}
+                    >
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-slate-900/10" />
+                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-slate-900/10" />
+                    </div>
+                )}
+
+                {/* Visual Feedback Badge */}
+                <div className="absolute bottom-4 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="bg-slate-900/80 backdrop-blur-md text-[8px] font-black text-white px-3 py-1.5 rounded-lg uppercase tracking-widest border border-white/10">
+                        Hover to Detail
+                    </span>
+                </div>
+            </div>
+
+            {/* Side Magnification Panel - Positioned absolutely to overlay metadata on the right */}
+            {showMagnifier && (
+                <div
+                    ref={panelRef}
+                    className="hidden lg:block pointer-events-none absolute left-[calc(100%+2rem)] top-[-10%] w-[180%] h-[120%] bg-white rounded-[4rem] border-2 border-slate-200 shadow-[0_60px_120px_-20px_rgba(0,0,0,0.3)] z-[999] overflow-hidden animate-in fade-in zoom-in-95 duration-700 backdrop-blur-3xl"
+                    style={{
+                        minWidth: '1200px',
+                    }}
+                >
+                    <div
+                        className="absolute box-border"
+                        style={{
+                            backgroundImage: `url('${src}')`,
+                            backgroundSize: `${imgWidth * zoomLevel}px ${imgHeight * zoomLevel}px`,
+                            backgroundPosition: `${-x * zoomLevel + panelSize.w / 2}px ${-y * zoomLevel + panelSize.h / 2}px`,
+                            width: '100%',
+                            height: '100%',
+                            backgroundRepeat: 'no-repeat'
+                        }}
+                    />
+
+                    {/* Zoom Stats Overlay */}
+                    <div className="absolute top-8 left-8">
+                        <div className="bg-slate-900/90 backdrop-blur-xl px-4 py-2 rounded-xl flex items-center gap-3 border border-white/10">
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Detailed Analysis - {zoomLevel}X</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function MaterialRequestForm() {
     const { user } = useAuth();
     const [materials, setMaterials] = useState<Material[]>([]);
@@ -54,6 +175,7 @@ export default function MaterialRequestForm() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [step, setStep] = useState(1); // 1: Listing, 2: Detail, 3: Review, 4: Success
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState('All');
     const [userData, setUserData] = useState<any>(null);
     const [submitting, setSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -319,9 +441,13 @@ export default function MaterialRequestForm() {
         }
     };
 
-    const filteredMaterials = materials.filter(m =>
-        m.materialName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const categories = ['All', ...Array.from(new Set(materials.map(m => m.category || 'Uncategorized')))];
+
+    const filteredMaterials = materials.filter(m => {
+        const matchesSearch = m.materialName.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = selectedCategory === 'All' || m.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     if (loading) {
         return (
@@ -332,24 +458,24 @@ export default function MaterialRequestForm() {
     }
 
     return (
-        <div className="min-h-full bg-slate-50/30 pb-20 space-y-12 max-w-[1800px] mx-auto">
+        <div className="min-h-full bg-white pb-20 space-y-12 max-w-[1800px] mx-auto">
 
             {/* PROGRESS NAV - STICKY TOP-0 */}
-            <div className="sticky top-0 z-30 bg-white/70 backdrop-blur-3xl border-b border-slate-100 shadow-xl shadow-slate-200/20 px-4 md:px-14 py-4 md:py-6">
+            <div className="sticky top-0 z-30 bg-white border-b border-slate-100 px-4 md:px-14 py-4 md:py-6">
                 <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 lg:gap-10 overflow-x-auto no-scrollbar scroll-smooth">
                         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 shadow-sm ${step === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>01</div>
+                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 border ${step === 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}`}>01</div>
                             <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] ${step === 1 ? 'text-slate-800' : 'text-slate-400'}`}>Discovery</span>
                         </div>
                         <FiChevronRight className="text-slate-200 shrink-0" />
                         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 shadow-sm ${step === 2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>02</div>
+                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 border ${step === 2 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}`}>02</div>
                             <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] ${step === 2 ? 'text-slate-800' : 'text-slate-400'}`}>Profiling</span>
                         </div>
                         <FiChevronRight className="text-slate-200 shrink-0" />
                         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 shadow-sm ${step === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>03</div>
+                            <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-[9px] md:text-[10px] font-black transition-all duration-500 border ${step === 3 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}`}>03</div>
                             <span className={`text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] ${step === 3 ? 'text-slate-800' : 'text-slate-400'}`}>Manifest</span>
                         </div>
                     </div>
@@ -357,9 +483,9 @@ export default function MaterialRequestForm() {
                     {cart.length > 0 && step !== 3 && (
                         <button
                             onClick={() => setStep(3)}
-                            className="bg-slate-900 text-white px-5 md:px-8 py-2 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 hover:bg-indigo-600 transition-all shadow-2xl active:scale-95 group shrink-0"
+                            className="bg-slate-900 text-white px-5 md:px-8 py-2 md:py-3 rounded-xl flex items-center gap-2 md:gap-3 hover:bg-blue-600 transition-all active:scale-95 group shrink-0"
                         >
-                            <FiShoppingCart className="text-indigo-400 text-sm md:text-base" />
+                            <FiShoppingCart className="text-blue-400 text-sm md:text-base" />
                             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-none hidden sm:inline">Review ({cart.length})</span>
                             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest leading-none sm:hidden">{cart.length}</span>
                         </button>
@@ -373,62 +499,118 @@ export default function MaterialRequestForm() {
                     <div className="space-y-12 animate-in fade-in duration-700">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 md:gap-10">
                             <div className="space-y-2 md:space-y-3">
-                                <div className="flex items-center gap-3 text-indigo-600 font-black text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em]">
+                                <div className="flex items-center gap-3 text-blue-600 font-black text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em]">
                                     <FiLayers /> Global Inventory Archive
                                 </div>
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-none">
-                                    Inventory <span className="text-indigo-600">Archive</span>
+                                    Inventory <span className="text-blue-600">Archive</span>
                                 </h1>
                             </div>
                             <div className="relative w-full md:w-[450px] group">
-                                <FiSearch className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors text-lg md:text-xl" />
+                                <FiSearch className="absolute left-5 md:left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-lg md:text-xl" />
                                 <input
                                     type="text"
                                     placeholder="SEARCH MATERIALS..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-14 md:pl-16 pr-6 md:pr-8 py-4 md:py-6 bg-white border border-slate-200 rounded-2xl focus:ring-[12px] focus:ring-indigo-500/5 focus:border-indigo-500/50 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300 shadow-lg shadow-slate-200/20 uppercase text-[10px] md:text-xs tracking-widest"
+                                    className="w-full pl-14 md:pl-16 pr-6 md:pr-8 py-4 md:py-6 bg-white border border-slate-200 rounded-2xl focus:ring-[12px] focus:ring-blue-500/5 focus:border-blue-500/50 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300 uppercase text-[10px] md:text-xs tracking-widest"
                                 />
                             </div>
                         </div>
 
-                        {/* Updated Grid for LARGER cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
-                            {filteredMaterials.map(m => (
-                                <div
-                                    key={m.id}
-                                    onClick={() => { setSelectedMaterial(m); setStep(2); }}
-                                    className="group cursor-pointer"
-                                >
-                                    <div className="space-y-6 transition-all duration-700">
-                                        {/* Rectangular Card Container */}
-                                        <div className="aspect-square bg-white rounded-3xl border-2 border-slate-50 p-6 shadow-2xl shadow-slate-200/30 group-hover:shadow-indigo-200/50 group-hover:border-indigo-100 transition-all duration-500 relative flex flex-col items-center justify-center overflow-hidden">
-                                            <div className="w-full h-full rounded-2xl overflow-hidden relative shadow-inner group-hover:scale-95 transition-all duration-700 z-10">
-                                                {m.image ? (
-                                                    <Image src={m.image} alt={m.materialName} fill className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
-                                                ) : (
-                                                    <div className="w-full h-full bg-slate-50/50 flex items-center justify-center">
-                                                        <FiBox className="text-slate-100 text-[100px]" />
-                                                    </div>
-                                                )}
-                                            </div>
+                        <div className="flex flex-col lg:flex-row gap-12">
+                            {/* CATEGORY SIDEBAR */}
+                            <div className="lg:w-72 shrink-0 space-y-8">
+                                <div className="space-y-4">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] pl-1">Selection Logic</p>
+                                    <div className="flex flex-col gap-2">
+                                        {categories.map((cat) => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setSelectedCategory(cat)}
+                                                className={`flex items-center justify-between px-6 py-4 rounded-2xl border transition-all duration-300 group ${selectedCategory === cat
+                                                    ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-200'
+                                                    : 'bg-white border-slate-100 text-slate-500 hover:border-blue-200 hover:text-blue-600'
+                                                    }`}
+                                            >
+                                                <span className="text-[11px] font-black uppercase tracking-widest leading-none">{cat}</span>
+                                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${selectedCategory === cat ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
+                                                    {cat === 'All' ? materials.length : materials.filter(m => m.category === cat).length}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
-                                            {/* Rectangular Hover Overlay */}
-                                            <div className="absolute inset-x-8 bottom-8 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 z-20">
-                                                <div className="bg-slate-900/90 backdrop-blur-md px-6 py-4 rounded-xl flex items-center justify-center gap-4 shadow-2xl">
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Identify Profile</span>
-                                                    <FiArrowLeft className="text-indigo-400 rotate-180" />
+                                <div className="p-8 bg-blue-50 rounded-[2rem] space-y-4 border border-blue-100/50">
+                                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+                                        <FiInfo />
+                                    </div>
+                                    <h4 className="text-xs font-black text-blue-900 uppercase tracking-widest leading-tight">Precision Cataloging</h4>
+                                    <p className="text-[10px] font-medium text-blue-700/70 leading-relaxed italic">
+                                        Materials are segmented by operational classification for accelerated requisition workflows.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* MATERIAL GRID */}
+                            <div className="flex-1">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+                                    {filteredMaterials.map(m => (
+                                        <div
+                                            key={m.id}
+                                            onClick={() => { setSelectedMaterial(m); setStep(2); }}
+                                            className="group cursor-pointer"
+                                        >
+                                            <div className="space-y-6 transition-all duration-700">
+                                                {/* Rectangular Card Container */}
+                                                <div className="aspect-square bg-white rounded-3xl border-2 border-slate-50 p-6 shadow-sm group-hover:border-blue-100 transition-all duration-500 relative flex flex-col items-center justify-center overflow-hidden">
+                                                    <div className="w-full h-full rounded-2xl overflow-hidden relative group-hover:scale-95 transition-all duration-700 z-10">
+                                                        {m.image ? (
+                                                            <Image src={m.image} alt={m.materialName} fill className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-white flex items-center justify-center">
+                                                                <FiBox className="text-slate-100 text-[100px]" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Category Tag */}
+                                                    <div className="absolute top-8 left-8 z-20">
+                                                        <span className="bg-white/90 backdrop-blur-md border border-slate-100 text-[8px] font-black text-slate-500 px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-sm">
+                                                            {m.category || 'Standard'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Rectangular Hover Overlay */}
+                                                    <div className="absolute inset-x-8 bottom-8 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 z-20">
+                                                        <div className="bg-slate-900/90 backdrop-blur-md px-6 py-4 rounded-xl flex items-center justify-center gap-4">
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Identify Profile</span>
+                                                            <FiArrowLeft className="text-blue-400 rotate-180" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="px-2 space-y-1">
+                                                    <h3 className="font-black text-slate-900 text-lg tracking-tight group-hover:text-blue-600 transition-colors uppercase leading-[1.1] line-clamp-2">
+                                                        {m.materialName}
+                                                    </h3>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="px-2 space-y-1">
-                                            <h3 className="font-black text-slate-900 text-lg tracking-tight group-hover:text-indigo-600 transition-colors uppercase leading-[1.1] line-clamp-2">
-                                                {m.materialName}
-                                            </h3>
+                                    ))}
+                                    {filteredMaterials.length === 0 && (
+                                        <div className="col-span-full py-20 text-center space-y-6 bg-slate-50 rounded-[3rem] border border-slate-100 border-dashed">
+                                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                                                <FiSearch className="text-slate-200 text-3xl" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Archive Matches</h3>
+                                                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Adjust your search parameters or category filter</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -443,14 +625,19 @@ export default function MaterialRequestForm() {
                             <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" /> Return to Archives
                         </button>
 
-                        <div className="bg-white rounded-[2rem] md:rounded-[3rem] border border-slate-100 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.04)] overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+                        <div className="bg-white rounded-[2rem] md:rounded-[3rem] border border-slate-100 grid grid-cols-1 lg:grid-cols-12 relative z-0">
                             {/* Rectangular Cinematic Canvas */}
-                            <div className="lg:col-span-5 p-8 md:p-12 lg:p-16 flex flex-col items-center justify-center bg-slate-50/50 border-b lg:border-b-0 lg:border-r border-slate-50">
-                                <div className="w-full aspect-square relative rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-white border border-white">
+                            <div className="lg:col-span-5 p-8 md:p-12 lg:p-16 flex flex-col items-center justify-center bg-white border-b lg:border-b-0 lg:border-r border-slate-50">
+                                <div className="w-full aspect-square relative">
                                     {selectedMaterial.image ? (
-                                        <Image src={selectedMaterial.image} alt={selectedMaterial.materialName} fill className="object-cover" />
+                                        <ImageMagnifier
+                                            src={selectedMaterial.image}
+                                            alt={selectedMaterial.materialName}
+                                            width="100%"
+                                            height="100%"
+                                        />
                                     ) : (
-                                        <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+                                        <div className="w-full h-full bg-white rounded-2xl md:rounded-3xl border border-slate-100 flex items-center justify-center">
                                             <FiBox className="text-slate-100 text-[100px] md:text-[150px]" />
                                         </div>
                                     )}
@@ -467,8 +654,8 @@ export default function MaterialRequestForm() {
                             {/* Metadata Mainframe */}
                             <div className="lg:col-span-7 p-8 md:p-12 lg:p-24 space-y-12 md:space-y-16 bg-white">
                                 <div className="space-y-4 md:space-y-6">
-                                    <span className={`px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm
-                                        ${selectedMaterial.materialType === 'fixed_asset' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100'}`}>
+                                    <span className={`px-4 md:px-6 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] border
+                                        ${selectedMaterial.materialType === 'fixed_asset' ? 'bg-white text-blue-700 border-blue-100' : 'bg-white text-emerald-700 border-emerald-100'}`}>
                                         {selectedMaterial.materialType?.replace('_', ' ')}
                                     </span>
                                     <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">
@@ -485,20 +672,20 @@ export default function MaterialRequestForm() {
                                     <div className="space-y-8 md:space-y-10">
                                         <div className="group">
                                             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-2 md:mb-3">
-                                                <FiTag className="text-indigo-500" /> Identifier Category
+                                                <FiTag className="text-blue-500" /> Identifier Category
                                             </p>
                                             <p className="text-lg md:text-xl font-black text-slate-800 tracking-tight">{selectedMaterial.category}</p>
                                         </div>
                                         <div className="group">
                                             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-2 md:mb-3">
-                                                <FiActivity className="text-indigo-500" /> Physical Integrity
+                                                <FiActivity className="text-blue-500" /> Physical Integrity
                                             </p>
                                             <p className="text-lg md:text-xl font-black text-slate-800 tracking-tight">{selectedMaterial.condition}</p>
                                         </div>
                                         {/* Added Remarks Node */}
                                         <div className="group">
                                             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-2 md:mb-3">
-                                                <FiBookOpen className="text-indigo-500" /> Administrative Remarks
+                                                <FiBookOpen className="text-blue-500" /> Administrative Remarks
                                             </p>
                                             <p className="text-xs md:text-sm font-bold text-slate-500 italic leading-relaxed">
                                                 {selectedMaterial.remarks || 'Standard requisition protocols apply.'}
@@ -508,7 +695,7 @@ export default function MaterialRequestForm() {
                                     <div className="space-y-8 md:space-y-10">
                                         <div className="group">
                                             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-2 md:mb-3">
-                                                <FiLayers className="text-indigo-500" /> Archive Stock Level
+                                                <FiLayers className="text-blue-500" /> Archive Stock Level
                                             </p>
                                             <div className="flex items-baseline gap-2">
                                                 <p className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">{selectedMaterial.quantity}</p>
@@ -517,7 +704,7 @@ export default function MaterialRequestForm() {
                                         </div>
                                         <div className="group">
                                             <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-3 mb-2 md:mb-3">
-                                                <FiMapPin className="text-indigo-500" /> Archive Coordinates
+                                                <FiMapPin className="text-blue-500" /> Archive Coordinates
                                             </p>
                                             <p className="text-lg md:text-xl font-black text-slate-800 tracking-tight">Zone {selectedMaterial.storeLocation}</p>
                                         </div>
@@ -527,7 +714,7 @@ export default function MaterialRequestForm() {
                                 <button
                                     onClick={() => addToCart(selectedMaterial)}
                                     disabled={selectedMaterial.quantity === 0}
-                                    className="w-full py-6 md:py-8 bg-slate-900 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-sm hover:bg-white hover:text-slate-900 border-2 md:border-4 border-transparent hover:border-slate-900 transition-all shadow-[0_30px_60px_-10px_rgba(0,0,0,0.3)] active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4 md:gap-6"
+                                    className="w-full py-6 md:py-8 bg-slate-900 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-sm hover:bg-white hover:text-slate-900 border-2 md:border-4 border-transparent hover:border-slate-900 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-4 md:gap-6"
                                 >
                                     {selectedMaterial.quantity === 0 ? 'Exhausted' : (
                                         <>
@@ -552,12 +739,12 @@ export default function MaterialRequestForm() {
                                 >
                                     <FiArrowLeft /> Back to Archives
                                 </button>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-none">Review <span className="text-indigo-600">Manifest</span></h1>
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tighter leading-none">Review <span className="text-blue-600">Manifest</span></h1>
                             </div>
-                            <div className="bg-white px-6 md:px-10 py-4 md:py-6 rounded-2xl border border-slate-200 shadow-xl text-left md:text-right w-full md:w-auto">
+                            <div className="bg-white px-6 md:px-10 py-4 md:py-6 rounded-2xl border border-slate-200 text-left md:text-right w-full md:w-auto">
                                 <p className="text-[10px] md:text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1 md:mb-2 leading-none">Manifest Volume</p>
                                 <div className="flex items-baseline md:justify-end gap-2 leading-none">
-                                    <p className="text-4xl md:text-5xl font-black text-indigo-600">{cart.length}</p>
+                                    <p className="text-4xl md:text-5xl font-black text-blue-600">{cart.length}</p>
                                     <span className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Entities</span>
                                 </div>
                             </div>
@@ -566,9 +753,9 @@ export default function MaterialRequestForm() {
                         <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 lg:gap-12 items-start">
                             <div className="xl:col-span-8 space-y-8">
                                 {cart.map((item, idx) => (
-                                    <div key={item.id} className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden relative">
+                                    <div key={item.id} className="bg-white rounded-3xl border border-slate-100 p-8 overflow-hidden relative">
                                         <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-                                            <div className="w-32 h-32 rounded-2xl overflow-hidden relative border border-slate-50 shadow-2xl bg-white shrink-0">
+                                            <div className="w-32 h-32 rounded-2xl overflow-hidden relative border border-slate-50 bg-white shrink-0">
                                                 {item.image ? (
                                                     <Image src={item.image} alt={item.materialName} fill className="object-cover" />
                                                 ) : (
@@ -599,9 +786,9 @@ export default function MaterialRequestForm() {
                                                     <div className="space-y-1">
                                                         <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Quantity</p>
                                                         <div className="flex items-center gap-4">
-                                                            <button onClick={() => updateQuantity(item.id, -1)} className="text-slate-300 hover:text-indigo-600 transition-colors"><FiMinus className="text-sm" /></button>
+                                                            <button onClick={() => updateQuantity(item.id, -1)} className="text-slate-300 hover:text-blue-600 transition-colors"><FiMinus className="text-sm" /></button>
                                                             <span className="text-sm font-black text-slate-900 w-4 text-center">{item.requestedQuantity}</span>
-                                                            <button onClick={() => updateQuantity(item.id, 1)} className="text-slate-300 hover:text-indigo-600 transition-colors"><FiPlus className="text-sm" /></button>
+                                                            <button onClick={() => updateQuantity(item.id, 1)} className="text-slate-300 hover:text-blue-600 transition-colors"><FiPlus className="text-sm" /></button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -612,9 +799,9 @@ export default function MaterialRequestForm() {
                             </div>
 
                             <div className="xl:col-span-4 lg:sticky lg:top-32 h-fit w-full">
-                                <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 text-white space-y-8 md:space-y-10 shadow-2xl relative overflow-hidden">
+                                <div className="bg-slate-900 rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 text-white space-y-8 md:space-y-10 relative overflow-hidden">
                                     <div className="space-y-2">
-                                        <p className="text-[9px] md:text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em]">Dispatch Sequence</p>
+                                        <p className="text-[9px] md:text-[10px] font-black text-blue-500 uppercase tracking-[0.4em]">Dispatch Sequence</p>
                                         <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-none">Authorize <br />Manifest</h2>
                                     </div>
 
@@ -625,14 +812,14 @@ export default function MaterialRequestForm() {
                                         </div>
                                         <div className="flex justify-between items-center py-4 md:py-6 border-b border-white/5">
                                             <span className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Registry Target</span>
-                                            <span className="font-black text-[10px] md:text-xs text-indigo-300 uppercase tracking-widest">Dept Head</span>
+                                            <span className="font-black text-[10px] md:text-xs text-blue-300 uppercase tracking-widest">Dept Head</span>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={handleSubmit}
                                         disabled={submitting || cart.length === 0}
-                                        className="w-full py-5 md:py-8 bg-indigo-600 rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                        className="w-full py-5 md:py-8 bg-blue-600 rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-[10px] md:text-xs hover:bg-white hover:text-slate-900 transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         {submitting ? (
                                             <div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin mx-auto"></div>
@@ -649,7 +836,7 @@ export default function MaterialRequestForm() {
                 {/* STEP 4: SUCCESS REQUISITION */}
                 {step === 4 && (
                     <div className="max-w-2xl mx-auto py-20 md:py-40 px-6 text-center space-y-8 md:space-y-12 animate-in zoom-in-95 duration-700">
-                        <div className="w-24 h-24 md:w-32 md:h-32 bg-emerald-50 text-emerald-500 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-200">
+                        <div className="w-24 h-24 md:w-32 md:h-32 bg-white text-emerald-500 border border-emerald-100 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto shadow-sm">
                             <FiCheckCircle className="text-5xl md:text-[75px]" />
                         </div>
                         <div className="space-y-4">
@@ -662,7 +849,7 @@ export default function MaterialRequestForm() {
                         <div className="pt-6 md:pt-10 flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
                             <button
                                 onClick={() => setStep(1)}
-                                className="w-full sm:w-auto px-10 md:px-12 py-4 md:py-5 bg-slate-900 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-indigo-600 transition-all shadow-2xl"
+                                className="w-full sm:w-auto px-10 md:px-12 py-4 md:py-5 bg-slate-900 text-white rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs hover:bg-blue-600 transition-all"
                             >
                                 New Requisition
                             </button>

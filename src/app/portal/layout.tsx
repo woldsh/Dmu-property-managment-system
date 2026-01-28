@@ -19,10 +19,10 @@ export default function PortalLayout({
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#020205] flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <div className="text-center space-y-4">
-                    <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mx-auto" />
-                    <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
+                    <p className="text-slate-500 text-sm font-bold tracking-widest uppercase">
                         Loading Executive Portal...
                     </p>
                 </div>
@@ -34,13 +34,13 @@ export default function PortalLayout({
 
     return (
         <SidebarProvider>
-            <div className="min-h-screen bg-[#020205] flex">
+            <div className="min-h-screen bg-white flex">
                 {isChief ? <ChiefSidebar /> : <ManagingDirectorSidebar />}
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <Header
                         title={isChief ? "Chief Portal" : "Executive Portal"}
                         subtitle={isChief ? "Institution Head" : "Managing Director Control Center"}
-                        isDark={true}
+                        isDark={false}
                     />
                     <main className="flex-1 overflow-y-auto">
                         {children}

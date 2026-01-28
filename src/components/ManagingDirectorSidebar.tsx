@@ -41,16 +41,12 @@ export default function ManagingDirectorSidebar() {
             <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
                 ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
 
-                {/* Ultra Premium White Mesh Gradient */}
+                {/* Pure White Background */}
                 <div className="absolute inset-0 bg-white" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(59,130,246,0.05)_0%,_transparent_50%),radial-gradient(circle_at_80%_80%,_rgba(99,102,241,0.05)_0%,_transparent_50%)]" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-blue-100">
+                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-100 selection:bg-blue-100">
                     {/* Header */}
-                    <div className="relative p-7 pb-6">
-                        <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
+                    <div className="relative p-7 pb-6 bg-white border-b border-slate-50">
                         <div className="relative flex items-center gap-4">
                             <div className="relative group/logo cursor-pointer">
                                 <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-sky-400 rounded-2xl blur-xl opacity-20 group-hover/logo:opacity-50 transition-all duration-700 scale-90 group-hover/logo:scale-110" />

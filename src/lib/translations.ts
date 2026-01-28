@@ -262,6 +262,8 @@ export const translations = {
         start_discussion: "Start the discussion...",
         type_message: "Type a message...",
         recent: "Recent",
+        updated_just_now: "Updated just now",
+        accepted_requests: "Accepted Requests",
 
         // Dashboard Labels
         strategic_metrics: "Strategic Metrics",
@@ -703,6 +705,8 @@ export const translations = {
         start_discussion: "ውይይቱን ጀምር...",
         type_message: "መልእክት ይጻፉ...",
         recent: "የቅርብ ጊዜ",
+        updated_just_now: "አሁን ተሻሽሏል",
+        accepted_requests: "ተቀባይነት ያገኙ ጥያቄዎች",
 
         // Dashboard Labels
         strategic_metrics: "ስትራቴጂካዊ መለኪያዎች",
