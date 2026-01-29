@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, getDoc, doc, query, where, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
@@ -33,33 +33,86 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth as any, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth as any, async (authUser) => {
       try {
-        if (user) {
-          setUser(user);
-          try {
-            // Get ID token to check custom claims
-            // Using forceRefresh true to ensure latest claims
-            const idTokenResult = await user.getIdTokenResult(true);
-            setIsAdmin(idTokenResult.claims.admin === true || idTokenResult.claims.role === 'admin');
-          } catch (tokenError) {
-            console.error("Error fetching ID token:", tokenError);
-            // Don't block the app - allow user access but maybe not admin
-            setIsAdmin(false);
-          }
+        if (authUser) {
+          let isVerified = false;
+          let foundUserRole = null;
+          let foundDept = null;
+          let foundIsAdmin = false;
 
-          // Fetch explicit user role and department from Firestore
           try {
-            if (db) {
-              const userDoc = await getDoc(doc(db!, 'users', user.uid));
-              if (userDoc.exists()) {
-                const userData = userDoc.data();
-                setUserRole(userData.userRole || null);
-                setDepartment(userData.department || null);
+            // Priority 1: Check Admin Claims
+            const idTokenResult = await authUser.getIdTokenResult(true);
+            const adminClaim = idTokenResult.claims.admin === true || idTokenResult.claims.role === 'admin';
+
+            if (adminClaim) {
+              foundIsAdmin = true;
+              isVerified = true;
+            }
+
+            // Priority 2: Check admins collection (UID or Email)
+            if (db && !isVerified) {
+              const adminDoc = await getDoc(doc(db, 'admins', authUser.uid));
+              if (adminDoc.exists()) {
+                foundIsAdmin = true;
+                isVerified = true;
+              } else {
+                const adminsRef = collection(db, 'admins');
+                const adminQuery = query(adminsRef, where('email', '==', authUser.email));
+                const adminSnapshot = await getDocs(adminQuery);
+                if (!adminSnapshot.empty) {
+                  foundIsAdmin = true;
+                  isVerified = true;
+                }
               }
             }
-          } catch (docError) {
-            console.error("Error fetching user document:", docError);
+
+            // Priority 3: Check users collection
+            if (db && !isVerified) {
+              const userDoc = await getDoc(doc(db, 'users', authUser.uid));
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+
+                // CRITICAL STATUS CHECK
+                if (userData.status === 'inactive') {
+                  console.warn("AuthContext: User account is inactive. Revoking session.");
+                  await signOut(auth as any);
+                  setUser(null);
+                  setIsAdmin(false);
+                  setUserRole(null);
+                  setDepartment(null);
+                  setLoading(false);
+                  return;
+                }
+
+                foundUserRole = userData.userRole || null;
+                foundDept = userData.department || null;
+                isVerified = true;
+                foundIsAdmin = false;
+              }
+            }
+
+            // FINAL DECISION
+            if (isVerified) {
+              setIsAdmin(foundIsAdmin);
+              setUserRole(foundUserRole);
+              setDepartment(foundDept);
+              setUser(authUser); // Only set user state if verified
+            } else {
+              if (db) {
+                console.warn("AuthContext: Access denied for unverified identity.");
+                await signOut(auth as any);
+                setUser(null);
+                setIsAdmin(false);
+                setUserRole(null);
+                setDepartment(null);
+              }
+            }
+
+          } catch (verifyError) {
+            console.error("Error verifying user record:", verifyError);
+            setUser(null);
           }
         } else {
           setUser(null);
@@ -82,9 +135,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('Authentication is currently unavailable. Please check your system configuration.');
     }
     try {
-      await signInWithEmailAndPassword(auth as any, email, password);
-      // Navigation will be handled by the component using this function
+      const userCredential = await signInWithEmailAndPassword(auth as any, email, password);
+      const user = userCredential.user;
+
+      // Real-time verification for restricted accounts
+      if (db) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+
+        if (userDoc.exists() && userDoc.data()?.status === 'inactive') {
+          await signOut(auth as any);
+          throw new Error('Your account is deactivated. Please contact the administrator.');
+        }
+
+        let adminExists = false;
+        const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+        if (adminDoc.exists()) {
+          adminExists = true;
+        } else {
+          const adminsRef = collection(db, 'admins');
+          const adminQuery = query(adminsRef, where('email', '==', email));
+          const adminSnapshot = await getDocs(adminQuery);
+          adminExists = !adminSnapshot.empty;
+        }
+
+        if (!userDoc.exists() && !adminExists) {
+          await signOut(auth as any);
+          throw new Error('Incorrect username/password or register first.');
+        }
+      }
     } catch (error: any) {
+      if (error.message === 'Your account is deactivated. Please contact the administrator.') {
+        throw error;
+      }
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.message === 'Incorrect username/password or register first.') {
+        throw new Error('Incorrect username/password or register first.');
+      }
       throw new Error(error.message || 'Login failed');
     }
   };

@@ -223,6 +223,7 @@ export default function RegisterUser({ onSuccess }: RegisterUserProps) {
         email,
         displayName: `${firstName} ${lastName}`,
         ...currentRoleData,
+        status: 'active',
         createdAt: new Date(),
         updatedAt: new Date(),
         uid: newUser.uid
