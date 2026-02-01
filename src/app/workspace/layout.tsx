@@ -36,7 +36,7 @@ export default function WorkspaceLayout({
 
     const stockType = getStockType();
 
-    if (loading) {
+    if (loading || (!userRole && !loading)) {
         return (
             <div className="min-h-screen bg-[#020205] flex items-center justify-center">
                 <div className="text-center space-y-4">

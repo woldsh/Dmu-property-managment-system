@@ -34,43 +34,52 @@ export default function DormitoryLeaderSidebar() {
     return (
         <>
             {isOpen && (
-                <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
+                <div className="fixed inset-0 bg-black/60 z-[140] lg:hidden backdrop-blur-md transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
             <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
                 ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
 
-                <div className="absolute inset-0 bg-gradient-to-b from-orange-950 via-slate-950 to-black" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-orange-900/30 via-transparent to-transparent" />
-                <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-orange-500/10 to-transparent" />
+                {/* Ultra Premium White Mesh Gradient */}
+                <div className="absolute inset-0 bg-white" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(249,115,22,0.05)_0%,_transparent_50%),radial-gradient(circle_at_80%_80%,_rgba(245,158,11,0.05)_0%,_transparent_50%)]" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50/30 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-50/30 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-orange-500/10">
-                    <div className="relative p-6 border-b border-white/5">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10" />
+                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-orange-50">
+                    {/* Header */}
+                    <div className="relative p-7 pb-6">
+                        <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
                         <div className="relative flex items-center gap-4">
-                            <div className="relative group">
-                                <div className="absolute -inset-2 bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 rounded-2xl blur-lg opacity-40 group-hover:opacity-70 animate-pulse transition-opacity duration-500" />
-                                <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 flex items-center justify-center shadow-2xl">
-                                    <FaHome className="text-xl text-white drop-shadow-lg" />
+                            <div className="relative group/logo cursor-pointer">
+                                <div className="absolute -inset-2 bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-400 rounded-2xl blur-xl opacity-20 group-hover/logo:opacity-50 transition-all duration-700 scale-90 group-hover/logo:scale-110" />
+                                <div className="relative w-14 h-14 rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 flex items-center justify-center transition-all duration-500 group-hover/logo:shadow-orange-500/20 group-hover/logo:-translate-y-1">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
+                                    <FaHome className="text-2xl text-orange-600 drop-shadow-sm" />
                                 </div>
                             </div>
-                            <div>
-                                <h2 className="text-lg font-black text-white tracking-tight">{t('dormitory_leader')}</h2>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse shadow-lg shadow-orange-400/50" />
-                                    <p className="text-xs font-bold text-orange-400/80 uppercase tracking-[0.2em]">{t('dormitory_service')}</p>
+                            <div className="flex flex-col">
+                                <h2 className="text-xl font-black text-slate-800 tracking-tight leading-tight">{t('dormitory_leader')}</h2>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className="relative">
+                                        <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-lg shadow-orange-400/50" />
+                                        <div className="absolute inset-0 w-2 h-2 rounded-full bg-orange-500 animate-ping opacity-30" />
+                                    </div>
+                                    <p className="text-[10px] font-black text-orange-600/60 uppercase tracking-[0.3em] font-mono">{t('dormitory_service')}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    {/* Navigation */}
                     <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
                         <style jsx global>{`
                             .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                            .custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #f97316, #fbbf24); border-radius: 10px; }
-                            @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-                            .menu-item { animation: slideIn 0.3s ease-out forwards; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; transition: all 0.3s; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+                            @keyframes slideInUp { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+                            .menu-item-premium { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                         `}</style>
 
                         {menuItems.map((item, index) => {
@@ -78,40 +87,51 @@ export default function DormitoryLeaderSidebar() {
                             const Icon = item.icon;
 
                             return (
-                                <Link key={index} href={item.href} onClick={handleLinkClick} style={{ animationDelay: `${index * 30}ms` }}
-                                    className={`menu-item relative flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group overflow-hidden
-                                        ${isActive ? 'bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-transparent text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                                <Link key={index} href={item.href} onClick={handleLinkClick} style={{ animationDelay: `${index * 40}ms` }}
+                                    className={`menu-item-premium relative flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-500 group overflow-hidden
+                                        ${isActive ? 'bg-white shadow-[0_10px_25px_-5px_rgba(249,115,22,0.12)] border border-orange-100/50 text-orange-600' : 'text-slate-500 hover:text-slate-900'}`}>
 
-                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 rounded-r-full transition-all duration-300
-                                        ${isActive ? 'h-8 bg-gradient-to-b from-orange-400 via-amber-500 to-yellow-500 shadow-lg shadow-orange-500/50' : 'h-0'}`} />
+                                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-500
+                                        ${isActive ? 'bg-orange-600 shadow-[2px_0_10px_rgba(249,115,22,0.4)] opacity-100' : 'h-0 opacity-0 group-hover:h-3 group-hover:bg-slate-200 group-hover:opacity-100'}`} />
 
-                                    <div className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300
-                                        ${isActive ? 'bg-gradient-to-br from-orange-500/30 to-amber-500/20 shadow-lg shadow-orange-500/20' : 'bg-white/5 group-hover:bg-white/10 group-hover:scale-110'}`}>
-                                        <Icon className={`text-lg transition-all duration-300 ${isActive ? 'text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]' : 'text-slate-500 group-hover:text-orange-400'}`} />
+                                    <div className={`relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-500
+                                        ${isActive ? 'bg-orange-50 shadow-inner' : 'bg-slate-50/50 group-hover:bg-orange-50 group-hover:scale-110 group-hover:rotate-3'}`}>
+                                        <Icon className={`text-xl transition-all duration-500 ${isActive ? 'text-orange-600 scale-110' : 'text-slate-400 group-hover:text-orange-500'}`} />
                                     </div>
 
-                                    <span className={`flex-1 font-medium transition-all duration-300 ${isActive ? 'font-bold' : 'group-hover:translate-x-1'}`}>
-                                        {item.label}
-                                    </span>
+                                    <span className={`flex-1 text-sm tracking-tight transition-all duration-300 ${isActive ? 'font-black' : 'font-bold group-hover:translate-x-1'}`}>{item.label}</span>
 
                                     {item.label === t('view_requests') && requestCount > 0 && (
-                                        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-orange-500 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.6)] animate-pulse">
+                                        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-orange-600 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.3)]">
                                             <span className="text-[10px] font-black text-white">{requestCount}</span>
                                         </div>
                                     )}
+
+                                    <div className={`transition-all duration-500 transform ${isActive ? 'rotate-90 text-orange-600' : 'opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0'}`}>
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+
+                                    {/* Hover Shine Effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
                                 </Link>
                             );
                         })}
                     </nav>
 
-                    <div className="relative p-4 border-t border-white/5">
-                        <div className="relative flex items-center gap-3 p-3 rounded-2xl bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 cursor-pointer group">
-                            <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 flex items-center justify-center">
-                                <span className="text-sm font-black text-white">DL</span>
+                    {/* Footer */}
+                    <div className="relative mt-auto p-6 pt-0">
+                        <div className="relative flex items-center gap-4 p-5 rounded-[2rem] bg-white shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] border-2 border-slate-50 group/footer cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 hover:border-orange-50">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-orange-500 rounded-2xl blur-xl opacity-20 group-hover/footer:opacity-50 transition-opacity" />
+                                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-700 via-amber-600 to-yellow-500 flex items-center justify-center shadow-xl transition-all duration-500 group-hover/footer:rotate-6 group-hover/footer:scale-110">
+                                    <span className="text-lg font-black text-white">DL</span>
+                                </div>
                             </div>
                             <div className="flex-1 overflow-hidden">
-                                <p className="text-sm font-bold text-white truncate">{t('dormitory_leader')}</p>
-                                <p className="text-xs text-orange-400/60 truncate italic font-medium tracking-wide">{t('student_service')}</p>
+                                <p className="text-base font-black text-slate-900 truncate group-hover/footer:text-orange-600 transition-colors uppercase tracking-tight">{t('dormitory_leader')}</p>
+                                <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-[0.2em]">{t('student_service')}</p>
                             </div>
                         </div>
                     </div>

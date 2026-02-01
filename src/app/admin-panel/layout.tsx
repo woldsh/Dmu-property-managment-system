@@ -28,6 +28,16 @@ export default function AdminPanelLayout({
         );
     }
 
+    // Only show content if we have a user role. 
+    // If userRole is null and loading is false, a redirect is likely happening.
+    if (!userRole && !loading) {
+        return (
+            <div className="min-h-screen bg-[#020205] flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-teal-500 animate-spin" />
+            </div>
+        );
+    }
+
     const isEmployee = isEmployeeRole(userRole);
 
     return (

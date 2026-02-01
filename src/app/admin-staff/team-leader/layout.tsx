@@ -16,8 +16,16 @@ export default function TeamLeaderLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { userRole } = useAuth();
+    const { userRole, loading } = useAuth();
     const { t } = useLanguage();
+
+    if (loading || (!userRole && !loading)) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
 
     // Determine which sidebar to show based on user role
     const renderSidebar = () => {
