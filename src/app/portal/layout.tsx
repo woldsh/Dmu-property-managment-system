@@ -8,6 +8,8 @@ import { SidebarProvider } from '@/contexts/SidebarContext';
 import ManagingDirectorSidebar from '@/components/ManagingDirectorSidebar';
 import ChiefSidebar from '@/components/ChiefSidebar';
 import Header from '@/components/Header';
+import RequestNotificationBanner from '@/components/RequestNotificationBanner';
+import IdleTimeoutGuard from '@/components/IdleTimeoutGuard';
 import { Loader2 } from 'lucide-react';
 
 export default function PortalLayout({
@@ -34,9 +36,11 @@ export default function PortalLayout({
 
     return (
         <SidebarProvider>
+            <IdleTimeoutGuard />
             <div className="min-h-screen bg-white flex">
                 {isChief ? <ChiefSidebar /> : <ManagingDirectorSidebar />}
                 <div className="flex-1 flex flex-col overflow-hidden">
+                    <RequestNotificationBanner />
                     <Header
                         title={isChief ? "Chief Portal" : "Executive Portal"}
                         subtitle={isChief ? "Institution Head" : "Managing Director Control Center"}

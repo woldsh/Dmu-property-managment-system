@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, deleteDoc, doc, updateDoc, orderBy, limit } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiSearch, FiTrash2, FiAlertTriangle, FiCheckCircle, FiChevronRight, FiFilter, FiUser, FiCheck, FiX, FiActivity } from 'react-icons/fi';
+import { useLanguage } from '../contexts/LanguageContext';
+import { FiUsers, FiSearch, FiTrash2, FiAlertTriangle, FiCheckCircle, FiChevronRight, FiFilter, FiUser, FiCheck, FiX, FiActivity, FiEdit2, FiBookOpen, FiUserCheck } from 'react-icons/fi';
 import { Loader2 } from 'lucide-react';
 
 interface UserData {
@@ -20,11 +21,20 @@ interface UserData {
 export default function UserManagement() {
     const [users, setUsers] = useState<UserData[]>([]);
     const [loading, setLoading] = useState(true);
+    const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [editingUser, setEditingUser] = useState<UserData | null>(null);
+    const [editForm, setEditForm] = useState({
+        displayName: '',
+        email: '',
+        password: ''
+    });
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [filterType, setFilterType] = useState<'all' | 'academic' | 'admin'>('all');
 
     useEffect(() => {
         fetchUsers();
@@ -58,7 +68,7 @@ export default function UserManagement() {
             const userRef = doc(db, 'users', uid);
             await updateDoc(userRef, { status: newStatus });
             setUsers(users.map(u => u.uid === uid ? { ...u, status: newStatus } : u));
-            setNotification({ type: 'success', message: `Personnel status updated to ${newStatus.toUpperCase()}.` });
+            setNotification({ type: 'success', message: `${t('personnel_identity')} status updated to ${newStatus.toUpperCase()}.` });
             setTimeout(() => setNotification(null), 3000);
         } catch (error) {
             console.error("Error updating status:", error);
@@ -85,11 +95,65 @@ export default function UserManagement() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        (user.displayName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.userRole?.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const handleEditClick = (user: UserData) => {
+        setEditingUser(user);
+        setEditForm({
+            displayName: user.displayName || '',
+            email: user.email || '',
+            password: '' // Don't show password
+        });
+    };
+
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingUser) return;
+
+        setIsUpdating(true);
+        try {
+            const response = await fetch('/api/auth/update-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uid: editingUser.uid,
+                    displayName: editForm.displayName,
+                    email: editForm.email,
+                    password: editForm.password || undefined // Only send if not empty
+                }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                setUsers(users.map(u => u.uid === editingUser.uid ? {
+                    ...u,
+                    displayName: editForm.displayName,
+                    email: editForm.email
+                } : u));
+                setNotification({ type: 'success', message: 'Personnel record updated successfully.' });
+                setEditingUser(null);
+            } else {
+                throw new Error(result.error);
+            }
+        } catch (error: any) {
+            console.error("Error updating user:", error);
+            setNotification({ type: 'error', message: error.message || 'Failed to update personnel record.' });
+        } finally {
+            setIsUpdating(false);
+            setTimeout(() => setNotification(null), 3000);
+        }
+    };
+
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = (user.displayName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (user.userRole?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        if (!matchesSearch) return false;
+
+        if (filterType === 'academic') return user.mainRole === 'academic_staff';
+        if (filterType === 'admin') return user.mainRole === 'admin_staff';
+
+        return true;
+    });
 
     return (
         <div className="space-y-8 p-1">
@@ -100,8 +164,8 @@ export default function UserManagement() {
                         <FiUsers className="text-xl" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-black text-slate-900 italic uppercase tracking-tight">Personnel Directory</h3>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Manage institutional access & identity</p>
+                        <h3 className="text-xl font-black text-slate-900 italic uppercase tracking-tight">{t('employee_directory')}</h3>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">{t('manage_institutional_access')}</p>
                     </div>
                 </div>
 
@@ -109,12 +173,38 @@ export default function UserManagement() {
                     <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
                     <input
                         type="text"
-                        placeholder="Search by name, email, or role..."
+                        placeholder={t('search_personnel_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 text-sm font-bold text-slate-700 shadow-sm"
                     />
                 </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-3 p-1">
+                {[
+                    { id: 'all', label: t('all_personnel'), icon: FiUsers, color: 'blue' },
+                    { id: 'academic', label: t('academic_staff'), icon: FiBookOpen, color: 'indigo' },
+                    { id: 'admin', label: t('admin_staff'), icon: FiUserCheck, color: 'sky' }
+                ].map((filter) => (
+                    <button
+                        key={filter.id}
+                        onClick={() => setFilterType(filter.id as any)}
+                        className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${filterType === filter.id
+                            ? `bg-slate-900 text-white shadow-lg`
+                            : `bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:bg-slate-50`
+                            }`}
+                    >
+                        <filter.icon className={filterType === filter.id ? 'text-white' : `text-${filter.color}-500`} />
+                        {filter.label}
+                        <span className={`ml-1 px-2 py-0.5 rounded-full text-[9px] ${filterType === filter.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            {filter.id === 'all' ? users.length :
+                                filter.id === 'academic' ? users.filter(u => u.mainRole === 'academic_staff').length :
+                                    users.filter(u => u.mainRole === 'admin_staff').length}
+                        </span>
+                    </button>
+                ))}
             </div>
 
             {/* Notification */}
@@ -139,10 +229,10 @@ export default function UserManagement() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/80 border-b border-slate-100">
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Personnel Identity</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Institutional Role</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Account Status</th>
-                                <th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Access Protocol</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('personnel_identity')}</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('institutional_role')}</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('account_status')}</th>
+                                <th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('access_protocol')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -151,7 +241,7 @@ export default function UserManagement() {
                                     <td colSpan={4} className="px-8 py-20 text-center">
                                         <div className="flex flex-col items-center gap-4">
                                             <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing Directory...</p>
+                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">{t('syncing_employees')}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -198,7 +288,7 @@ export default function UserManagement() {
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-2 h-2 rounded-full ${user.status === 'inactive' ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`} />
                                                 <span className={`text-[10px] font-black uppercase tracking-widest ${user.status === 'inactive' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                    {user.status === 'inactive' ? 'Deactivated' : 'Authorized'}
+                                                    {user.status === 'inactive' ? t('deactivated') : t('authorized')}
                                                 </span>
                                             </div>
                                         </td>
@@ -209,8 +299,8 @@ export default function UserManagement() {
                                                     onClick={() => toggleUserStatus(user.uid, user.status)}
                                                     disabled={updatingStatusId === user.uid}
                                                     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${user.status === 'inactive'
-                                                            ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'
-                                                            : 'bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white'
+                                                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white'
+                                                        : 'bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white'
                                                         }`}
                                                     title={user.status === 'inactive' ? 'Activate Personnel' : 'Deactivate Personnel'}
                                                 >
@@ -221,6 +311,15 @@ export default function UserManagement() {
                                                     ) : (
                                                         <FiX className="text-lg" />
                                                     )}
+                                                </button>
+
+                                                {/* Edit Button */}
+                                                <button
+                                                    onClick={() => handleEditClick(user)}
+                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                                                    title="Edit Record"
+                                                >
+                                                    <FiEdit2 className="text-lg" />
                                                 </button>
 
                                                 {/* Delete Button */}
@@ -271,6 +370,94 @@ export default function UserManagement() {
                     </p>
                 </div>
             </div>
+
+            {/* Edit User Modal */}
+            <AnimatePresence>
+                {editingUser && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                        <FiEdit2 className="text-xl" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-900 uppercase italic tracking-tight">{t('modify_identity')}</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{t('update_credentials')}</p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setEditingUser(null)} className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors">
+                                    <FiX className="text-xl" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleUpdateUser} className="p-8 space-y-6">
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('full_name')}</label>
+                                        <input
+                                            type="text"
+                                            value={editForm.displayName}
+                                            onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                                            required
+                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('account_email')}</label>
+                                        <input
+                                            type="email"
+                                            value={editForm.email}
+                                            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                            required
+                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">{t('reset_password')} <span className="text-[10px] text-slate-300 normal-case font-bold">{t('leave_blank_keep')}</span></label>
+                                        <input
+                                            type="password"
+                                            value={editForm.password}
+                                            onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
+                                            placeholder="••••••••"
+                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 shadow-inner"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingUser(null)}
+                                        className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all"
+                                    >
+                                        {t('cancel_protocol')}
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isUpdating}
+                                        className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-100 transition-all hover:-translate-y-1 active:scale-95 disabled:bg-slate-400"
+                                    >
+                                        {isUpdating ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span>{t('syncing')}</span>
+                                            </div>
+                                        ) : t('commit_changes')}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

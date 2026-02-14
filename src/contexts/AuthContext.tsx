@@ -159,12 +159,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!userDoc.exists() && !adminExists) {
+          console.error(`AuthContext: Identity record missing for UID: ${user.uid}, Email: ${email}`);
           await signOut(auth as any);
-          throw new Error('Incorrect username/password or register first.');
+          throw new Error('Identity verification failed. Your account exists in Auth but no matching personnel record found in Registry.');
         }
       }
     } catch (error: any) {
       if (error.message === 'Your account is deactivated. Please contact the administrator.') {
+        throw error;
+      }
+      if (error.message === 'Identity verification failed. Your account exists in Auth but no matching personnel record found in Registry.') {
         throw error;
       }
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.message === 'Incorrect username/password or register first.') {
@@ -181,6 +185,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       await signOut(auth as any);
+      // Explicitly clear state to prevent race conditions on redirect
+      setUser(null);
+      setIsAdmin(false);
+      setUserRole(null);
+      setDepartment(null);
       router.push('/login');
     } catch (error: any) {
       throw new Error(error.message || 'Logout failed');

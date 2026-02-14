@@ -1,9 +1,8 @@
-'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, onSnapshot, orderBy, addDoc, serverTimestamp, doc, getDoc, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { useInventory, Material } from '../contexts/InventoryContext';
 import {
     FiSearch,
     FiShoppingCart,
@@ -25,22 +24,7 @@ import {
 } from 'react-icons/fi';
 import Image from 'next/image';
 
-interface Material {
-    id: string;
-    materialName: string;
-    materialCode: string;
-    image: string;
-    quantity: number;
-    condition: string;
-    category: string;
-    unit: string;
-    materialType: string;
-    description?: string;
-    remarks?: string;
-    storeLocation?: string;
-    tags?: string;
-    shelfNumber?: string;
-}
+// Material interface imported from InventoryContext
 
 interface CartItem extends Material {
     requestedQuantity: number;
@@ -168,17 +152,33 @@ function ImageMagnifier({ src, alt, width, height, zoomLevel = 3 }: ImageMagnifi
 }
 
 export default function MaterialRequestForm() {
-    const { user } = useAuth();
-    const [materials, setMaterials] = useState<Material[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { user, userRole, department: authDepartment } = useAuth();
+    const { materials, loading: inventoryLoading } = useInventory();
+
+    // Use cached materials, but keep local filtering state
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [step, setStep] = useState(1); // 1: Listing, 2: Detail, 3: Review, 4: Success
     const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(null);
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [userData, setUserData] = useState<any>(null);
     const [submitting, setSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // Derived department logic (fallback to role-based if department is missing)
+    const getDepartment = () => {
+        if (authDepartment) return authDepartment;
+        if (userRole) {
+            return userRole.replace('_teacher', '').replace('_head', '');
+        }
+        return null;
+    };
+
+    // Synthetic userData object to maintain compatibility with existing handleSubmit logic
+    const userData = {
+        displayName: user?.displayName,
+        userRole: userRole,
+        department: getDepartment()
+    };
 
     useEffect(() => {
         if (showSuccess) {
@@ -187,30 +187,7 @@ export default function MaterialRequestForm() {
         }
     }, [showSuccess]);
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            if (user && db) {
-                const userDoc = await getDoc(doc(db!, 'users', user.uid));
-                if (userDoc.exists()) {
-                    setUserData(userDoc.data());
-                }
-            }
-        };
-        fetchUserProfile();
-
-        if (!db) return;
-        const q = query(collection(db!, 'materials'), orderBy('materialName', 'asc'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const materialList = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            })) as Material[];
-            setMaterials(materialList);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [user]);
+    // No local fetching! We use Context data now.
 
     const addToCart = (material: Material) => {
         setCart(prev => {
@@ -255,7 +232,11 @@ export default function MaterialRequestForm() {
         try {
             let department = userData.department;
             if (!department && userData.userRole) {
-                department = userData.userRole.replace('_teacher', '').replace('_head', '');
+                department = userData.userRole
+                    .replace('_teacher', '')
+                    .replace('_head', '')
+                    .replace('_employee', '')
+                    .replace('_leader', '');
             }
 
             const isDeptHead = userData.userRole?.endsWith('_head');
@@ -366,14 +347,27 @@ export default function MaterialRequestForm() {
                 status = 'approved_by_head';
                 historyNote += ' (Auto-Approved)';
             } else {
-                const deptHeadRole = `${department}_head`;
-                const headQuery = query(collection(db!, 'users'), where('userRole', '==', deptHeadRole));
-                const headSnapshot = await getDocs(headQuery);
-                if (!headSnapshot.empty) {
-                    approverId = headSnapshot.docs[0].id;
-                    approverName = headSnapshot.docs[0].data().displayName;
-                    approverRole = 'department_head';
-                    status = 'pending';
+                // Try finding a team leader first (for admin staff employees)
+                const deptLeaderRole = `${department}_leader`;
+                const leaderQuery = query(collection(db!, 'users'), where('userRole', '==', deptLeaderRole));
+                const leaderSnapshot = await getDocs(leaderQuery);
+
+                if (!leaderSnapshot.empty) {
+                    approverId = leaderSnapshot.docs[0].id;
+                    approverName = leaderSnapshot.docs[0].data().displayName;
+                    approverRole = deptLeaderRole;
+                    status = 'pending_department_leader';
+                } else {
+                    // Fall back to department head (for academic staff teachers)
+                    const deptHeadRole = `${department}_head`;
+                    const headQuery = query(collection(db!, 'users'), where('userRole', '==', deptHeadRole));
+                    const headSnapshot = await getDocs(headQuery);
+                    if (!headSnapshot.empty) {
+                        approverId = headSnapshot.docs[0].id;
+                        approverName = headSnapshot.docs[0].data().displayName;
+                        approverRole = 'department_head';
+                        status = 'pending';
+                    }
                 }
             }
 
@@ -449,7 +443,7 @@ export default function MaterialRequestForm() {
         return matchesSearch && matchesCategory;
     });
 
-    if (loading) {
+    if (inventoryLoading && materials.length === 0) {
         return (
             <div className="flex items-center justify-center p-20">
                 <div className="w-12 h-12 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>

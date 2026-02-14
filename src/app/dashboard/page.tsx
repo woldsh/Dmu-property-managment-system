@@ -6,6 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import TeacherDashboardContent from '@/components/TeacherDashboardContent';
+import DepartmentHeadDashboardContent from '@/components/DepartmentHeadDashboardContent';
 import {
     FiClipboard, FiBox, FiCheckCircle, FiClock, FiTrendingUp,
     FiActivity, FiFileText, FiArrowRight, FiCalendar, FiUser,
@@ -99,6 +101,16 @@ export default function DashboardPage() {
                 </div>
             </div>
         );
+    }
+
+    // --- DEPARTMENT HEAD DASHBOARD (Sport Leader Style) ---
+    if (userRole?.endsWith('_head')) {
+        return <DepartmentHeadDashboardContent userName={userName} />;
+    }
+
+    // --- TEACHER DASHBOARD (Employee Style) ---
+    if (userRole?.endsWith('_teacher')) {
+        return <TeacherDashboardContent userName={userName} />;
     }
 
     const greeting = () => {

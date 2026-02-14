@@ -8,13 +8,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { FaChartPie, FaClipboardList, FaEnvelope, FaCheckCircle, FaVideo, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaBuilding, FaClock, FaBell } from 'react-icons/fa';
+import { FaChartPie, FaClipboardList, FaEnvelope, FaClock, FaVideo, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaBuilding, FaBell } from 'react-icons/fa';
 import { useRequestNotification } from '../hooks/useRequestNotification';
+import SidebarResizeHandle from './SidebarResizeHandle';
 
 export default function DepartmentHeadSidebar() {
     const pathname = usePathname();
     const basePath = '/dashboard';
-    const { isOpen, closeSidebar } = useSidebar();
+    const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { userRole, department } = useAuth();
     const { t } = useLanguage();
     const [meetingInvite, setMeetingInvite] = useState<any>(null);
@@ -40,7 +41,6 @@ export default function DepartmentHeadSidebar() {
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
-
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
@@ -61,16 +61,24 @@ export default function DepartmentHeadSidebar() {
                 <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
-            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
-                ${isOpen ? 'w-72 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
+            <div
+                className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+                style={{ width: isOpen ? sidebarWidth : 0 }}
+            >
 
-                {/* Ultra Premium White Mesh Gradient */}
+                {/* Ultra Premium White Mesh Gradient (Blue/Indigo - Admin Style) */}
                 <div className="absolute inset-0 bg-white" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(59,130,246,0.05)_0%,_transparent_50%),radial-gradient(circle_at_80%_80%,_rgba(99,102,241,0.05)_0%,_transparent_50%)]" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/30 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50/30 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-72 flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-blue-100">
+                <div
+                    className="relative flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-teal-50"
+                    style={{ width: sidebarWidth }}
+                >
+                    <SidebarResizeHandle />
+
                     {/* Header */}
                     <div className="relative p-7 pb-6">
                         <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
@@ -101,9 +109,8 @@ export default function DepartmentHeadSidebar() {
                             .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                             .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                             .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; transition: all 0.3s; }
-                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
                             @keyframes slideInUp { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-                            @keyframes floatBg { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
                             .menu-item-premium { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                         `}</style>
 
@@ -136,7 +143,7 @@ export default function DepartmentHeadSidebar() {
                                         ${isActive ? 'bg-white shadow-[0_10px_25px_-5px_rgba(59,130,246,0.12)] border border-blue-100/50 text-blue-600' : 'text-slate-500 hover:text-slate-900'}`}>
 
                                     <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-500
-                                        ${isActive ? 'bg-blue-600 shadow-[2px_0_10px_rgba(37,99,235,0.4)] opacity-100' : 'h-0 opacity-0 group-hover:h-3 group-hover:bg-slate-200 group-hover:opacity-100'}`} />
+                                        ${isActive ? 'bg-blue-600 shadow-[2px_0_10px_rgba(59,130,246,0.4)] opacity-100' : 'h-0 opacity-0 group-hover:h-3 group-hover:bg-slate-200 group-hover:opacity-100'}`} />
 
                                     <div className={`relative flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-500
                                         ${isActive ? 'bg-blue-50 shadow-inner' : 'bg-slate-50/50 group-hover:bg-blue-50 group-hover:scale-110 group-hover:rotate-3'}`}>
@@ -164,21 +171,6 @@ export default function DepartmentHeadSidebar() {
                         })}
                     </nav>
 
-                    {/* Footer */}
-                    <div className="relative mt-auto p-6 pt-0">
-                        <div className="relative flex items-center gap-4 p-5 rounded-[2rem] bg-white shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] border-2 border-slate-50 group/footer cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 hover:border-blue-50">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-xl opacity-20 group-hover/footer:opacity-50 transition-opacity" />
-                                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-600 to-sky-500 flex items-center justify-center shadow-xl transition-all duration-500 group-hover/footer:rotate-6 group-hover/footer:scale-110">
-                                    <span className="text-lg font-black text-white">DH</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="text-base font-black text-slate-900 truncate group-hover/footer:text-blue-600 transition-colors">{t('dept_head')}</p>
-                                <p className="text-xs text-slate-500 font-extrabold uppercase tracking-[0.2em]">{department || t('academic_management')}</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </>

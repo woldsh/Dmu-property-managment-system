@@ -93,6 +93,10 @@ export function useRequestNotification(userRole: string | null | undefined, depa
         else if (effectiveRole === 'student_service_leader') {
             q = query(requestsRef, where('status', '==', 'pending_student_service_leader'));
         }
+        // Dynamic leaders (e.g. quality_assurance_leader, building_renovation_leader, etc.)
+        else if (effectiveRole.endsWith('_leader')) {
+            q = query(requestsRef, where('currentApproverRole', '==', userRole), where('status', '==', 'pending_department_leader'));
+        }
 
         if (q) {
             unsubscribe = onSnapshot(q, (snapshot) => {

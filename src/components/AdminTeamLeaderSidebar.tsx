@@ -1,37 +1,40 @@
 'use client';
 
+import { useState } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequestNotification } from '../hooks/useRequestNotification';
-import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaUserShield, FaBox } from 'react-icons/fa';
+import { getDisplayNameForRole } from '@/utils/routeConfig';
+import { FaChartPie, FaUsers, FaEnvelope, FaCheckDouble, FaUserTie, FaTruckLoading, FaUndo, FaCar, FaFileAlt, FaExchangeAlt, FaCog, FaUserShield, FaBox, FaUserCog } from 'react-icons/fa';
+import SidebarResizeHandle from './SidebarResizeHandle';
 
 export default function AdminTeamLeaderSidebar() {
     const pathname = usePathname();
     const { userRole } = useAuth();
-    const isHRMOrFinanceOrService = userRole === 'hrm_leader' || userRole === 'finance_leader' || userRole === 'student_service_leader';
-    const basePath = isHRMOrFinanceOrService ? '/admin-staff/team-leader' : '/admin-panel';
-    const { isOpen, closeSidebar } = useSidebar();
+    const isLeaderRole = userRole?.endsWith('_leader') || false;
+    const basePath = isLeaderRole ? '/admin-staff/team-leader' : '/admin-panel';
+    const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { t } = useLanguage();
     const requestCount = useRequestNotification(userRole, undefined);
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
-
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaUsers },
-        { label: t('messages_md'), href: `${basePath}/messages-md`, icon: FaEnvelope },
         { label: t('approve_send'), href: `${basePath}/approve-decisions`, icon: FaCheckDouble },
-        { label: t('request_to_md'), href: `${basePath}/request-material`, icon: FaBox },
+        { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaBox },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },
         { label: t('return_goods'), href: `${basePath}/return-goods`, icon: FaUndo },
         { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
         { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
         { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
+        { label: t('manage_account'), href: `${basePath}/manage-account`, icon: FaUserCog },
     ];
 
     return (
@@ -40,8 +43,11 @@ export default function AdminTeamLeaderSidebar() {
                 <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
-            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
-                ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
+            <div
+                className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+                style={{ width: isOpen ? sidebarWidth : 0 }}
+            >
 
                 {/* Ultra Premium White Mesh Gradient */}
                 <div className="absolute inset-0 bg-white" />
@@ -49,7 +55,12 @@ export default function AdminTeamLeaderSidebar() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/20 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-100/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-emerald-50">
+                <div
+                    className="relative flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-emerald-50"
+                    style={{ width: sidebarWidth }}
+                >
+                    <SidebarResizeHandle />
+
                     {/* Header */}
                     <div className="relative p-7 pb-6">
                         <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
@@ -62,7 +73,9 @@ export default function AdminTeamLeaderSidebar() {
                                 </div>
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">{t('admin_lead')}</h1>
+                                <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">
+                                    {isLeaderRole ? t(userRole || 'admin_lead') || getDisplayNameForRole(userRole || '') : t('admin_lead')}
+                                </h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="relative">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50" />
@@ -84,7 +97,6 @@ export default function AdminTeamLeaderSidebar() {
                             @keyframes slideInUp { from { opacity: 0; transform: translateY(15px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
                             .menu-item-premium { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
                         `}</style>
-
                         {menuItems.map((item, index) => {
                             const isActive = item.href === basePath ? pathname === basePath : pathname?.startsWith(item.href);
                             const Icon = item.icon;
@@ -123,21 +135,7 @@ export default function AdminTeamLeaderSidebar() {
                         })}
                     </nav>
 
-                    {/* Footer */}
-                    <div className="relative mt-auto p-6 pt-0">
-                        <div className="relative flex items-center gap-4 p-5 rounded-[2rem] bg-white shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] border-2 border-slate-50 group/footer cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 hover:border-emerald-50">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-emerald-500 rounded-2xl blur-xl opacity-20 group-hover/footer:opacity-50 transition-opacity" />
-                                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-700 via-teal-600 to-cyan-500 flex items-center justify-center shadow-xl transition-all duration-500 group-hover/footer:rotate-6 group-hover/footer:scale-110">
-                                    <span className="text-lg font-black text-white">AT</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="text-base font-black text-slate-900 truncate group-hover/footer:text-emerald-600 transition-colors">{t('admin_lead')}</p>
-                                <p className="text-xs text-slate-500 font-extrabold uppercase tracking-[0.2em]">{t('admin_staff_label')}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Footer Removal */}
                 </div>
             </div>
         </>

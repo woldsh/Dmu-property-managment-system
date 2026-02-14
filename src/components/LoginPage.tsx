@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Globe2,
   Eye,
-  EyeOff
+  EyeOff,
+  ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -55,164 +56,175 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6 bg-[#020205] selection:bg-indigo-500/30">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6 bg-white selection:bg-indigo-500/20">
 
-      {/* Mesh Gradients - Consistent with Landing Page */}
+      {/* Subtle Background Accents */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-15%] right-[-10%] w-[60%] h-[60%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[150px] rounded-full animate-pulse decoration-3000" />
+        <div className="absolute -top-[200px] -right-[200px] w-[600px] h-[600px] rounded-full bg-indigo-50/60 blur-[120px]" />
+        <div className="absolute -bottom-[150px] -left-[150px] w-[500px] h-[500px] rounded-full bg-blue-50/50 blur-[100px]" />
+        {/* Dot grid */}
+        <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
+
+      {/* Back to Home */}
+      <Link
+        href="/"
+        className="fixed top-6 left-6 z-20 flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-slate-700 transition-colors"
+      >
+        <ArrowLeft size={16} />
+        <span className="hidden sm:inline">Home</span>
+      </Link>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-[480px]"
+        className="relative z-10 w-full max-w-[460px]"
       >
         {/* Institutional Branding Above Card */}
-        <div className="flex flex-col items-center mb-12">
+        <div className="flex flex-col items-center mb-10">
           <Link href="/" className="group flex flex-col items-center">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-2xl mb-6 relative overflow-hidden"
+              className="w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-900/20 mb-5"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent" />
-              <Building2 className="text-black w-8 h-8 relative z-10" />
+              <Building2 className="text-white w-7 h-7" />
             </motion.div>
             <div className="text-center">
-              <h2 className="text-2xl font-black tracking-tighter uppercase italic leading-none mb-2">
-                DMU <span className="text-indigo-500 font-normal">{t('loginSystemName')}</span>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 leading-none mb-1.5">
+                DMU <span className="text-indigo-600 font-medium">{t('loginSystemName')}</span>
               </h2>
-              <span className="text-[9px] text-slate-500 font-black tracking-[0.4em] uppercase">{t('loginAuthorized')}</span>
+              <span className="text-[10px] text-slate-400 font-semibold tracking-[0.3em] uppercase">{t('loginAuthorized')}</span>
             </div>
           </Link>
         </div>
 
-        {/* Ultra-Premium Glass Card */}
-        <div className="backdrop-blur-[40px] bg-white/[0.03] border border-white/[0.08] rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)] p-8 md:p-12 relative overflow-hidden group">
+        {/* Clean White Card */}
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 md:p-10 relative overflow-hidden">
 
-          {/* Internal Glow Effect */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 blur-[60px] rounded-full group-hover:bg-indigo-500/20 transition-all duration-700" />
+          {/* Subtle accent at top */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-indigo-500" />
 
           <div className="relative z-10">
-            <div className="mb-10 text-center md:text-left">
-              <h3 className="text-2xl font-black uppercase tracking-tight mb-2 flex items-center gap-3 justify-center md:justify-start italic">
-                Institutional Login <Fingerprint size={24} className="text-indigo-500 not-italic" />
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-slate-900 mb-1.5 flex items-center gap-2.5">
+                {t('loginErrorTitle') ? 'Institutional Login' : 'Institutional Login'}
+                <Fingerprint size={20} className="text-indigo-500" />
               </h3>
-              <p className="text-slate-400 text-xs font-bold tracking-widest uppercase">
-                Enterprise Resource Access Management
+              <p className="text-slate-400 text-sm">
+                Sign in to access the management portal
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <AnimatePresence mode="wait">
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
-                    className="bg-red-500/10 border border-red-500/20 text-red-100 flex items-center gap-4 p-4 rounded-2xl overflow-hidden"
+                    className="bg-red-50 border border-red-100 text-red-800 flex items-center gap-3 p-4 rounded-xl"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                      <ShieldAlert className="w-5 h-5 text-red-400" />
+                    <div className="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <ShieldAlert className="w-4 h-4 text-red-500" />
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-0.5">{t('loginErrorTitle')}</h4>
-                      <p className="text-xs font-medium">{error}</p>
+                      <h4 className="text-[10px] font-bold uppercase tracking-wider text-red-500 mb-0.5">{t('loginErrorTitle')}</h4>
+                      <p className="text-xs font-medium text-red-700">{error}</p>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="space-y-5">
-                <div className="relative group">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
-                    <Mail size={18} />
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Email</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t('loginEmailPlaceholder')}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-12 pr-5 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all duration-300"
+                    />
                   </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('loginEmailPlaceholder')}
-                    required
-                    className="w-full bg-white/[0.04] border border-white/5 rounded-2xl py-5 pl-14 pr-6 text-sm text-white placeholder:text-slate-700 placeholder:font-black focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all duration-500 font-bold uppercase tracking-widest"
-                  />
                 </div>
 
-                <div className="relative group">
-                  <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
-                    <LockKeyhole size={18} />
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Password</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors">
+                      <LockKeyhole size={18} />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('loginPassPlaceholder')}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 pl-12 pr-12 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 focus:bg-white transition-all duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors p-1"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('loginPassPlaceholder')}
-                    required
-                    className="w-full bg-white/[0.04] border border-white/5 rounded-2xl py-5 pl-14 pr-14 text-sm text-white placeholder:text-slate-700 placeholder:font-black focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all duration-500 font-bold uppercase tracking-widest"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors p-1"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full group relative h-16 rounded-2xl bg-white text-black font-black uppercase tracking-[0.2em] italic text-xs overflow-hidden transition-all active:scale-[0.98] disabled:opacity-50"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold text-sm overflow-hidden transition-all hover:shadow-lg hover:shadow-indigo-600/25 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2.5"
                 >
-                  <div className="relative z-10 flex items-center justify-center gap-3">
-                    {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>{t('loginSubmit')} <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
-                    )}
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                  <span className="absolute inset-0 flex items-center justify-center gap-3 text-white opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-                    {loading ? <Loader2 size={20} className="animate-spin" /> : <>{t('loginSubmit')} <ChevronRight size={18} /></>}
-                  </span>
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>{t('loginSubmit')} <ChevronRight size={16} /></>
+                  )}
                 </button>
               </div>
 
-              <div className="flex justify-between items-center pt-6 px-2 text-[9px] font-black tracking-widest text-slate-600 uppercase">
-                <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-indigo-500/50" /> RSA-4096 BIT</span>
-                <span className="flex items-center gap-1.5"><Globe2 size={12} className="text-blue-500/50" /> DMU SECURE</span>
+              <div className="flex justify-between items-center pt-4 px-1 text-[10px] font-semibold tracking-wider text-slate-300 uppercase">
+                <span className="flex items-center gap-1.5"><ShieldCheck size={12} className="text-indigo-400" /> Encrypted</span>
+                <span className="flex items-center gap-1.5"><Globe2 size={12} className="text-blue-400" /> DMU Secure</span>
               </div>
             </form>
           </div>
         </div>
 
-        {/* Support Link */}
+        {/* Bottom Section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="mt-12 text-center space-y-6"
+          className="mt-8 text-center space-y-5"
         >
           {/* Language Toggle */}
-          <div className="inline-flex items-center bg-white/5 rounded-full p-1 border border-white/10 mx-auto">
+          <div className="inline-flex items-center rounded-lg p-0.5 bg-slate-100 border border-slate-200/50">
             <button
               onClick={() => setLanguage('en')}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${language === 'en' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'}`}
+              className={`px-4 py-1.5 rounded-md text-[11px] font-semibold transition-all ${language === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-700'}`}
             >
               ENGLISH
             </button>
             <button
               onClick={() => setLanguage('am')}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black transition-all ${language === 'am' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+              className={`px-4 py-1.5 rounded-md text-[11px] font-semibold transition-all ${language === 'am' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-700'}`}
             >
               አማርኛ
             </button>
           </div>
 
-          <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase">
+          <p className="text-slate-400 text-xs">
             {t('loginForget')}
           </p>
         </motion.div>

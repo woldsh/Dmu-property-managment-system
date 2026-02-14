@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
@@ -7,11 +9,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequestNotification } from '../hooks/useRequestNotification';
 import { FaChartPie, FaClipboardList, FaTools, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaCar } from 'react-icons/fa';
+import SidebarResizeHandle from './SidebarResizeHandle';
 
 export default function GeneralServiceSidebar() {
     const pathname = usePathname();
     const basePath = '/service';
-    const { isOpen, closeSidebar } = useSidebar();
+    const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { t } = useLanguage();
     const { userRole, department } = useAuth();
     const requestCount = useRequestNotification(userRole, department);
@@ -19,7 +22,6 @@ export default function GeneralServiceSidebar() {
     const handleLinkClick = () => {
         if (window.innerWidth < 768) closeSidebar();
     };
-
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
@@ -36,8 +38,11 @@ export default function GeneralServiceSidebar() {
                 <div className="fixed inset-0 bg-black/70 z-[140] lg:hidden backdrop-blur-lg transition-opacity duration-500" onClick={closeSidebar} />
             )}
 
-            <div className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
-                ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0'}`}>
+            <div
+                className={`fixed lg:sticky top-0 h-screen flex flex-col z-[150] overflow-hidden transition-all duration-500 ease-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+                style={{ width: isOpen ? sidebarWidth : 0 }}
+            >
 
                 {/* Ultra Premium White Mesh Gradient */}
                 <div className="absolute inset-0 bg-white" />
@@ -45,7 +50,12 @@ export default function GeneralServiceSidebar() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/20 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-100/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-blue-100">
+                <div
+                    className="relative flex flex-col h-full flex-shrink-0 border-r border-slate-200 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.05)] selection:bg-blue-100"
+                    style={{ width: sidebarWidth }}
+                >
+                    <SidebarResizeHandle />
+
                     {/* Header */}
                     <div className="relative p-7 pb-6">
                         <div className="absolute inset-0 bg-white/40 backdrop-blur-md" />
@@ -119,22 +129,6 @@ export default function GeneralServiceSidebar() {
                             );
                         })}
                     </nav>
-
-                    {/* Footer */}
-                    <div className="relative mt-auto p-6 pt-0">
-                        <div className="relative flex items-center gap-4 p-5 rounded-[2rem] bg-white shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] border-2 border-slate-50 group/footer cursor-pointer transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 hover:border-blue-50">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-xl opacity-20 group-hover/footer:opacity-50 transition-opacity" />
-                                <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-600 to-sky-500 flex items-center justify-center shadow-xl transition-all duration-500 group-hover/footer:rotate-6 group-hover/footer:scale-110">
-                                    <span className="text-lg font-black text-white">GS</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="text-base font-black text-slate-900 truncate group-hover/footer:text-blue-600 transition-colors">{t('general_service')}</p>
-                                <p className="text-xs text-slate-500 font-extrabold uppercase tracking-[0.2em]">{t('service_ops')}</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </>

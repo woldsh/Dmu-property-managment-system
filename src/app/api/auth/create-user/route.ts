@@ -3,58 +3,62 @@ import { initializeFirebaseAdmin } from '@/lib/firebase-admin';
 
 export async function POST(req: NextRequest) {
     try {
-        // Basic authorization check - you might want to enhance this
-        // For example, verify an ID token from headers to ensure requester is an admin
-        // For now, we'll assume the frontend handles protection or adds a token check here,
-        // but mimicking the original open endpoint logic with a TODO note.
-
-        // TODO: Add proper Admin Verification Middleware here if needed.
-
         const body = await req.json();
-        const { email, password, displayName, role } = body;
+        const { email, password, displayName, role, firstName, lastName, ...otherData } = body;
 
         if (!email || !password) {
             return NextResponse.json({ success: false, error: 'Email and password are required' }, { status: 400 });
         }
 
         const admin = initializeFirebaseAdmin();
+        const auth = admin.auth();
         const db = admin.firestore();
 
-        // Check if user already exists
-        const usersRef = db.collection('users');
-        const existingUser = await usersRef.where('email', '==', email).get();
-
-        if (!existingUser.empty) {
-            return NextResponse.json({ success: false, error: 'User with this email already exists' }, { status: 400 });
+        // 1. Create user in Firebase Auth
+        let userRecord;
+        try {
+            userRecord = await auth.createUser({
+                email,
+                password,
+                displayName: displayName || `${firstName || ''} ${lastName || ''}`.trim(),
+            });
+        } catch (authError: any) {
+            console.error('Auth creation error:', authError);
+            if (authError.code === 'auth/email-already-in-use') {
+                return NextResponse.json({ success: false, error: 'Email is already registered.' }, { status: 400 });
+            }
+            throw authError;
         }
 
-        // Create user in Firestore
+        // 2. Create user document in Firestore users collection
         const userData = {
+            uid: userRecord.uid,
             email,
-            password, // In production, hash this password! Original backend stored it plain/as-is?
-            // WARNING: Storing passwords in Firestore is bad practice. 
-            // Ideally use Firebase Auth `admin.auth().createUser()` but matching original logic for now.
-            displayName: displayName || '',
-            role: role || 'user',
+            displayName: displayName || `${firstName || ''} ${lastName || ''}`.trim(),
+            firstName: firstName || '',
+            lastName: lastName || '',
+            userRole: role || body.userRole || 'user',
+            status: 'active',
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            ...otherData
         };
 
-        const docRef = await usersRef.add(userData);
+        await db.collection('users').doc(userRecord.uid).set(userData);
 
         return NextResponse.json({
             success: true,
             data: {
-                id: docRef.id,
+                id: userRecord.uid,
                 email,
-                displayName: displayName || '',
-                role: role || 'user',
+                displayName: userData.displayName,
+                role: userData.userRole,
             },
-            message: 'User created successfully in users collection',
+            message: 'User created successfully in Auth and Firestore',
         });
 
     } catch (error: any) {
-        console.error('Error creating user:', error);
+        console.error('Error in create-user API:', error);
         return NextResponse.json({
             success: false,
             error: error.message || 'Failed to create user'

@@ -17,6 +17,8 @@ import AdminTeamLeaderSidebar from '@/components/AdminTeamLeaderSidebar';
 import ManagingDirectorSidebar from '@/components/ManagingDirectorSidebar';
 import GeneralServiceSidebar from '@/components/GeneralServiceSidebar';
 import Header from '@/components/Header';
+import IdleTimeoutGuard from '@/components/IdleTimeoutGuard';
+import RequestNotificationBanner from '@/components/RequestNotificationBanner';
 import { Loader2 } from 'lucide-react';
 import { isEmployeeRole, getDisplayNameForRole, isLeaderRole } from '@/utils/routeConfig';
 
@@ -25,7 +27,7 @@ export default function WorkspaceLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { userRole, loading } = useAuth();
+    const { userRole, department, loading } = useAuth();
 
     // Determine stock type based on role
     const getStockType = () => {
@@ -72,16 +74,24 @@ export default function WorkspaceLayout({
     };
 
     const getTitle = () => {
+        if (department && isEmployeeRole(userRole)) {
+            return `${department} Employee`;
+        }
         if (!userRole) return 'Workspace';
         return getDisplayNameForRole(userRole);
     };
 
     return (
         <SidebarProvider>
-            <div className="min-h-screen bg-gray-50 flex">
+            <IdleTimeoutGuard />
+            <div className="min-h-screen bg-white flex">
                 {renderSidebar()}
                 <div className="flex-1 flex flex-col">
-                    <Header title={getTitle()} subtitle="Procurement Management" />
+                    <RequestNotificationBanner />
+                    <Header
+                        title={getTitle()}
+                        subtitle={department && isEmployeeRole(userRole) ? "Administrative Unit" : "Procurement Management"}
+                    />
                     <main className="flex-1 overflow-y-auto">
                         {children}
                     </main>

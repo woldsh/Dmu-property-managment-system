@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import SidebarResizeHandle from './SidebarResizeHandle';
 import {
     FiPieChart,
     FiUserPlus,
@@ -21,7 +24,7 @@ import {
 export default function EmployeeSidebar() {
     const pathname = usePathname();
     const basePath = '/admin-panel';
-    const { isOpen, closeSidebar } = useSidebar();
+    const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { t } = useLanguage();
 
     const handleLinkClick = () => {
@@ -72,46 +75,55 @@ export default function EmployeeSidebar() {
             </AnimatePresence>
 
             {/* Premium Sidebar */}
-            <div className={`
+            <div
+                className={`
                 fixed lg:sticky top-0
                 h-screen flex flex-col z-[150] overflow-hidden
                 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1)
-                ${isOpen ? 'w-80 translate-x-0' : 'w-0 lg:w-0 -translate-x-full lg:translate-x-0 lg:border-none'}
-            `}>
+                ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:border-none'}
+            `}
+                style={{ width: isOpen ? sidebarWidth : 0 }}
+            >
                 {/* Ultra Premium White Mesh Gradient */}
                 <div className="absolute inset-0 bg-white" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(59,130,246,0.03)_0%,_transparent_50%),radial-gradient(circle_at_80%_80%,_rgba(99,102,241,0.03)_0%,_transparent_50%)]" />
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/30 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50/20 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
-                <div className="relative w-80 flex flex-col h-full flex-shrink-0 border-r border-slate-200/60 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.03)] selection:bg-blue-50">
+                <div
+                    className="relative flex flex-col h-full flex-shrink-0 border-r border-slate-200/60 shadow-[20px_0_40px_-20px_rgba(0,0,0,0.03)] selection:bg-blue-50"
+                    style={{ width: sidebarWidth }}
+                >
+                    <SidebarResizeHandle />
 
                     {/* Header Section */}
-                    <div className="p-8 pb-7 flex flex-col items-center gap-5 relative z-10">
+                    <div className="relative p-6 pb-5">
                         <div className="absolute inset-0 bg-white/40 backdrop-blur-sm" />
 
-                        <motion.div
-                            whileHover={{ scale: 1.05, rotate: 2 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="relative group/logo cursor-pointer"
-                        >
-                            <div className="absolute -inset-3 bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-400 rounded-[2rem] blur-2xl opacity-10 group-hover/logo:opacity-30 transition-all duration-700" />
-                            <div className="relative w-16 h-16 rounded-2xl bg-white shadow-[0_10px_35px_rgb(0,0,0,0.05)] border border-slate-100 flex items-center justify-center transition-all duration-500 group-hover/logo:shadow-blue-500/20 group-hover/logo:border-blue-100">
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
-                                <FiCpu className="text-3xl text-blue-600 drop-shadow-sm" />
-                            </div>
-                        </motion.div>
-
-                        <div className="text-center relative">
-                            <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase italic leading-none mb-1.5">
-                                {t('staff_portal')}
-                            </h2>
-                            <div className="flex items-center justify-center gap-2">
-                                <div className="relative">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                    <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping opacity-40" />
+                        <div className="relative flex items-center gap-4">
+                            <motion.div
+                                whileHover={{ scale: 1.05, rotate: 2 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative group/logo cursor-pointer"
+                            >
+                                <div className="absolute -inset-3 bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-400 rounded-2xl blur-xl opacity-10 group-hover/logo:opacity-30 transition-all duration-700" />
+                                <div className="relative w-14 h-14 rounded-2xl bg-white shadow-[0_10px_35px_rgb(0,0,0,0.05)] border border-slate-100 flex items-center justify-center transition-all duration-500 group-hover/logo:shadow-blue-500/20 group-hover/logo:border-blue-100">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent rounded-2xl opacity-0 group-hover/logo:opacity-100 transition-opacity" />
+                                    <FiCpu className="text-2xl text-blue-600 drop-shadow-sm" />
                                 </div>
-                                <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-[0.4em] font-mono">System Authorized</p>
+                            </motion.div>
+
+                            <div className="flex flex-col relative">
+                                <h2 className="text-xl font-black text-slate-800 tracking-tighter uppercase italic leading-none mb-1.5">
+                                    {t('staff_portal')}
+                                </h2>
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                        <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping opacity-40" />
+                                    </div>
+                                    <p className="text-[9px] font-black text-blue-600/60 uppercase tracking-[0.4em] font-mono">System Authorized</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -194,24 +206,7 @@ export default function EmployeeSidebar() {
                         </motion.div>
                     </nav>
 
-                    {/* Sidebar Footer / User Identification */}
-                    <div className="p-6 pt-2 relative z-10">
-                        <motion.div
-                            whileHover={{ y: -5 }}
-                            className="bg-white border-2 border-slate-50 rounded-[2rem] p-5 flex items-center gap-4 group hover:shadow-[0_20px_40px_-5px_rgba(0,0,0,0.08)] transition-all duration-500 cursor-pointer"
-                        >
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity" />
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-500 flex items-center justify-center shadow-lg transition-all duration-500 group-hover:rotate-6 group-hover:scale-110">
-                                    <span className="text-sm font-black text-white">EP</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-hidden">
-                                <p className="text-[10px] font-black text-blue-600/50 uppercase tracking-[0.2em] mb-0.5">{t('authorized_access')}</p>
-                                <p className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate italic tracking-tighter">{t('employee')}</p>
-                            </div>
-                        </motion.div>
-                    </div>
+                    {/* Sidebar Footer Removal */}
                 </div>
             </div>
         </>

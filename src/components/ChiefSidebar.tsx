@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
@@ -23,18 +25,18 @@ import {
     FaSignOutAlt,
     FaEnvelope
 } from 'react-icons/fa';
+import SidebarResizeHandle from './SidebarResizeHandle';
 
 export default function ChiefSidebar() {
     const pathname = usePathname();
     const basePath = '/portal';
-    const { isOpen, closeSidebar } = useSidebar();
+    const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { t } = useLanguage();
     const { userRole } = useAuth();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 1024) closeSidebar();
     };
-
     const menuItems = [
         { label: t('dashboard'), href: '/chief', icon: FaChartPie },
         { label: t('approve_send_md'), href: `${basePath}/send-ac-decision`, icon: FaPaperPlane },
@@ -66,8 +68,8 @@ export default function ChiefSidebar() {
             <motion.div
                 initial={false}
                 animate={{
-                    width: isOpen ? '320px' : '0px',
-                    x: isOpen ? 0 : -320
+                    width: isOpen ? sidebarWidth : 0,
+                    x: isOpen ? 0 : -sidebarWidth
                 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 className={`fixed lg:sticky top-0 h-screen z-[150] overflow-hidden flex-shrink-0 shadow-2xl relative border-r border-indigo-500/10`}
@@ -76,7 +78,12 @@ export default function ChiefSidebar() {
                 <div className="absolute inset-0 bg-white" />
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white to-white" />
 
-                <div className="relative w-[320px] h-full flex flex-col">
+                <div
+                    className="relative h-full flex flex-col"
+                    style={{ width: sidebarWidth }}
+                >
+                    <SidebarResizeHandle />
+
                     {/* Chief Header */}
                     <div className="p-8 border-b border-slate-100">
                         <div className="flex items-center gap-5">
@@ -105,7 +112,6 @@ export default function ChiefSidebar() {
                             .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
                             .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
                         `}</style>
-
                         {menuItems.map((item, index) => {
                             const isActive = item.href === '/chief' ? pathname === '/chief' : pathname?.startsWith(item.href);
                             const Icon = item.icon;
@@ -143,29 +149,8 @@ export default function ChiefSidebar() {
                         })}
                     </nav>
 
-                    {/* Chief Footer */}
-                    <div className="p-6 border-t border-slate-100 bg-white shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
-                        <div className="relative group cursor-pointer p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-blue-200 transition-all">
-                            <div className="relative flex items-center gap-4">
-                                <div className="relative">
-                                    <div className="relative w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                                        <span className="text-xs font-black text-white">CH</span>
-                                    </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-black text-slate-900 truncate">{t('institution_head')}</p>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">{t('root_access')}</p>
-                                    </div>
-                                </div>
-                                <FaSignOutAlt className="text-slate-400 group-hover:text-red-500 transition-colors" />
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </motion.div>
         </>
     );
 }
-

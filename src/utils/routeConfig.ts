@@ -59,6 +59,35 @@ export const ROUTE_MAPPINGS: RouteMapping[] = [
     { userRole: 'finance_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Finance Leader' },
     { userRole: 'hrm_employee', cleanUrl: '/admin-panel', displayName: 'HRM Employee' },
     { userRole: 'finance_employee', cleanUrl: '/admin-panel', displayName: 'Finance Employee' },
+
+    // Procurement Administration
+    { userRole: 'procurement_admin_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Procurement Admin Leader' },
+    { userRole: 'procurement_admin_employee', cleanUrl: '/admin-panel', displayName: 'Procurement Admin Employee' },
+
+    // Resource Development & Revenue
+    { userRole: 'resource_development_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Resource Development Leader' },
+    { userRole: 'resource_development_employee', cleanUrl: '/admin-panel', displayName: 'Resource Development Employee' },
+
+    // Building Renovation
+    { userRole: 'building_renovation_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Building Renovation Leader' },
+    { userRole: 'building_renovation_employee', cleanUrl: '/admin-panel', displayName: 'Building Renovation Employee' },
+
+    // General Service (Admin)
+    { userRole: 'general_service_admin_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'General Service Leader' },
+    { userRole: 'general_service_admin_employee', cleanUrl: '/admin-panel', displayName: 'General Service Employee' },
+
+    // Library Service
+    { userRole: 'library_service_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Library Service Leader' },
+    { userRole: 'library_service_employee', cleanUrl: '/admin-panel', displayName: 'Library Service Employee' },
+
+    // Security
+    { userRole: 'security_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Security Leader' },
+    { userRole: 'security_employee', cleanUrl: '/admin-panel', displayName: 'Security Employee' },
+
+    // Registrar
+    { userRole: 'registrar_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Registrar Leader' },
+    { userRole: 'registrar_employee', cleanUrl: '/admin-panel', displayName: 'Registrar Employee' },
+
     { userRole: 'student_service_leader', cleanUrl: '/admin-staff/team-leader', displayName: 'Student Service Leader' },
 
     // Student Service - Dormitory
@@ -94,16 +123,55 @@ export function isLeaderRole(userRole: string | null): boolean {
         userRole === 'chief';
 }
 
+// Helper function to handle formatting dynamic roles
+function formatRoleName(role: string): string {
+    return role
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
 // Helper function to get clean URL for a user role
 export function getCleanUrlForRole(userRole: string): string {
     const mapping = ROUTE_MAPPINGS.find(m => m.userRole === userRole);
-    return mapping?.cleanUrl || '/';
+    if (mapping) return mapping.cleanUrl;
+
+    // Dynamic Fallback for Academic Staff
+    if (userRole.endsWith('_head') || userRole.endsWith('_teacher')) {
+        return '/dashboard';
+    }
+
+    // Dynamic Fallback for Admin Staff
+    if (userRole.endsWith('_leader')) {
+        return '/admin-staff/team-leader';
+    }
+    if (userRole.endsWith('_employee')) {
+        return '/admin-panel';
+    }
+
+    return '/';
 }
 
 // Helper function to get display name for a user role
 export function getDisplayNameForRole(userRole: string): string {
     const mapping = ROUTE_MAPPINGS.find(m => m.userRole === userRole);
-    return mapping?.displayName || 'Home';
+    if (mapping) return mapping.displayName;
+
+    // Dynamic Fallback
+    if (userRole.endsWith('_head')) {
+        return formatRoleName(userRole.replace('_head', '')); // e.g. "Physics"
+    }
+    if (userRole.endsWith('_teacher')) {
+        return 'Dashboard';
+    }
+    if (userRole.endsWith('_leader')) {
+        return formatRoleName(userRole.replace('_leader', '')) + ' Leader';
+    }
+    if (userRole.endsWith('_employee')) {
+        return formatRoleName(userRole.replace('_employee', '')) + ' Employee';
+    }
+
+    return 'Home';
 }
 
 // Public routes that don't require authentication

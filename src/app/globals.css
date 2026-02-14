@@ -120,15 +120,19 @@ body {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
   }
+
   .animate-solar-pulse {
     animation: solar-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   @keyframes solar-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 0.8;
       transform: scale(1);
     }
+
     50% {
       opacity: 1;
       transform: scale(1.05);
@@ -140,5 +144,10 @@ body {
     -webkit-backdrop-filter: blur(12px) saturate(180%);
     background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 }

@@ -9,8 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiClock, FiBox, FiCheckCircle, FiActivity, FiInbox, FiTrendingUp, FiZap, FiTarget, FiDribbble } from 'react-icons/fi';
 
 export default function AdminEmployeePage() {
-    const { userRole } = useAuth();
-    const displayName = getDisplayNameForRole(userRole || '');
+    const { userRole, department } = useAuth();
+    const displayName = department ? `${department} Employee` : getDisplayNameForRole(userRole || '');
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -74,7 +74,11 @@ export default function AdminEmployeePage() {
 
                 {/* Main Content */}
                 <div className="flex-1 flex flex-col relative z-20 overflow-hidden">
-                    <Header title={displayName} subtitle="Advanced Operations Terminal" isDark={true} />
+                    <Header
+                        title={displayName}
+                        subtitle={department ? "Administrative Unit" : "Advanced Operations Terminal"}
+                        isDark={true}
+                    />
 
                     <main className="flex-1 px-8 py-10 overflow-y-auto custom-scrollbar relative">
                         <motion.div

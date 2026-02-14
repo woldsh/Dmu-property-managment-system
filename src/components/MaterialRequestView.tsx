@@ -74,7 +74,7 @@ interface MaterialRequestViewProps {
     materialTypeFilter?: 'fixed_asset' | 'consumable';
 }
 
-type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper' | 'dormitory_leader' | 'cafeteria_leader' | 'sports_leader' | 'student_service_leader' | 'hrm_leader' | 'finance_leader' | 'consumable_item_stock_clerk' | 'fixed_asset_stock_clerk' | 'consumable_item_store_keeper' | 'fixed_asset_store_keeper';
+type RoleType = 'department_head' | 'academic_coordinator' | 'requester' | 'procurement_md' | 'chief_executive' | 'managing_director' | 'general_service' | 'stock_clerk' | 'team_leader' | 'store_keeper' | 'dormitory_leader' | 'cafeteria_leader' | 'sports_leader' | 'student_service_leader' | 'hrm_leader' | 'finance_leader' | 'dynamic_leader' | 'consumable_item_stock_clerk' | 'fixed_asset_stock_clerk' | 'consumable_item_store_keeper' | 'fixed_asset_store_keeper';
 
 export default function MaterialRequestView({ roleOverride, materialTypeFilter }: MaterialRequestViewProps) {
     if (!db) return <div className="p-8 text-center text-red-500">Database connection error. Please refresh.</div>;
@@ -109,7 +109,8 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                                         userData?.userRole === 'student_service_sport_leader' ? 'sports_leader' :
                                             userData?.userRole === 'hrm_leader' ? 'hrm_leader' :
                                                 userData?.userRole === 'finance_leader' ? 'finance_leader' :
-                                                    'team_leader'
+                                                    userData?.userRole?.endsWith('_leader') ? 'dynamic_leader' :
+                                                        'team_leader'
                         ) :
                             // Check for Stock Clerk and Store Keeper specific roles in the URL or User Role?
                             // This part ensures effectiveRole carries the full role name like 'consumable_item_stock_clerk'
@@ -187,6 +188,8 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             q = query(requestsRef, where('currentApproverRole', '==', 'hrm_leader'), where('status', '==', 'pending_department_leader'));
         } else if (effectiveRole === 'finance_leader') {
             q = query(requestsRef, where('currentApproverRole', '==', 'finance_leader'), where('status', '==', 'pending_department_leader'));
+        } else if (effectiveRole === 'dynamic_leader') {
+            q = query(requestsRef, where('currentApproverRole', '==', userData.userRole), where('status', '==', 'pending_department_leader'));
         } else if (effectiveRole === 'student_service_leader') {
             q = query(requestsRef, where('status', '==', 'pending_student_service_leader'));
         } else if (effectiveRole === 'managing_director') {
@@ -283,7 +286,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         try {
             const requestRef = doc(db!, 'Request_materials', request.id);
 
-            if (effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader' || effectiveRole === 'hrm_leader' || effectiveRole === 'finance_leader') {
+            if (effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader' || effectiveRole === 'hrm_leader' || effectiveRole === 'finance_leader' || effectiveRole === 'dynamic_leader') {
                 // If it's a student service leader, forward to SSL. If it's HRM or Finance leader, forward to MD.
                 const isStudentServiceSubLeader = effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader';
 

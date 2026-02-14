@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2,
   ChevronRight,
@@ -16,120 +15,103 @@ import {
   X,
   Lock,
   ArrowUpRight,
-  MousePointer2,
   Layers,
   Zap,
   Cpu,
-  Sun,
-  Moon
+  MousePointer2,
+  BarChart3,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { FaFacebook, FaTwitter, FaLinkedin, FaYoutube } from 'react-icons/fa';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTheme } from '@/contexts/ThemeContext';
 
 export default function LandingPage() {
   const { language, setLanguage, t } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, 300]);
-  const opacityHero = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
+  const fadeUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: (i: number) => ({
       opacity: 1,
-      transition: { staggerChildren: 0.15 }
-    }
+      y: 0,
+      transition: { duration: 0.7, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }
+    })
   };
 
-  const itemVariants = {
-    hidden: { y: 30, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" as any }
-    }
+  const stagger = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.12 } }
+  };
+
+  const slideUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } }
   };
 
   return (
-    <div ref={containerRef} className={`min-h-screen transition-colors duration-700 ${theme === 'dark'
-      ? "bg-[#020205] text-white selection:bg-indigo-500/30 selection:text-indigo-200"
-      : "bg-slate-50 text-slate-900 selection:bg-indigo-200 selection:text-indigo-900"
-      }`}>
+    <div className="min-h-screen bg-white text-slate-900">
 
-      {/* Mesh Gadients */}
+      {/* Subtle Background Accents */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className={`absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-600/10 blur-[150px] rounded-full animate-pulse transition-opacity duration-700 ${theme === 'dark' ? 'opacity-100' : 'opacity-40'}`} />
-        <div className={`absolute bottom-[20%] right-[-5%] w-[40%] h-[40%] bg-blue-600/10 blur-[150px] rounded-full animate-pulse decoration-3000 transition-opacity duration-700 ${theme === 'dark' ? 'opacity-100' : 'opacity-40'}`} />
-        <div className={`absolute top-[30%] right-[10%] w-[30%] h-[30%] bg-purple-600/5 blur-[120px] rounded-full transition-opacity duration-700 ${theme === 'dark' ? 'opacity-100' : 'opacity-40'}`} />
+        <div className="absolute -top-[300px] -right-[300px] w-[800px] h-[800px] rounded-full blur-[200px] bg-indigo-50" />
+        <div className="absolute -bottom-[200px] -left-[200px] w-[600px] h-[600px] rounded-full blur-[180px] bg-blue-50/80" />
       </div>
 
-      <nav className={`fixed top-0 w-full z-[100] backdrop-blur-xl transition-all duration-500 border-b ${theme === 'dark' ? 'bg-black/20 border-white/5' : 'bg-white/70 border-slate-200 shadow-sm'
-        }`}>
+      {/* ===== NAVBAR ===== */}
+      <nav className="fixed top-0 w-full z-[100] bg-white/80 backdrop-blur-2xl border-b border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between h-24 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-4 group cursor-pointer"
-            >
-              <div className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center font-black text-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] group-hover:scale-110 transition-transform duration-500">
+          <div className="flex justify-between h-20 items-center">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3.5 group">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center font-extrabold text-sm tracking-tight bg-slate-900 text-white shadow-lg shadow-slate-900/20 transition-all duration-300 group-hover:scale-105">
                 DMU
               </div>
               <div className="flex flex-col">
-                <span className={`text-xl font-black tracking-tighter uppercase leading-none italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  Property <span className="text-indigo-500 font-normal">System</span>
+                <span className="text-[15px] font-bold tracking-tight leading-none text-slate-900">
+                  Property <span className="text-indigo-600 font-medium">System</span>
                 </span>
-                <span className={`hidden sm:block text-[8px] font-black tracking-[0.4em] uppercase mt-1 transition-colors ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className="text-[10px] tracking-widest uppercase mt-0.5 text-slate-400">
                   Debremarkos University
                 </span>
               </div>
-            </motion.div>
+            </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              <Link href="#" className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:text-indigo-500 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                {t('navigation_home') || 'Home'}
-              </Link>
-              <Link href="#features" className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:text-indigo-500 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                {t('features')}
-              </Link>
-              <Link href="#modules" className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:text-indigo-500 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                {t('modules')}
-              </Link>
-              <Link href="#team" className={`text-[10px] font-black uppercase tracking-[0.3em] transition-all hover:text-indigo-500 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                {t('about')}
-              </Link>
+            {/* Desktop Nav */}
+            <div className="hidden lg:flex items-center gap-1">
+              {[
+                { label: t('navigation_home') || 'Home', href: '#' },
+                { label: t('features'), href: '#features' },
+              ].map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="px-4 py-2 text-[13px] font-medium rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                >
+                  {item.label}
+                </Link>
+              ))}
 
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all border ${theme === 'dark'
-                  ? 'bg-white/5 border-white/10 text-yellow-400 hover:bg-white/10'
-                  : 'bg-slate-50 border-slate-200 text-indigo-600 hover:bg-indigo-50'
-                  }`}
-              >
-                {theme === 'dark' ? <Sun size={18} fill="currentColor" /> : <Moon size={18} fill="currentColor" />}
-              </button>
+              <div className="mx-3 w-px h-5 bg-slate-200" />
 
               {/* Language Toggle */}
-              <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10">
+              <div className="flex items-center rounded-lg p-0.5 bg-slate-100">
                 <button
                   onClick={() => setLanguage('en')}
-                  className={`px-3 py-1 rounded-full transition-all ${language === 'en' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'}`}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${language === 'en'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-700'
+                    }`}
                 >
                   EN
                 </button>
                 <button
                   onClick={() => setLanguage('am')}
-                  className={`px-3 py-1 rounded-full transition-all ${language === 'am' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${language === 'am'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:text-slate-700'
+                    }`}
                 >
                   አማ
                 </button>
@@ -137,819 +119,453 @@ export default function LandingPage() {
 
               <Link
                 href="/login"
-                className="px-8 py-3 bg-white text-black font-black text-[10px] rounded-full uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-xl shadow-white/10"
+                className="ml-3 px-5 py-2.5 bg-indigo-600 text-white text-[13px] font-semibold rounded-lg hover:bg-indigo-700 active:scale-[0.97] transition-all shadow-lg shadow-indigo-600/20"
               >
-                Login
+                {t('login')}
               </Link>
             </div>
 
-            <button className="lg:hidden w-12 h-12 flex items-center justify-center bg-white/5 rounded-2xl border border-white/10" onClick={() => setIsMenuOpen(true)}>
-              <Menu size={24} />
+            {/* Mobile menu button */}
+            <button
+              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-700 transition-all"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <Menu size={22} />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section - Parallax Immersive */}
-      <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden px-6">
-        <motion.div style={{ y: heroY, opacity: opacityHero }} className="absolute inset-0 z-0">
-          <Image
-            src="/university_hero.png"
-            alt="DMU Burie Campus"
-            fill
-            className="object-cover opacity-60 scale-110"
-            priority
-          />
-          <div className={`absolute inset-0 bg-gradient-to-b transition-colors duration-700 ${theme === 'dark' ? 'from-[#020205]/40 via-[#020205]/80 to-[#020205]' : 'from-slate-50/10 via-slate-50/50 to-slate-50'
-            }`} />
-        </motion.div>
-
-        <div className="max-w-7xl mx-auto relative z-10 pt-20">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center"
-          >
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/5 border border-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-10 mx-auto">
-              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
-              {t('heroTag')}
-            </div>
-            <h1 className={`text-6xl md:text-9xl font-black tracking-[-0.04em] leading-[0.85] mb-10 uppercase italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-              {t('heroStreamline')} <span className="text-indigo-600 not-italic">{t('heroProperty')}</span> <br />
-              {t('heroSystem')}
-            </h1>
-            <p className={`text-lg md:text-2xl font-medium leading-relaxed mb-12 max-w-3xl mx-auto transition-colors ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-              {t('heroSub')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link
-                href="/login"
-                className="w-full sm:w-auto px-12 py-6 bg-indigo-600 text-white font-black rounded-[2rem] flex items-center justify-center gap-4 shadow-[0_20px_50px_rgba(79,70,229,0.3)] hover:scale-105 hover:bg-indigo-500 active:scale-95 transition-all group"
-              >
-                {t('getStarted')} <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <button className="w-full sm:w-auto px-12 py-6 bg-white/5 backdrop-blur-md border border-white/10 text-white font-black rounded-[2rem] flex items-center justify-center gap-4 hover:bg-white/10 transition-all active:scale-95">
-                <MousePointer2 size={20} /> {t('requestAccess')}
-              </button>
-            </div>
-          </motion.div>
+      {/* ===== HERO SECTION ===== */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        {/* Hero Background Decorations */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Dot grid pattern */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+          {/* Gradient orbs */}
+          <div className="absolute top-[15%] right-[10%] w-[500px] h-[500px] rounded-full bg-gradient-to-br from-indigo-100/60 to-blue-50/40 blur-[100px]" />
+          <div className="absolute bottom-[10%] left-[5%] w-[400px] h-[400px] rounded-full bg-gradient-to-tr from-violet-100/40 to-cyan-50/30 blur-[80px]" />
         </div>
 
-        {/* Floating Indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-600"
-        >
-          <span className="text-[10px] font-black uppercase tracking-[0.5em]">Scroll</span>
-          <div className="w-[1px] h-12 bg-gradient-to-b from-indigo-500/50 to-transparent" />
-        </motion.div>
-      </section >
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10 pt-32 pb-20 w-full">
+          <div className="grid lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+            {/* Left Content */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              className="space-y-8"
+            >
+              <motion.div
+                variants={fadeUp}
+                custom={0}
+                className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-semibold bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-600 border border-indigo-100/80 shadow-sm"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600" />
+                </span>
+                {t('heroTag')}
+                <Sparkles size={12} className="text-indigo-400" />
+              </motion.div>
 
-      {/* Advanced Bento Grid Modules */}
-      < section id="modules" className="py-32 relative z-10 px-6 lg:px-8" >
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-20">
-            <p className="text-indigo-500 font-black tracking-[0.4em] uppercase text-[10px] mb-4">{t('modulesTag')}</p>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none mb-6 italic">
-              {t('modulesTitle')}
-            </h2>
-            <div className="w-20 h-1 bg-indigo-600" />
-          </div>
+              <motion.h1
+                variants={fadeUp}
+                custom={1}
+                className="text-5xl sm:text-6xl lg:text-[4.5rem] font-extrabold tracking-tight leading-[1.05] text-slate-900"
+              >
+                {t('heroStreamline')}{' '}
+                <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent bg-[length:200%_100%] animate-[gradientShift_4s_ease_infinite]">
+                  {t('heroProperty')}
+                </span>
+                <br />
+                {t('heroSystem')}
+              </motion.h1>
 
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 md:grid-cols-12 gap-6"
-          >
-            {/* Main Feature - Dashboard */}
-            {/* Main Feature - Removed as per request */}
+              <motion.p
+                variants={fadeUp}
+                custom={2}
+                className="text-lg leading-relaxed max-w-xl text-slate-500"
+              >
+                {t('heroSub')}
+              </motion.p>
 
-            {/* Small - Procurement */}
-            {/* Small - Procurement - Removed as per request */}
+              <motion.div variants={fadeUp} custom={3} className="flex flex-wrap gap-4 pt-2">
+                <Link
+                  href="/login"
+                  className="group px-8 py-4 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold rounded-xl flex items-center gap-3 shadow-xl shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:scale-[1.02] active:scale-[0.97] transition-all duration-300"
+                >
+                  {t('getStarted')}
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
 
-            {/* Small - Academic */}
-            <motion.div variants={itemVariants} className="md:col-span-4 group relative bg-white rounded-[3rem] p-10 flex flex-col justify-between overflow-hidden transition-all duration-700 border border-slate-200">
-              <div className="relative z-10">
-                <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center mb-8">
-                  <GraduationCap className="text-white" />
-                </div>
-                <h3 className="text-3xl font-black text-black uppercase italic mb-4">{t('academicHubLabel')}</h3>
-                <p className="text-slate-600 font-bold text-sm leading-relaxed">
-                  {t('academicHubDesc')}
-                </p>
-              </div>
-              <div className="absolute bottom-0 left-0 w-full h-[50%] opacity-0 group-hover:opacity-10 transition-all duration-700 translate-y-4 group-hover:translate-y-0">
-                <Image src="/academic_hub.png" alt="Academic" fill className="object-cover" />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-5 pointer-events-none" />
-              <ArrowUpRight size={32} className="absolute bottom-10 right-10 text-black/10 group-hover:text-black transition-all duration-500" />
+              </motion.div>
+
+              {/* Trust Indicators */}
+              <motion.div variants={fadeUp} custom={4} className="flex flex-wrap items-center gap-5 pt-6">
+                {[
+                  { icon: <ShieldCheck size={15} />, text: 'SSL Secured', color: 'text-emerald-500' },
+                  { icon: <Zap size={15} />, text: 'Real-time Sync', color: 'text-amber-500' },
+                  { icon: <Globe2 size={15} />, text: 'Multi-language', color: 'text-blue-500' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <div className={`w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center ${item.color}`}>
+                      {item.icon}
+                    </div>
+                    {item.text}
+                  </div>
+                ))}
+              </motion.div>
             </motion.div>
 
-            {/* Med - Security & AI */}
-            <motion.div variants={itemVariants} className={`md:col-span-8 group relative rounded-[3rem] border p-10 flex items-center gap-10 overflow-hidden transition-all duration-700 ${theme === 'dark' ? 'bg-[#0c0c11] border-white/5' : 'bg-white border-slate-200'
-              }`}>
-              <div className="flex-1 relative z-10">
-                <p className="text-indigo-500 font-black tracking-widest text-[9px] mb-4 uppercase">Infrastructure Security</p>
-                <h3 className={`text-3xl font-black uppercase italic mb-4 transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Enterprise Shield</h3>
-                <p className={`font-medium text-sm leading-relaxed mb-6 transition-colors ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Every transaction and property record is protected by AES-256 encryption and role-based cryptographic signing.
-                </p>
-                <div className="flex gap-4">
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-colors ${theme === 'dark' ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-500'
-                    }`}>
-                    <ShieldCheck size={14} className="text-indigo-500" /> SSL SECURED
-                  </div>
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-colors ${theme === 'dark' ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-500'
-                    }`}>
-                    <Zap size={14} className="text-amber-500" /> ULTRA FAST
-                  </div>
-                </div>
-              </div>
-              <div className="hidden lg:block w-48 h-48 relative">
+            {/* Right - Interactive Dashboard Mockup */}
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="relative hidden lg:flex items-center justify-center"
+            >
+              <div className="relative w-[480px] h-[480px] flex items-center justify-center">
+                {/* Outer decorative ring */}
                 <motion.div
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" as any }}
-                  className={`absolute inset-0 border-2 border-dashed rounded-full transition-colors ${theme === 'dark' ? 'border-indigo-500/20' : 'border-indigo-100'
-                    }`}
+                  transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+                  className="absolute inset-0 rounded-full"
+                  style={{ background: 'conic-gradient(from 0deg, transparent, rgba(99,102,241,0.08), transparent, rgba(139,92,246,0.06), transparent)' }}
                 />
-                <div className={`absolute inset-4 border rounded-full flex items-center justify-center transition-all ${theme === 'dark' ? 'border-indigo-500/30' : 'border-indigo-100'
-                  }`}>
-                  <Lock className={`w-12 h-12 transition-colors ${theme === 'dark' ? 'text-indigo-500' : 'text-indigo-600'}`} />
-                </div>
+                <div className="absolute inset-[3px] rounded-full bg-white" />
+
+                {/* Animated ring pulse */}
+                <motion.div
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.1, 0.3] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-[-20px] rounded-full border border-indigo-200/30"
+                />
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.2, 0.05, 0.2] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-[-40px] rounded-full border border-violet-200/20"
+                />
+
+                {/* Main Dashboard Card */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="relative z-10 w-[320px] bg-white rounded-2xl shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden"
+                >
+                  {/* Dashboard Header */}
+                  <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-slate-800">DMU Dashboard</div>
+                        <div className="text-[9px] text-slate-400">Property Management</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <div className="w-2 h-2 rounded-full bg-amber-400" />
+                      <div className="w-2 h-2 rounded-full bg-rose-400" />
+                    </div>
+                  </div>
+                  {/* Stats Row */}
+                  <div className="px-5 py-3 flex gap-3">
+                    {[
+                      { value: '2,847', label: 'Assets', color: 'from-indigo-500 to-blue-500' },
+                      { value: '156', label: 'Active', color: 'from-emerald-500 to-teal-500' },
+                      { value: '99.8%', label: 'Uptime', color: 'from-violet-500 to-purple-500' },
+                    ].map((stat, i) => (
+                      <div key={i} className="flex-1 bg-slate-50 rounded-lg p-2.5 text-center">
+                        <div className={`text-sm font-extrabold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>{stat.value}</div>
+                        <div className="text-[8px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Activity Bars */}
+                  <div className="px-5 pb-4 space-y-2">
+                    <div className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Weekly Activity</div>
+                    <div className="flex items-end gap-1.5 h-14">
+                      {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${h}%` }}
+                          transition={{ duration: 0.8, delay: 0.8 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                          className={`flex-1 rounded-md ${i === 5 ? 'bg-gradient-to-t from-indigo-600 to-violet-500' : 'bg-gradient-to-t from-slate-200 to-slate-100'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Floating Cards */}
+                {/* Top-right notification card */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+                  transition={{ y: { duration: 3, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.8 }, x: { duration: 0.6, delay: 0.8 } }}
+                  className="absolute top-[12%] -right-[10%] z-20 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 px-4 py-3 flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <ShieldCheck size={14} className="text-emerald-500" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-800">System Secure</div>
+                    <div className="text-[9px] text-emerald-500 font-semibold">All systems operational</div>
+                  </div>
+                </motion.div>
+
+                {/* Bottom-left users card */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+                  transition={{ y: { duration: 3.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 1 }, x: { duration: 0.6, delay: 1 } }}
+                  className="absolute bottom-[15%] -left-[12%] z-20 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 px-4 py-3"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users size={12} className="text-indigo-500" />
+                    <span className="text-[10px] font-bold text-slate-800">Active Users</span>
+                  </div>
+                  <div className="flex -space-x-2">
+                    {['bg-indigo-400', 'bg-violet-400', 'bg-blue-400', 'bg-cyan-400'].map((color, i) => (
+                      <div key={i} className={`w-6 h-6 rounded-full ${color} border-2 border-white flex items-center justify-center`}>
+                        <span className="text-[7px] font-bold text-white">{String.fromCharCode(65 + i)}</span>
+                      </div>
+                    ))}
+                    <div className="w-6 h-6 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center">
+                      <span className="text-[7px] font-bold text-slate-500">+12</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Top-left package card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: [0, -10, 0] }}
+                  transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 1.2 } }}
+                  className="absolute top-[8%] -left-[5%] z-20 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 px-4 py-3 flex items-center gap-3"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <Package size={14} className="text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-800">+24 Items</div>
+                    <div className="text-[9px] text-slate-400 font-medium">Added today</div>
+                  </div>
+                </motion.div>
+
+                {/* Decorative connector lines */}
+                <svg className="absolute inset-0 w-full h-full z-0 pointer-events-none" viewBox="0 0 480 480">
+                  <motion.circle cx="240" cy="240" r="160" fill="none" stroke="url(#heroGrad)" strokeWidth="1" strokeDasharray="8 8"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+                    style={{ transformOrigin: '240px 240px' }}
+                  />
+                  <defs>
+                    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2" />
+                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.2" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
-      </section >
-      {/* Streamlined Workflows Section */}
-      < section id="features" className={`py-32 relative z-10 px-6 lg:px-8 border-y transition-colors duration-700 ${theme === 'dark' ? 'bg-[#05050a]/50 border-white/5' : 'bg-white/80 border-slate-200'
-        }`
-      }>
+
+        {/* Scroll Indicator */}
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-300"
+        >
+          <div className="w-5 h-8 rounded-full border-2 border-current flex items-start justify-center p-1">
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="w-1 h-1.5 rounded-full bg-current"
+            />
+          </div>
+        </motion.div>
+      </section>
+
+
+
+
+      {/* ===== WORKFLOWS ===== */}
+      <section id="features" className="py-28 relative z-10 px-6 lg:px-8 border-y bg-slate-50/50 border-slate-100">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-indigo-500 font-black tracking-[0.4em] uppercase text-[10px] mb-4"
-            >
+          <div className="text-center mb-20">
+            <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-indigo-600 text-sm font-semibold tracking-wide mb-3">
               {t('workflowsTag')}
             </motion.p>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className={`text-4xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-8 italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
-            >
-              {t('workflowsTitle')} <br />
-              <span className="text-indigo-600 not-italic">{t('workflowsTitle_2')}</span>
+            <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-5 text-slate-900">
+              {t('workflowsTitle')}{' '}
+              <span className="text-indigo-600">{t('workflowsTitle_2')}</span>
             </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="text-slate-400 max-w-2xl mx-auto font-medium"
-            >
+            <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }} className="max-w-2xl mx-auto text-base text-slate-500">
               {t('workflowsDesc')}
             </motion.p>
           </div>
 
-          <div className="space-y-32">
+          <div className="space-y-20">
             {/* Academic Flow */}
-            <div className="relative">
-              <div className="flex items-center gap-4 mb-12">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${theme === 'dark' ? 'bg-indigo-600/20 border-indigo-600/30' : 'bg-indigo-50 border-indigo-200'
-                  }`}>
-                  <GraduationCap className="text-indigo-500 w-5 h-5" />
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-cyan-50 text-cyan-600">
+                  <GraduationCap size={20} />
                 </div>
-                <h3 className={`text-2xl font-black uppercase italic tracking-tight transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t('academicFlowLabel')}</h3>
+                <h3 className="text-xl font-bold text-slate-900">{t('academicFlowLabel')}</h3>
               </div>
-
-              <div className="flex flex-wrap lg:flex-nowrap items-center gap-4 lg:gap-2">
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-3">
                 {[
-                  { label: 'flow_teacher', icon: <Users size={20} /> },
-                  { label: 'flow_dept_head', icon: <ShieldCheck size={20} /> },
-                  { label: 'flow_ac', icon: <Cpu size={20} /> },
-                  { label: 'flow_md', icon: <Building2 size={20} /> },
-                  { label: 'flow_gs', icon: <Layers size={20} /> },
-                  { label: 'flow_pmt', icon: <Package size={20} /> },
-                  { label: 'flow_clerk', icon: <MousePointer2 size={20} /> },
-                  { label: 'flow_keeper', icon: <Lock size={20} /> }
+                  { label: 'flow_teacher', icon: <Users size={16} /> },
+                  { label: 'flow_dept_head', icon: <ShieldCheck size={16} /> },
+                  { label: 'flow_ac', icon: <Cpu size={16} /> },
+                  { label: 'flow_md', icon: <Building2 size={16} /> },
+                  { label: 'flow_gs', icon: <Layers size={16} /> },
+                  { label: 'flow_pmt', icon: <Package size={16} /> },
+                  { label: 'flow_clerk', icon: <MousePointer2 size={16} /> },
+                  { label: 'flow_keeper', icon: <Lock size={16} /> }
                 ].map((step, idx, arr) => (
-                  <div key={idx} className="flex flex-1 items-center gap-2 min-w-[160px] lg:min-w-0" style={{ perspective: "1200px" }}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 30, rotateX: 25 }}
-                      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                      whileHover={{
-                        rotateY: 20,
-                        rotateX: -15,
-                        scale: 1.08,
-                        translateZ: 40,
-                        boxShadow: "0 20px 40px -10px rgba(6, 182, 212, 0.3)"
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 25,
-                        delay: idx * 0.05
-                      }}
-                      viewport={{ once: true }}
-                      className={`flex-1 group relative rounded-[2rem] backdrop-blur-3xl border transition-all cursor-default overflow-hidden ${theme === 'dark'
-                        ? 'bg-cyan-950/20 border-cyan-500/20 hover:border-cyan-400'
-                        : 'bg-white border-cyan-200 hover:border-cyan-500 shadow-lg shadow-cyan-100/50'
-                        }`}
-                      style={{ transformStyle: "preserve-3d" }}
-                    >
-                      {/* Holographic Edge Glow */}
-                      <div className="absolute inset-0 border-[0.5px] border-white/10 rounded-[2rem] pointer-events-none" />
-
-                      {/* Cyber Pulse Background */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      {/* Digital Icon Container */}
-                      <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 border shadow-[0_0_20px_rgba(6,182,212,0.1)] ${theme === 'dark'
-                        ? 'bg-cyan-500/10 border-cyan-500/30 group-hover:border-cyan-400 group-hover:bg-cyan-500/20'
-                        : 'bg-cyan-50 border-cyan-200 group-hover:border-cyan-400 group-hover:bg-cyan-100'
-                        }`}>
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-cyan-400/20 blur-xl rounded-full" />
-                        <span className={`transition-colors drop-shadow-[0_0_10px_rgba(34,211,238,0.5)] ${theme === 'dark' ? 'text-cyan-400 group-hover:text-cyan-300' : 'text-cyan-600 group-hover:text-cyan-700'
-                          }`}>
-                          {step.icon}
-                        </span>
+                  <div key={idx} className="flex flex-1 items-center gap-3 min-w-[140px] lg:min-w-0">
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }} viewport={{ once: true }}
+                      className="flex-1 rounded-xl p-4 border bg-white border-slate-200 hover:border-cyan-300 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-cyan-50 text-cyan-600">
+                        {step.icon}
                       </div>
-
-                      <div className="relative z-10">
-                        <p className={`text-[11px] font-black uppercase tracking-[0.25em] transition-colors ${theme === 'dark' ? 'text-cyan-100/60 group-hover:text-cyan-50' : 'text-slate-600 group-hover:text-cyan-700'
-                          }`}>
-                          {t(step.label as any)}
-                        </p>
-                        <div className={`mt-3 h-[2px] w-6 rounded-full group-hover:w-full transition-all duration-700 ease-out ${theme === 'dark' ? 'bg-cyan-500/40' : 'bg-cyan-500'
-                          }`} />
-                      </div>
-
-                      {/* Holographic Data Tag */}
-                      <div className="absolute top-4 right-4 text-[9px] font-mono text-cyan-500/20 group-hover:text-cyan-400/40 transition-colors tracking-widest" style={{ transform: "translateZ(50px)" }}>
-                        ID_{idx + 1}
-                      </div>
-
-                      {/* Matrix Scan Effect */}
-                      <motion.div
-                        animate={{ top: ["-100%", "200%"] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" as any }}
-                        className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-cyan-400/5 to-transparent pointer-events-none"
-                      />
+                      <p className="text-[11px] font-semibold tracking-wide text-slate-600">{t(step.label as any)}</p>
                     </motion.div>
-
-                    {idx < arr.length - 1 && (
-                      <div className="flex items-center justify-center w-8 lg:w-14 h-10 relative">
-                        <motion.div
-                          animate={{
-                            x: [-10, 10],
-                            opacity: [0.3, 1, 0.3]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as any }}
-                          className="flex items-center -space-x-3 lg:-space-x-4"
-                        >
-                          <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-cyan-400/30' : 'text-cyan-300'}`} />
-                          <div className="relative">
-                            <ChevronRight size={24} className={`lg:size-32 ${theme === 'dark' ? 'text-cyan-400' : 'text-cyan-600'}`} />
-                            <div className={`absolute inset-0 blur-md opacity-40 animate-pulse ${theme === 'dark' ? 'bg-cyan-400' : 'bg-cyan-500'}`} />
-                          </div>
-                          <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-cyan-400/30' : 'text-cyan-300'}`} />
-                        </motion.div>
-                      </div>
-                    )}
+                    {idx < arr.length - 1 && <ChevronRight size={16} className="shrink-0 hidden lg:block text-slate-300" />}
                   </div>
                 ))}
               </div>
-              <div className="absolute -left-10 top-20 bottom-10 w-[1px] bg-gradient-to-b from-indigo-500/50 to-transparent hidden lg:block" />
             </div>
 
             {/* Admin Flow */}
-            <div className="relative">
-              <div className="flex items-center gap-4 mb-12">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors ${theme === 'dark' ? 'bg-blue-600/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'
-                  }`}>
-                  <Building2 className="text-blue-500 w-5 h-5" />
+            <div>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-indigo-50 text-indigo-600">
+                  <Building2 size={20} />
                 </div>
-                <h3 className={`text-2xl font-black uppercase italic tracking-tight transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>{t('adminFlowLabel')}</h3>
+                <h3 className="text-xl font-bold text-slate-900">{t('adminFlowLabel')}</h3>
               </div>
-
-              <div className="flex flex-wrap lg:flex-nowrap items-center gap-4 lg:gap-2">
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-3">
                 {[
-                  { label: 'flow_employee', icon: <Users size={20} /> },
-                  { label: 'flow_tl', icon: <Zap size={20} /> },
-                  { label: 'flow_md', icon: <Building2 size={20} /> },
-                  { label: 'flow_gs', icon: <Layers size={20} /> },
-                  { label: 'flow_pmt', icon: <Package size={20} /> },
-                  { label: 'flow_clerk', icon: <MousePointer2 size={20} /> },
-                  { label: 'flow_keeper', icon: <Lock size={20} /> }
+                  { label: 'flow_employee', icon: <Users size={16} /> },
+                  { label: 'flow_tl', icon: <Zap size={16} /> },
+                  { label: 'flow_md', icon: <Building2 size={16} /> },
+                  { label: 'flow_gs', icon: <Layers size={16} /> },
+                  { label: 'flow_pmt', icon: <Package size={16} /> },
+                  { label: 'flow_clerk', icon: <MousePointer2 size={16} /> },
+                  { label: 'flow_keeper', icon: <Lock size={16} /> }
                 ].map((step, idx, arr) => (
-                  <div key={idx} className="flex flex-1 items-center gap-2 min-w-[160px] lg:min-w-0" style={{ perspective: "1200px" }}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 30, rotateX: 25 }}
-                      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-                      whileHover={{
-                        rotateY: -20,
-                        rotateX: -15,
-                        scale: 1.08,
-                        translateZ: 40,
-                        boxShadow: "0 20px 40px -10px rgba(79, 70, 229, 0.3)"
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 400,
-                        damping: 25,
-                        delay: idx * 0.05
-                      }}
-                      viewport={{ once: true }}
-                      className={`flex-1 group relative rounded-[2rem] backdrop-blur-3xl border transition-all cursor-default overflow-hidden ${theme === 'dark'
-                        ? 'bg-indigo-950/20 border-indigo-500/20 hover:border-indigo-400'
-                        : 'bg-white border-indigo-200 hover:border-indigo-500 shadow-lg shadow-indigo-100/50'
-                        }`}
-                      style={{ transformStyle: "preserve-3d" }}
-                    >
-                      {/* Holographic Edge Glow */}
-                      <div className="absolute inset-0 border-[0.5px] border-white/10 rounded-[2rem] pointer-events-none" />
-
-                      {/* Pulse Background */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      {/* Digital Icon Container */}
-                      <div className={`relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 border shadow-[0_0_20px_rgba(79,70,229,0.1)] ${theme === 'dark'
-                        ? 'bg-indigo-500/10 border-indigo-500/30 group-hover:border-indigo-400 group-hover:bg-indigo-500/20'
-                        : 'bg-indigo-50 border-indigo-200 group-hover:border-indigo-400 group-hover:bg-indigo-100'
-                        }`}>
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-indigo-400/20 blur-xl rounded-full" />
-                        <span className={`transition-colors drop-shadow-[0_0_10px_rgba(129,140,248,0.5)] ${theme === 'dark' ? 'text-indigo-400 group-hover:text-indigo-300' : 'text-indigo-600 group-hover:text-indigo-700'
-                          }`}>
-                          {step.icon}
-                        </span>
+                  <div key={idx} className="flex flex-1 items-center gap-3 min-w-[140px] lg:min-w-0">
+                    <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.06 }} viewport={{ once: true }}
+                      className="flex-1 rounded-xl p-4 border bg-white border-slate-200 hover:border-indigo-300 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-indigo-50 text-indigo-600">
+                        {step.icon}
                       </div>
-
-                      <div className="relative z-10">
-                        <p className={`text-[11px] font-black uppercase tracking-[0.25em] transition-colors ${theme === 'dark' ? 'text-indigo-100/60 group-hover:text-indigo-50' : 'text-slate-600 group-hover:text-indigo-700'
-                          }`}>
-                          {t(step.label as any)}
-                        </p>
-                        <div className={`mt-3 h-[2px] w-6 rounded-full group-hover:w-full transition-all duration-700 ease-out ${theme === 'dark' ? 'bg-indigo-500/40' : 'bg-indigo-500'
-                          }`} />
-                      </div>
-
-                      {/* Data Tag */}
-                      <div className="absolute top-4 right-4 text-[9px] font-mono text-indigo-500/20 group-hover:text-indigo-400/40 transition-colors tracking-widest" style={{ transform: "translateZ(50px)" }}>
-                        SYS_{idx + 1}
-                      </div>
-
-                      {/* Matrix Scan Effect */}
-                      <motion.div
-                        animate={{ top: ["-100%", "200%"] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" as any }}
-                        className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-indigo-400/5 to-transparent pointer-events-none"
-                      />
+                      <p className="text-[11px] font-semibold tracking-wide text-slate-600">{t(step.label as any)}</p>
                     </motion.div>
-
-                    {idx < arr.length - 1 && (
-                      <div className="flex items-center justify-center w-8 lg:w-14 h-10 relative">
-                        <motion.div
-                          animate={{
-                            x: [-10, 10],
-                            opacity: [0.3, 1, 0.3]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" as any }}
-                          className="flex items-center -space-x-3 lg:-space-x-4"
-                        >
-                          <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-indigo-400/30' : 'text-indigo-300'}`} />
-                          <div className="relative">
-                            <ChevronRight size={24} className={`lg:size-32 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`} />
-                            <div className={`absolute inset-0 blur-md opacity-40 animate-pulse ${theme === 'dark' ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
-                          </div>
-                          <ChevronRight size={14} className={`lg:block hidden ${theme === 'dark' ? 'text-indigo-400/30' : 'text-indigo-300'}`} />
-                        </motion.div>
-                      </div>
-                    )}
+                    {idx < arr.length - 1 && <ChevronRight size={16} className="shrink-0 hidden lg:block text-slate-300" />}
                   </div>
                 ))}
               </div>
-              <div className="absolute -left-10 top-20 bottom-10 w-[1px] bg-gradient-to-b from-blue-500/50 to-transparent hidden lg:block" />
             </div>
           </div>
         </div>
-      </section >
+      </section>
 
 
-      <section className={`py-40 relative z-10 px-6 lg:px-8 overflow-hidden transition-colors duration-700 ${theme === 'dark' ? 'bg-[#050510]' : 'bg-white'
-        }`}>
-        {/* Design Accents for Sun Theme */}
-        {theme === 'light' && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-50/50 blur-[120px] rounded-full" />
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-50/50 blur-[100px] rounded-full" />
-          </div>
-        )}
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-10"
-            >
-              <div className={`inline-flex items-center gap-3 px-5 py-2 rounded-full border text-[11px] font-black uppercase tracking-[0.3em] transition-all ${theme === 'dark'
-                ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
-                : 'bg-indigo-50 border-indigo-100 text-indigo-600 shadow-sm shadow-indigo-100'
-                }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                {t('impactTag')}
+      {/* ===== FOOTER ===== */}
+      <footer className="pt-20 pb-12 relative z-10 border-t bg-slate-50 border-slate-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div className="md:col-span-2 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-slate-900 text-white">DMU</div>
+                <div>
+                  <span className="text-[15px] font-bold tracking-tight text-slate-900">
+                    Property <span className="text-indigo-600 font-medium">System</span>
+                  </span>
+                  <p className="text-[10px] tracking-widest uppercase text-slate-400">Debremarkos University</p>
+                </div>
               </div>
-              <h2 className={`text-6xl md:text-9xl font-black tracking-tighter uppercase leading-[0.82] italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                {t('impactTitle_1')} <br />
-                <span className="text-indigo-600 not-italic">{t('impactTitle_2')}</span>
-              </h2>
-              <p className={`text-xl md:text-2xl font-medium leading-relaxed max-w-xl transition-colors ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-                {t('impactDesc')}
+              <p className="text-sm leading-relaxed max-w-xs text-slate-400">
+                Leading the digital transformation of Burie Campus. A vision of excellence in resource management.
               </p>
-
-              <div className="grid grid-cols-2 gap-12 pt-10">
-                {[
-                  { label: 'impactStat_1_Label', val: 'impactStat_1_Val' },
-                  { label: 'impactStat_2_Label', val: 'impactStat_2_Val' }
-                ].map((stat, idx) => (
-                  <div key={idx} className="space-y-3 group/stat">
-                    <div className="text-5xl md:text-6xl font-black text-indigo-600 tracking-tighter italic group-hover/stat:scale-110 transition-transform origin-left duration-500">{t(stat.val as any)}</div>
-                    <div className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${theme === 'dark' ? 'text-slate-500 group-hover/stat:text-indigo-400' : 'text-slate-400 group-hover/stat:text-indigo-600'}`}>{t(stat.label as any)}</div>
-                    <div className="w-10 h-1 bg-indigo-600/20 rounded-full group-hover/stat:w-full group-hover/stat:bg-indigo-600 transition-all duration-700" />
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative group lg:h-[700px] flex items-center justify-center p-12"
-            >
-              <div className={`absolute inset-0 rounded-[4rem] transition-colors duration-700 pointer-events-none ${theme === 'dark' ? 'bg-indigo-600/20 blur-[150px]' : 'bg-indigo-100/50 blur-[120px]'
-                }`} />
-
-              <div className="relative w-full h-full flex items-center justify-center">
-                {/* Glowing Background */}
-                <div className={`absolute inset-0 rounded-full blur-[100px] transition-colors duration-700 ${theme === 'dark' ? 'bg-indigo-500/10' : 'bg-indigo-100/40'}`} />
-
-                {/* Rotating Rings with Enhanced Glow */}
-                <div className="w-[400px] h-[400px] lg:w-[500px] lg:h-[500px] relative flex items-center justify-center">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 30, repeat: Infinity, ease: "linear" as any }}
-                    className={`absolute inset-0 border-2 border-dashed rounded-full transition-colors box-shadow-[0_0_50px_rgba(6,182,212,0.2)] ${theme === 'dark' ? 'border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'border-cyan-300 shadow-[0_0_30px_rgba(6,182,212,0.2)]'
-                      }`}
-                  />
-                  <motion.div
-                    animate={{ rotate: -360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" as any }}
-                    className={`absolute inset-12 border border-dashed rounded-full transition-colors ${theme === 'dark' ? 'border-indigo-500/40 shadow-[0_0_30px_rgba(79,70,229,0.1)]' : 'border-indigo-300 shadow-[0_0_30px_rgba(79,70,229,0.2)]'
-                      }`}
-                  />
-
-                  {/* Central Lock with Intense Glow */}
-                  <div className={`w-32 h-32 lg:w-40 lg:h-40 rounded-full flex items-center justify-center border-2 backdrop-blur-md relative z-10 shadow-[0_0_60px_rgba(79,70,229,0.6)] ${theme === 'dark' ? 'bg-[#050510]/80 border-indigo-500/50' : 'bg-white/50 border-indigo-300'
-                    }`}>
-                    <div className="absolute inset-0 bg-indigo-500/30 blur-2xl rounded-full animate-pulse" />
-                    <Lock className={`w-16 h-16 lg:w-20 lg:h-20 transition-colors drop-shadow-[0_0_20px_rgba(99,102,241,1)] ${theme === 'dark' ? 'text-cyan-400' : 'text-indigo-600'
-                      }`} />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section >
-
-      {/* Meet Our Team Section */}
-      < section id="team" className={`py-32 relative z-10 px-6 lg:px-8 border-t transition-colors duration-700 overflow-hidden ${theme === 'dark' ? 'bg-[#020205] border-white/5' : 'bg-slate-50 border-slate-200'
-        }`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24 relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none" />
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-cyan-500 font-black tracking-[0.5em] uppercase text-[10px] block mb-4"
-            >
-              {t('teamTag')}
-            </motion.span>
-            <motion.h2
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className={`text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none mb-8 italics transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}
-            >
-              {t('teamTitle')}
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className={`max-w-2xl mx-auto font-medium mb-8 transition-colors ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}
-            >
-              {t('teamDesc')}
-            </motion.p>
-            <div className="flex items-center justify-center gap-2 text-[10px] font-mono text-cyan-500/60 uppercase tracking-widest bg-cyan-500/5 py-2 px-4 rounded-full border border-cyan-500/10 w-fit mx-auto cursor-help group">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse group-hover:scale-150 transition-transform" />
-              {t('teamAction')}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 max-w-2xl mx-auto gap-8">
-            {[
-              {
-                group: 'implementationGroup',
-                team: 'Implementation Team',
-                label: 'Implementation',
-                members: ['Woldemariam', 'Shikure', 'Nurye', 'Samuel', 'Samson', 'Lamenew'],
-                color: 'cyan',
-                glow: 'rgba(6,182,212,0.3)',
-                bgImage: '/implementation.png'
-              }
-            ].map((item, idx) => (
-              <motion.div
-                key={idx}
-                drag
-                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                dragElastic={0.08}
-                whileHover={{
-                  scale: 1.05,
-                  rotateY: 10,
-                  rotateX: -10,
-                  boxShadow: `0 30px 60px -12px ${item.glow}`
-                }}
-                className={`group relative p-10 rounded-[3rem] backdrop-blur-3xl border transition-all cursor-grab active:cursor-grabbing overflow-hidden ${theme === 'dark'
-                  ? `bg-[#050510]/80 ${item.color === 'cyan' ? 'border-cyan-500/30 hover:border-cyan-400' : item.color === 'indigo' ? 'border-indigo-500/30 hover:border-indigo-400' : 'border-blue-500/30 hover:border-blue-400'}`
-                  : `bg-white border-slate-200 hover:border-indigo-400 shadow-xl shadow-slate-200/50`
-                  }`}
-                style={{ perspective: "1500px", transformStyle: "preserve-3d" }}
-              >
-                {/* Background Image Layer - 100% Visibility Professionals */}
-                <div
-                  className="absolute inset-0 transition-opacity duration-700 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url(${item.bgImage})`,
-                    opacity: 1,
-                  }}
-                />
-
-                {/* Bottom Shadow Gradient for Text Legibility */}
-                <div className="absolute inset-x-0 bottom-0 h-[80%] bg-gradient-to-t from-black/95 via-black/40 to-transparent z-[5]" />
-
-                {/* Holographic Border Highlight */}
-                <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity z-10 ${item.color === 'cyan' ? 'from-cyan-500/20' :
-                  item.color === 'indigo' ? 'from-indigo-500/20' :
-                    'from-blue-500/20'
-                  } to-transparent pointer-events-none`} />
-
-                <div className="relative z-20 space-y-10">
-                  <div style={{ transform: "translateZ(50px)" }}>
-                    <span className={`text-[10px] font-black uppercase tracking-[0.4em] block mb-3 drop-shadow-md ${item.color === 'cyan' ? 'text-cyan-400' :
-                      item.color === 'indigo' ? 'text-indigo-300' :
-                        'text-blue-300'
-                      }`}>
-                      {t(item.group as any)}
-                    </span>
-                    <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-[0.85] drop-shadow-[0_4px_20px_rgba(0,0,0,1)]">
-                      {item.team}
-                    </h3>
-                    <div className="mt-2 h-[2px] w-12 bg-white/40 group-hover:w-20 group-hover:bg-cyan-500 transition-all duration-500" />
-                    <p className={`text-[9px] font-mono mt-2 uppercase tracking-widest drop-shadow-md ${item.color === 'cyan' ? 'text-cyan-200' :
-                      item.color === 'indigo' ? 'text-indigo-200' :
-                        'text-blue-200'
-                      }`}>{item.label}</p>
-                  </div>
-
-                  <div className="space-y-6" style={{ transform: "translateZ(30px)" }}>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/90 flex items-center gap-3 drop-shadow-lg">
-                      <span className={`w-8 h-[1px] ${item.color === 'cyan' ? 'bg-cyan-500' :
-                        item.color === 'indigo' ? 'bg-indigo-500' :
-                          'bg-blue-500'
-                        }`} />
-                      {t('members')}
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                      {item.members.map((member, mIdx) => (
-                        <div
-                          key={mIdx}
-                          className={`px-5 py-2.5 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/20 text-[11px] font-black text-white group-hover:bg-opacity-100 transition-all shadow-2xl ${item.color === 'cyan' ? 'group-hover:border-cyan-500' :
-                            item.color === 'indigo' ? 'group-hover:border-indigo-500' :
-                              'group-hover:border-blue-500'
-                            }`}
-                          style={{ transform: "translateZ(40px)" }}
-                        >
-                          {member}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Cyber Data Flow */}
-                  <div className="pt-4" style={{ transform: "translateZ(20px)" }}>
-                    <div className={`h-1 w-full bg-opacity-5 rounded-full overflow-hidden relative ${item.color === 'cyan' ? 'bg-cyan-500' :
-                      item.color === 'indigo' ? 'bg-indigo-500' :
-                        'bg-blue-500'
-                      }`}>
-                      <motion.div
-                        animate={{ x: ["-100%", "200%"] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "linear" as any, delay: idx * 0.7 }}
-                        className={`absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-opacity-40 to-transparent ${item.color === 'cyan' ? 'via-cyan-400' :
-                          item.color === 'indigo' ? 'via-indigo-400' :
-                            'via-blue-400'
-                          }`}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Vertical Cyber Line */}
-                <div className={`absolute left-0 top-0 w-[1px] h-full bg-gradient-to-b from-transparent via-opacity-40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity ${item.color === 'cyan' ? 'via-cyan-500' :
-                  item.color === 'indigo' ? 'via-indigo-500' :
-                    'via-blue-500'
-                  }`} />
-
-                {/* 3D Reflection */}
-                <motion.div
-                  className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                  style={{ transform: "rotateX(90deg) translateZ(-50px)" }}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section >
-
-      {/* Ultra Footer */}
-      < footer className={`pt-32 pb-16 relative z-10 border-t transition-colors duration-700 ${theme === 'dark' ? 'bg-[#020205] border-white/5' : 'bg-white border-slate-100'
-        }`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-20 mb-32">
-            <div className="col-span-1 md:col-span-2 space-y-12">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white text-black rounded-2xl flex items-center justify-center text-2xl font-black shadow-2xl">PH</div>
-                <div className="flex flex-col">
-                  <h5 className={`text-2xl font-black tracking-tighter uppercase italic transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                    Property <span className="text-indigo-600 font-normal">System</span>
-                  </h5>
-                  <p className={`text-[10px] font-black tracking-[0.4em] uppercase mt-1 transition-colors ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
-                    Debremarkos University
-                  </p>
-                </div>
-              </div>
-              <p className={`text-lg font-medium leading-relaxed max-w-sm transition-colors ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                Leading the digital transformation of Burie Campus. A vision of excellence in resource management and institutional integrity.
-              </p>
-              <div className="flex gap-6">
+              <div className="flex gap-3">
                 {[FaFacebook, FaTwitter, FaLinkedin, FaYoutube].map((Icon, idx) => (
-                  <a key={idx} href="#" className="w-14 h-14 rounded-full border border-white/5 flex items-center justify-center text-slate-500 hover:bg-indigo-600 hover:text-white transition-all hover:-translate-y-2 shadow-xl">
-                    <Icon size={22} />
+                  <a key={idx} href="#" className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 text-slate-400 hover:text-white hover:bg-indigo-600 transition-all">
+                    <Icon size={16} />
                   </a>
                 ))}
               </div>
             </div>
-
-            <div className="grid grid-cols-2 col-span-1 md:col-span-2 gap-12">
-              <div className="space-y-8">
-                <h6 className={`text-[11px] font-black tracking-[0.4em] uppercase transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  SYSTEM UNITS
-                </h6>
-                <ul className="space-y-6">
-                  {['Procurement', 'Academic', 'Inventory', 'Executive'].map(item => (
-                    <li key={item}><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-black uppercase tracking-widest">{item}</a></li>
-                  ))}
-                </ul>
-              </div>
-              <div className="space-y-8">
-                <h6 className={`text-[11px] font-black tracking-[0.4em] uppercase transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                  RESOURCES
-                </h6>
-                <ul className="space-y-6">
-                  {['User Guides', 'IT Support', 'Privacy Policy', 'Security'].map(item => (
-                    <li key={item}><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-black uppercase tracking-widest">{item}</a></li>
-                  ))}
-                </ul>
-              </div>
+            <div className="space-y-5">
+              <h6 className="text-xs font-semibold tracking-wider uppercase text-slate-900">System Units</h6>
+              <ul className="space-y-3">
+                {['Procurement', 'Academic', 'Inventory', 'Executive'].map(item => (
+                  <li key={item}><a href="#" className="text-sm text-slate-400 hover:text-indigo-600 transition-colors">{item}</a></li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-5">
+              <h6 className="text-xs font-semibold tracking-wider uppercase text-slate-900">Resources</h6>
+              <ul className="space-y-3">
+                {['User Guides', 'IT Support', 'Privacy Policy', 'Security'].map(item => (
+                  <li key={item}><a href="#" className="text-sm text-slate-400 hover:text-indigo-600 transition-colors">{item}</a></li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          <div className="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8 text-slate-600">
-            <p className="text-[10px] font-black tracking-[0.5em] uppercase text-center md:text-left">
-              &copy; 2025 Debremarkos University Burie Campus. <br className="md:hidden" /> Crafted with Precision by DMU Tech.
-            </p>
-            <div className="flex gap-10 items-center">
-              <span className="flex items-center gap-2 text-[10px] font-black tracking-[0.2em] text-indigo-400">
-                <ShieldCheck size={14} /> SECURITY AUDITED
-              </span>
-              <span className="flex items-center gap-2 text-[10px] font-black tracking-[0.2em] text-blue-400">
-                <Globe2 size={14} /> GLOBAL ACCESSIBLE
-              </span>
+          <div className="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-xs text-slate-400">&copy; 2025 Debremarkos University Burie Campus. Crafted by DMU Tech.</p>
+            <div className="flex gap-6 items-center">
+              <span className="flex items-center gap-1.5 text-xs text-indigo-600/50"><ShieldCheck size={12} /> Security Audited</span>
+              <span className="flex items-center gap-1.5 text-xs text-blue-600/50"><Globe2 size={12} /> Globally Accessible</span>
             </div>
           </div>
         </div>
-      </footer >
+      </footer>
 
-      {/* Mobile Nav Overlay */}
+      {/* ===== MOBILE NAV ===== */}
       <AnimatePresence>
-        {
-          isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-              animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
-              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-              className={`fixed inset-0 z-[150] flex items-center justify-center p-10 transition-colors duration-500 ${theme === 'dark' ? 'bg-black/90' : 'bg-white/95'
-                }`}
-            >
-              <button
-                onClick={() => setIsMenuOpen(false)}
-                className={`absolute top-10 right-10 w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${theme === 'dark' ? 'bg-white/10 text-white border-white/20' : 'bg-slate-100 text-slate-900 border-slate-200'
-                  }`}
-              >
-                <X />
+        {isMenuOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex flex-col bg-white">
+            <div className="flex justify-end p-6">
+              <button onClick={() => setIsMenuOpen(false)} className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-100 text-slate-700">
+                <X size={20} />
               </button>
-              <div className="flex flex-col gap-10 text-center uppercase">
-                {['Home', 'Features', 'Modules', 'About'].map((item, idx) => (
-                  <motion.a
-                    key={item}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * idx }}
-                    href="#"
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`text-4xl font-black italic tracking-tighter hover:text-indigo-500 transition-colors ${theme === 'dark' ? 'text-white' : 'text-slate-900'
-                      }`}
-                  >
-                    {item}
-                  </motion.a>
-                ))}
-
-                {/* Mobile Theme & Language Toggle */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.35 }}
-                    className={`flex items-center justify-center rounded-full p-2 border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
-                      }`}
-                  >
-                    <button
-                      onClick={toggleTheme}
-                      className={`flex items-center gap-3 px-8 py-3 rounded-full font-black text-sm transition-all ${theme === 'dark' ? 'text-yellow-400' : 'text-indigo-600'
-                        }`}
-                    >
-                      {theme === 'dark' ? <Sun size={18} fill="currentColor" /> : <Moon size={18} fill="currentColor" />}
-                      {theme === 'dark' ? 'SUN THEME' : 'DARK THEME'}
-                    </button>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className={`flex items-center justify-center rounded-full p-2 border transition-colors ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-slate-100 border-slate-200'
-                      }`}
-                  >
-                    <button
-                      onClick={() => setLanguage('en')}
-                      className={`px-6 py-2 rounded-full font-black text-sm transition-all ${language === 'en' ? 'bg-white text-black' : 'text-slate-500 hover:text-white'}`}
-                    >
-                      ENGLISH
-                    </button>
-                    <button
-                      onClick={() => setLanguage('am')}
-                      className={`px-6 py-2 rounded-full font-black text-sm transition-all ${language === 'am' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
-                    >
-                      አማርኛ
-                    </button>
-                  </motion.div>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 pb-20">
+              {[
+                { label: 'Home', href: '#' },
+                { label: 'Features', href: '#features' },
+              ].map((item, idx) => (
+                <motion.a key={item.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * idx }}
+                  href={item.href} onClick={() => setIsMenuOpen(false)}
+                  className="text-3xl font-bold tracking-tight text-slate-900 hover:text-indigo-600 transition-colors">
+                  {item.label}
+                </motion.a>
+              ))}
+              <div className="flex items-center gap-3 mt-6">
+                <div className="flex items-center rounded-lg p-0.5 bg-slate-100">
+                  <button onClick={() => setLanguage('en')} className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${language === 'en' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}>EN</button>
+                  <button onClick={() => setLanguage('am')} className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${language === 'am' ? 'bg-indigo-600 text-white' : 'text-slate-400'}`}>አማ</button>
                 </div>
-
-                <Link
-                  href="/login"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="mt-4 px-12 py-6 bg-indigo-600 text-white font-black rounded-[2rem] text-xl shadow-2xl shadow-indigo-600/40"
-                >
-                  SYSTEM LOGIN
-                </Link>
               </div>
-            </motion.div>
-          )
-        }
-      </AnimatePresence >
-
-    </div >
+              <Link href="/login" onClick={() => setIsMenuOpen(false)} className="mt-4 px-10 py-4 bg-indigo-600 text-white font-semibold rounded-xl text-lg shadow-xl shadow-indigo-600/25">
+                {t('login')}
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
