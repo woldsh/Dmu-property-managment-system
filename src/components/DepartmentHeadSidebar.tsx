@@ -91,7 +91,9 @@ export default function DepartmentHeadSidebar() {
                                 </div>
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">{t('dept_head')}</h1>
+                                <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">
+                                    {department ? `${department} ${t('dept_head')}` : t('dept_head')}
+                                </h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="relative">
                                         <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-lg shadow-blue-500/50" />

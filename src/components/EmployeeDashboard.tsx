@@ -128,13 +128,32 @@ export default function EmployeeDashboard({ userName }: { userName: string }) {
             <div className="space-y-4">
                 <h2 className="text-lg font-semibold text-slate-800">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <ActionCard
+                    <Link
                         href="/admin-panel/request-material"
-                        title="New Request"
-                        description="Request new materials or equipment."
-                        icon={FiPlusCircle}
-                        color="text-orange-600"
-                    />
+                        className="col-span-1 md:col-span-2 relative h-48 rounded-2xl overflow-hidden group shadow-md hover:shadow-xl transition-all cursor-pointer"
+                    >
+                        {/* Background Image / Gradient Placeholder */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700" />
+                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586769852044-692d6e3703f0?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-40 group-hover:scale-105 transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+
+                        <div className="absolute bottom-0 left-0 p-6 text-white">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 bg-white/20 backdrop-blur-md rounded-lg">
+                                    <FiBox className="text-xl" />
+                                </div>
+                                <span className="bg-blue-500/80 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">
+                                    Featured Action
+                                </span>
+                            </div>
+                            <h3 className="text-xl font-bold mb-1">Request Materials</h3>
+                            <p className="text-blue-100 text-sm">Submit Form 20 for supplies & equipment.</p>
+                        </div>
+
+                        <div className="absolute top-4 right-4 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <FiPlusCircle className="text-white" />
+                        </div>
+                    </Link>
                     <ActionCard
                         href="/admin-panel/view-requests"
                         title="View History"

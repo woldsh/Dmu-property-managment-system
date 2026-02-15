@@ -34,6 +34,7 @@ import {
     FiActivity
 } from 'react-icons/fi';
 import Image from 'next/image';
+import ReadOnlyPaperForm20 from './ReadOnlyPaperForm20';
 
 interface RequestItem {
     materialId: string;
@@ -45,6 +46,8 @@ interface RequestItem {
     materialType: string;
     image?: string; // Add image field
     AC_decition?: string;
+    model?: string;
+    remarks?: string;
 }
 
 interface RequestHistory {
@@ -67,6 +70,10 @@ interface MaterialRequest {
     createdAt: any;
     history: RequestHistory[];
     headApproverName?: string; // Track who approved as head
+    headSignature?: string; // Department Head signature
+    formType?: string; // 'paper_form_20' or undefined
+    receiptNo?: string;
+    signature?: string;
 }
 
 interface MaterialRequestViewProps {
@@ -86,6 +93,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     const [userData, setUserData] = useState<any>(null);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<{ text: string, type: 'coordinator' | 'chief' | 'md' | 'general' } | null>(null);
+    const [selectedRequest, setSelectedRequest] = useState<MaterialRequest | null>(null);
     const pathname = usePathname();
 
     const effectiveRole = roleOverride || (
@@ -279,7 +287,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         return () => unsubscribe();
     }, [userData, effectiveRole]);
 
-    const handleApprove = async (request: MaterialRequest) => {
+    const handleApprove = async (request: MaterialRequest, signature?: string) => {
         if (!user || !userData || !db) return;
         setProcessingId(request.id);
 
@@ -347,7 +355,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                 const nextApproverId = acSnapshot.empty ? 'PENDING_AC_ASSIGNMENT' : acSnapshot.docs[0].id;
                 const nextApproverName = acSnapshot.empty ? 'Academic Coordinator' : acSnapshot.docs[0].data().displayName;
 
-                await updateDoc(requestRef, {
+                const updateData: any = {
                     status: 'approved_by_head',
                     currentApproverId: nextApproverId,
                     currentApproverName: nextApproverName,
@@ -362,7 +370,13 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             note: 'Request approved by Department Head and forwarded to Academic Coordinator'
                         }
                     ]
-                });
+                };
+
+                if (signature) {
+                    updateData.headSignature = signature;
+                }
+
+                await updateDoc(requestRef, updateData);
                 setSuccessMessage({
                     text: "Successfully sent message",
                     type: 'general'
@@ -751,6 +765,22 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
 
     return (
         <div className="max-w-[1600px] mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
+            {selectedRequest && (
+                <ReadOnlyPaperForm20
+                    request={selectedRequest}
+                    onClose={() => setSelectedRequest(null)}
+                    onApprove={(signature) => {
+                        handleApprove(selectedRequest, signature);
+                        setSelectedRequest(null);
+                    }}
+                    onReject={() => {
+                        handleReject(selectedRequest);
+                        setSelectedRequest(null);
+                    }}
+                    isProcessing={processingId === selectedRequest.id}
+                    isDepartmentHead={effectiveRole === 'department_head'}
+                />
+            )}
             {/* Notification Bar */}
             {successMessage && (
                 <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-[9999] animate-in slide-in-from-top-8 duration-500`}>
@@ -844,9 +874,11 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                                             <span className={`px-2 py-0.5 rounded-md bg-slate-200 text-slate-600 text-[9px] font-black uppercase tracking-widest`}>
                                                 {request.department?.replace('_', ' ')}
                                             </span>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic opacity-60">
-                                                Requester
-                                            </span>
+                                            {request.formType === 'paper_form_20' && (
+                                                <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[9px] font-black uppercase tracking-widest">
+                                                    Paper Form 20
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -863,139 +895,156 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                                 </div>
                             </div>
 
-                            {/* Items List */}
-                            <div className="p-8 flex-1 space-y-6 relative z-10">
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                                        <FiBox className={`text-blue-500`} /> Material Payload ({request.items.length})
-                                    </p>
-                                    <div className="space-y-3">
-                                        {request.items.map((item, idx) => (
-                                            <div key={idx} className={`group/item flex items-center justify-between p-4 bg-white rounded-3xl border-2 border-slate-100/50 hover:border-blue-200 transition-all`}>
-                                                <div className="flex items-center gap-5">
-                                                    <div className="w-16 h-16 rounded-[1.25rem] bg-white border-2 border-slate-100 flex items-center justify-center relative overflow-hidden flex-shrink-0 transition-colors">
-                                                        {(item.image || materialImages[item.materialId]) ? (
-                                                            <Image
-                                                                src={item.image || materialImages[item.materialId]}
-                                                                alt={item.materialName}
-                                                                fill
-                                                                className="object-cover transition-transform duration-700 group-hover/item:scale-110"
-                                                            />
-                                                        ) : (
-                                                            <FiBox className="text-slate-200 h-full w-full p-4" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-black text-slate-800 group-hover/item:text-black transition-colors">{item.materialName}</p>
-                                                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                                                            {(effectiveRole === 'stock_clerk' || effectiveRole === 'team_leader') && (
-                                                                <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg font-mono">{item.materialCode}</span>
-                                                            )}
-                                                            <span className={`text-[10px] font-black bg-blue-600/10 text-blue-700 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-blue-200/50`}>{item.materialType?.replace('_', ' ')}</span>
-                                                            {item.AC_decition === 'need AC decision' && (
-                                                                <span className="text-[10px] font-black bg-red-500 text-white px-2.5 py-1 rounded-lg uppercase flex items-center gap-1.5">
-                                                                    <FiAlertCircle /> Commission Review
-                                                                </span>
-                                                            )}
+                            {request.formType === 'paper_form_20' ? (
+                                <div className="p-8 flex flex-col items-center justify-center relative z-10 bg-slate-50/50">
+                                    <button
+                                        onClick={() => setSelectedRequest(request)}
+                                        className="w-full max-w-sm group/btn relative px-8 py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:shadow-blue-600/40 hover:scale-[1.02] active:scale-95 transition-all overflow-hidden"
+                                    >
+                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                                        <span className="relative z-10 flex items-center justify-center gap-3">
+                                            View Request
+                                            <FiArrowRight className="text-lg group-hover/btn:translate-x-1 transition-transform" />
+                                        </span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Items List */}
+                                    <div className="p-8 flex-1 space-y-6 relative z-10">
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
+                                                <FiBox className={`text-blue-500`} /> Material Payload ({request.items.length})
+                                            </p>
+                                            <div className="space-y-3">
+                                                {request.items.map((item, idx) => (
+                                                    <div key={idx} className={`group/item flex items-center justify-between p-4 bg-white rounded-3xl border-2 border-slate-100/50 hover:border-blue-200 transition-all`}>
+                                                        <div className="flex items-center gap-5">
+                                                            <div className="w-16 h-16 rounded-[1.25rem] bg-white border-2 border-slate-100 flex items-center justify-center relative overflow-hidden flex-shrink-0 transition-colors">
+                                                                {(item.image || materialImages[item.materialId]) ? (
+                                                                    <Image
+                                                                        src={item.image || materialImages[item.materialId]}
+                                                                        alt={item.materialName}
+                                                                        fill
+                                                                        className="object-cover transition-transform duration-700 group-hover/item:scale-110"
+                                                                    />
+                                                                ) : (
+                                                                    <FiBox className="text-slate-200 h-full w-full p-4" />
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-slate-800 group-hover/item:text-black transition-colors">{item.materialName}</p>
+                                                                <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                                                    {(effectiveRole === 'stock_clerk' || effectiveRole === 'team_leader') && (
+                                                                        <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-lg font-mono">{item.materialCode}</span>
+                                                                    )}
+                                                                    <span className={`text-[10px] font-black bg-blue-600/10 text-blue-700 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-blue-200/50`}>{item.materialType?.replace('_', ' ')}</span>
+                                                                    {item.AC_decition === 'need AC decision' && (
+                                                                        <span className="text-[10px] font-black bg-red-500 text-white px-2.5 py-1 rounded-lg uppercase flex items-center gap-1.5">
+                                                                            <FiAlertCircle /> Commission Review
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="text-lg font-black text-slate-800">{item.quantity}</span>
+                                                                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{item.unit}</span>
+                                                            </div>
+                                                            <div className={`mt-2 px-2 py-0.5 rounded-lg inline-block text-[9px] font-black uppercase tracking-tighter border ${item.condition === 'New' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                                }`}>
+                                                                {item.condition}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-lg font-black text-slate-800">{item.quantity}</span>
-                                                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{item.unit}</span>
-                                                    </div>
-                                                    <div className={`mt-2 px-2 py-0.5 rounded-lg inline-block text-[9px] font-black uppercase tracking-tighter border ${item.condition === 'New' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-amber-50 text-amber-600 border-amber-100'
-                                                        }`}>
-                                                        {item.condition}
-                                                    </div>
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* Actions */}
-                            <div className="p-8 bg-white border-t border-slate-100 flex items-center gap-4 relative z-10">
-                                {effectiveRole.includes('stock_clerk') || effectiveRole.includes('store_keeper') ? (
-                                    <>
-                                        <button
-                                            onClick={() => handleApprove(request)}
-                                            className={`flex-1 py-5 bg-${themeColor}-600 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] hover:bg-${themeColor}-500 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0)] hover:shadow-[0_20px_40px_-5px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 group/btn active:scale-95`}
-                                        >
-                                            {processingId === request.id ? (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                    <span>Processing...</span>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    {effectiveRole.includes('store_keeper') ? 'Finalize & Complete' : 'Validate & Forward'}
-                                                    <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
-                                                </>
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleReject(request)}
-                                            className="px-8 py-5 bg-white border-2 border-slate-100 text-slate-400 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3 group/reject"
-                                        >
-                                            <FiXCircle className="text-2xl group-hover/reject:rotate-90 transition-transform duration-500" />
-                                        </button>
-                                    </>
-                                ) : effectiveRole === 'general_service' ? (
-                                    <button
-                                        onClick={() => handleApprove(request)}
-                                        className={`flex-1 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden shadow-xl bg-violet-600 hover:bg-violet-500 text-white shadow-violet-600/20`}
-                                    >
-                                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                                        {processingId === request.id ? (
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                <span>Processing...</span>
-                                            </div>
+                                    {/* Actions */}
+                                    <div className="p-8 bg-white border-t border-slate-100 flex items-center gap-4 relative z-10">
+                                        {effectiveRole.includes('stock_clerk') || effectiveRole.includes('store_keeper') ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleApprove(request)}
+                                                    className={`flex-1 py-5 bg-${themeColor}-600 text-white rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] hover:bg-${themeColor}-500 transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0)] hover:shadow-[0_20px_40px_-5px_rgba(6,182,212,0.3)] flex items-center justify-center gap-3 group/btn active:scale-95`}
+                                                >
+                                                    {processingId === request.id ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                            <span>Processing...</span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {effectiveRole.includes('store_keeper') ? 'Finalize & Complete' : 'Validate & Forward'}
+                                                            <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
+                                                        </>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(request)}
+                                                    className="px-8 py-5 bg-white border-2 border-slate-100 text-slate-400 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3 group/reject"
+                                                >
+                                                    <FiXCircle className="text-2xl group-hover/reject:rotate-90 transition-transform duration-500" />
+                                                </button>
+                                            </>
+                                        ) : effectiveRole === 'general_service' ? (
+                                            <button
+                                                onClick={() => handleApprove(request)}
+                                                className={`flex-1 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden shadow-xl bg-violet-600 hover:bg-violet-500 text-white shadow-violet-600/20`}
+                                            >
+                                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                                {processingId === request.id ? (
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                        <span>Processing...</span>
+                                                    </div>
+                                                ) : (
+                                                    <span className="relative z-10 flex items-center gap-2">
+                                                        Acknowledge & Process
+                                                        <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
+                                                    </span>
+                                                )}
+                                            </button>
                                         ) : (
-                                            <span className="relative z-10 flex items-center gap-2">
-                                                Acknowledge & Process
-                                                <FiArrowRight className="group-hover/btn:translate-x-2 transition-transform text-lg" />
-                                            </span>
+                                            <>
+                                                <button
+                                                    onClick={() => handleApprove(request)}
+                                                    className={`flex-1 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden shadow-xl ${effectiveRole === 'academic_coordinator' ? 'bg-lime-600 hover:bg-lime-500 text-white shadow-lime-600/20' :
+                                                        effectiveRole === 'managing_director' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20' :
+                                                            effectiveRole === 'team_leader' ? 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-600/20' :
+                                                                'bg-orange-600 hover:bg-orange-500 text-white shadow-orange-600/20'
+                                                        }`}
+                                                >
+                                                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                                    {processingId === request.id ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                            <span>Processing...</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="relative z-10 flex items-center gap-2">
+                                                            {effectiveRole === 'academic_coordinator' ? 'Authorize Requisition' :
+                                                                effectiveRole === 'managing_director' ? 'Execute Final Approval' :
+                                                                    effectiveRole === 'team_leader' ? 'Approved & Forwarded to Clerk' :
+                                                                        'Validated & Forwarded'}
+                                                            <FiCheckCircle className="text-lg group-hover/btn:scale-110 transition-transform" />
+                                                        </span>
+                                                    )}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(request)}
+                                                    className="px-8 py-5 bg-white border-2 border-slate-100 text-slate-400 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3 group/reject"
+                                                >
+                                                    <FiXCircle className="text-2xl group-hover/reject:rotate-90 transition-transform duration-500" />
+                                                </button>
+                                            </>
                                         )}
-                                    </button>
-                                ) : (
-                                    <>
-                                        <button
-                                            onClick={() => handleApprove(request)}
-                                            className={`flex-1 py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 group/btn relative overflow-hidden shadow-xl ${effectiveRole === 'academic_coordinator' ? 'bg-lime-600 hover:bg-lime-500 text-white shadow-lime-600/20' :
-                                                effectiveRole === 'managing_director' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20' :
-                                                    effectiveRole === 'team_leader' ? 'bg-teal-600 hover:bg-teal-500 text-white shadow-teal-600/20' :
-                                                        'bg-orange-600 hover:bg-orange-500 text-white shadow-orange-600/20'
-                                                }`}
-                                        >
-                                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                                            {processingId === request.id ? (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                    <span>Processing...</span>
-                                                </div>
-                                            ) : (
-                                                <span className="relative z-10 flex items-center gap-2">
-                                                    {effectiveRole === 'academic_coordinator' ? 'Authorize Requisition' :
-                                                        effectiveRole === 'managing_director' ? 'Execute Final Approval' :
-                                                            effectiveRole === 'team_leader' ? 'Approved & Forwarded to Clerk' :
-                                                                'Validated & Forwarded'}
-                                                    <FiCheckCircle className="text-lg group-hover/btn:scale-110 transition-transform" />
-                                                </span>
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleReject(request)}
-                                            className="px-8 py-5 bg-white border-2 border-slate-100 text-slate-400 rounded-[1.5rem] font-black uppercase text-xs tracking-widest hover:border-red-500 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-3 group/reject"
-                                        >
-                                            <FiXCircle className="text-2xl group-hover/reject:rotate-90 transition-transform duration-500" />
-                                        </button>
-                                    </>
-                                )}
-                            </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     ))}
                 </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../contexts/SidebarContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import SidebarResizeHandle from './SidebarResizeHandle';
@@ -24,6 +25,7 @@ export default function TeacherSidebar() {
     const basePath = '/dashboard';
     const { isOpen, closeSidebar, sidebarWidth } = useSidebar();
     const { t } = useLanguage();
+    const { department } = useAuth();
 
     const handleLinkClick = () => {
         if (window.innerWidth < 768) {
@@ -112,7 +114,7 @@ export default function TeacherSidebar() {
 
                             <div className="flex flex-col relative">
                                 <h1 className="text-xl font-black text-slate-800 tracking-tighter uppercase italic leading-none mb-1.5">
-                                    {t('teacher')}
+                                    {department ? `${department} ${t('teacher')}` : t('teacher')}
                                 </h1>
                                 <div className="flex items-center gap-2">
                                     <div className="relative">

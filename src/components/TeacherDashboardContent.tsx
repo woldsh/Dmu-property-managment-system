@@ -10,6 +10,7 @@ import {
     FiCheckCircle,
     FiXCircle,
     FiActivity,
+    FiBox,
 } from 'react-icons/fi';
 
 export default function TeacherDashboardContent({ userName }: { userName: string }) {
@@ -121,7 +122,48 @@ export default function TeacherDashboardContent({ userName }: { userName: string
                 />
             </div>
 
+            {/* Quick Actions - Visual Banner */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Link
+                    href="/dashboard/request-material"
+                    className="relative h-40 rounded-2xl overflow-hidden group shadow-sm hover:shadow-lg transition-all cursor-pointer border border-slate-100"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600" />
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586769852044-692d6e3703f0?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-30 group-hover:opacity-40 group-hover:scale-105 transition-all duration-700" />
 
+                    <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                        <div className="flex items-center gap-3 text-white">
+                            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                <FiBox className="text-xl text-white" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg leading-tight">Request Material</h3>
+                                <p className="text-blue-100 text-xs font-medium">Form 20 Requisition</p>
+                            </div>
+                        </div>
+                    </div>
+                </Link>
+
+                <Link
+                    href="/dashboard/ac-decision"
+                    className="relative h-40 rounded-2xl overflow-hidden group shadow-sm hover:shadow-lg transition-all cursor-pointer border border-slate-100"
+                >
+                    <div className="absolute inset-0 bg-white" />
+                    <div className="absolute inset-0 bg-slate-50 opacity-50" />
+
+                    <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                        <div className="flex items-center gap-3 text-slate-800">
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                                <FiClock className="text-xl text-amber-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg leading-tight">Waiting Decisions</h3>
+                                <p className="text-slate-500 text-xs font-medium">Check AC status</p>
+                            </div>
+                        </div>
+                    </div>
+                </Link>
+            </div>
 
             {/* Recent Activity */}
             <div className="space-y-4">
