@@ -17,9 +17,11 @@ export default function RequestMaterialPage() {
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
                     <Header title="Material Requisition" subtitle="Teacher Portal" />
 
-                    <InventoryProvider>
-                        <MaterialRequestForm />
-                    </InventoryProvider>
+                    <main className="flex-1 overflow-y-auto custom-scrollbar">
+                        <InventoryProvider>
+                            <MaterialRequestForm />
+                        </InventoryProvider>
+                    </main>
                 </div>
             </div>
 
