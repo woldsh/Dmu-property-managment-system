@@ -3,6 +3,7 @@
 import Header from '@/components/Header';
 import TeacherSidebar from '@/components/TeacherSidebar';
 import { SidebarProvider } from '@/contexts/SidebarContext';
+import { InventoryProvider } from '@/contexts/InventoryContext';
 import MaterialRequestForm from '@/components/MaterialRequestForm';
 
 export default function RequestMaterialPage() {
@@ -16,9 +17,9 @@ export default function RequestMaterialPage() {
                 <div className="flex-1 flex flex-col h-screen overflow-hidden">
                     <Header title="Material Requisition" subtitle="Teacher Portal" />
 
-                    <main className="flex-1 overflow-y-auto custom-scrollbar">
+                    <InventoryProvider>
                         <MaterialRequestForm />
-                    </main>
+                    </InventoryProvider>
                 </div>
             </div>
 
