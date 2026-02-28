@@ -95,6 +95,20 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
     const [successMessage, setSuccessMessage] = useState<{ text: string, type: 'coordinator' | 'chief' | 'md' | 'general' } | null>(null);
     const [selectedRequest, setSelectedRequest] = useState<MaterialRequest | null>(null);
     const pathname = usePathname();
+    const [selectedRequests, setSelectedRequests] = useState<string[]>([]);
+    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+    const filteredRequests = requests.filter(r => {
+        // Search term filter
+        const matchesSearch = r.requesterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.items.some(item => item.materialName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        // Material type filter (only show requests where ALL items match the filter type)
+        const matchesMaterialType = !materialTypeFilter ||
+            r.items.every(item => (item.materialType?.toLowerCase() || '') === materialTypeFilter.toLowerCase());
+
+        return matchesSearch && matchesMaterialType;
+    });
 
     const effectiveRole = roleOverride || (
         pathname?.includes('/portal') ? 'managing_director' :
@@ -295,7 +309,6 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             const requestRef = doc(db!, 'Request_materials', request.id);
 
             if (effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader' || effectiveRole === 'hrm_leader' || effectiveRole === 'finance_leader' || effectiveRole === 'dynamic_leader') {
-                // If it's a student service leader, forward to SSL. If it's HRM or Finance leader, forward to MD.
                 const isStudentServiceSubLeader = effectiveRole === 'dormitory_leader' || effectiveRole === 'cafeteria_leader' || effectiveRole === 'sports_leader';
 
                 const nextRole = isStudentServiceSubLeader ? 'student_service_leader' : 'managing_director';
@@ -382,27 +395,27 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                     type: 'general'
                 });
             } else if (effectiveRole === 'managing_director') {
-                const gsQuery = query(collection(db!, 'users'), where('userRole', '==', 'general_service_leader'));
-                const gsSnapshot = await getDocs(gsQuery);
-                const nextApproverId = gsSnapshot.empty ? 'PENDING_GS_ASSIGNMENT' : gsSnapshot.docs[0].id;
-                const nextApproverName = gsSnapshot.empty ? 'General Service' : gsSnapshot.docs[0].data().displayName;
+                const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
+                const ptlSnapshot = await getDocs(ptlQuery);
+                const nextApproverId = ptlSnapshot.empty ? 'PENDING_PTL_ASSIGNMENT' : ptlSnapshot.docs[0].id;
+                const nextApproverName = ptlSnapshot.empty ? 'Procurement Team Leader' : ptlSnapshot.docs[0].data().displayName;
 
                 await updateDoc(requestRef, {
-                    status: 'pending_general_service',
+                    status: 'pending_procurement',
                     currentApproverId: nextApproverId,
                     currentApproverName: nextApproverName,
-                    currentApproverRole: 'general_service_leader',
+                    currentApproverRole: 'procurement_team_leader',
                     history: [
                         ...request.history,
                         {
-                            status: 'pending_general_service',
+                            status: 'pending_procurement',
                             user: user.uid,
                             timestamp: new Date().toISOString(),
-                            note: 'Approved by Managing Director. Forwarded to General Service.'
+                            note: 'Approved by Managing Director. Forwarded to Procurement Team Leader.'
                         }
                     ]
                 });
-                setSuccessMessage({ text: "Request approved and forwarded to General Service", type: 'md' });
+                setSuccessMessage({ text: "Request approved and forwarded to Procurement Team Leader", type: 'md' });
             } else if (effectiveRole === 'general_service') {
                 const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
                 const ptlSnapshot = await getDocs(ptlQuery);
@@ -582,16 +595,23 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                         type: 'chief'
                     });
                 } else {
+                    const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
+                    const ptlSnapshot = await getDocs(ptlQuery);
+                    const nextApproverId = ptlSnapshot.empty ? 'PENDING_PTL_ASSIGNMENT' : ptlSnapshot.docs[0].id;
+                    const nextApproverName = ptlSnapshot.empty ? 'Procurement Team Leader' : ptlSnapshot.docs[0].data().displayName;
+
                     await updateDoc(requestRef, {
-                        status: 'approved_by_coordinator',
-                        currentApproverRole: 'procurement_md',
+                        status: 'pending_procurement',
+                        currentApproverId: nextApproverId,
+                        currentApproverName: nextApproverName,
+                        currentApproverRole: 'procurement_team_leader',
                         history: [
                             ...request.history,
                             {
-                                status: 'approved_by_coordinator',
+                                status: 'pending_procurement',
                                 user: user.uid,
                                 timestamp: new Date().toISOString(),
-                                note: 'Request approved by Academic Coordinator.'
+                                note: 'Request approved by Academic Coordinator. Forwarded to Procurement Team Leader.'
                             }
                         ]
                     });
@@ -609,6 +629,169 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
             alert("Failed to approve request.");
         } finally {
             setProcessingId(null);
+        }
+    };
+
+    const handleBulkApprove = async () => {
+        if (!user || !userData || !db || selectedRequests.length === 0) return;
+        setIsBulkProcessing(true);
+
+        try {
+            const batch = writeBatch(db!);
+
+            // 1. Fetch all necessary approver IDs concurrently to minimize waits
+            const [acSnap, mdSnap, chiefSnap, ptlSnap] = await Promise.all([
+                getDocs(query(collection(db!, 'users'), where('userRole', '==', 'academic_coordinator'))),
+                getDocs(query(collection(db!, 'users'), where('userRole', '==', 'managing_director'))),
+                getDocs(query(collection(db!, 'users'), where('userRole', '==', 'chief_executive'))), // Assuming chief executive role name
+                getDocs(query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader')))
+            ]);
+
+            // Helper to get approver details
+            const getApprover = (snap: any, defaultId: string, defaultName: string) => ({
+                id: snap.empty ? defaultId : snap.docs[0].id,
+                name: snap.empty ? defaultName : snap.docs[0].data().displayName
+            });
+
+            const ac = getApprover(acSnap, 'PENDING_AC_ASSIGNMENT', 'Academic Coordinator');
+            const md = getApprover(mdSnap, 'PENDING_MD_ASSIGNMENT', 'Managing Director');
+            const ptl = getApprover(ptlSnap, 'PENDING_PTL_ASSIGNMENT', 'Procurement Team Leader');
+            // Chief logic might be different if it goes to a different collection, but keeping consistent for now
+
+            let approvedCount = 0;
+
+            for (const reqId of selectedRequests) {
+                const req = requests.find(r => r.id === reqId);
+                if (!req) continue;
+                const ref = doc(db!, 'Request_materials', reqId);
+
+                if (effectiveRole === 'department_head') {
+                    // Dept Head -> Academic Coordinator
+                    batch.update(ref, {
+                        status: 'approved_by_head',
+                        currentApproverId: ac.id,
+                        currentApproverName: ac.name,
+                        currentApproverRole: 'academic_coordinator',
+                        headApproverName: userData.displayName || 'Department Head',
+                        history: [
+                            ...req.history,
+                            {
+                                status: 'approved_by_head',
+                                user: user.uid,
+                                timestamp: new Date().toISOString(),
+                                note: 'Bulk approved by Department Head'
+                            }
+                        ]
+                    });
+                    approvedCount++;
+
+                } else if (effectiveRole === 'academic_coordinator') {
+                    // AC -> Managing Director OR Chief Executive
+                    const itemsWithACRule = req.items.filter(item => item.AC_decition === 'need AC decision');
+
+                    if (itemsWithACRule.length > 0) {
+                        // Forward to Chief Executive / Special Collection
+                        // Note: Original logic created a new doc in 'Need_AC_decition' and updated the request
+                        // For bulk, we can allow this but we must be careful with async inside loop if not careful. 
+                        // writeBatch doesn't support 'addDoc' cleanly returned ref for further use easily in mixed ops without ref generation.
+                        // However, we can generate a ref ID client side.
+
+                        // BUT, for simplicity in bulk, we will focus on the main status update.
+                        // If we strictly need to create the 'Need_AC_decition' doc, we should do it.
+
+                        const specialDocRef = doc(collection(db!, 'Need_AC_decition'));
+                        batch.set(specialDocRef, {
+                            ...req,
+                            originalRequestId: req.id,
+                            coordinatorId: user.uid,
+                            coordinatorName: userData.displayName || 'Academic Coordinator',
+                            approvedAt: serverTimestamp(),
+                            status: 'pending_chief_decision'
+                        });
+
+                        batch.update(ref, {
+                            status: 'forwarded_to_chief',
+                            currentApproverRole: 'chief_executive',
+                            history: [
+                                ...req.history,
+                                {
+                                    status: 'forwarded_to_chief',
+                                    user: user.uid,
+                                    timestamp: new Date().toISOString(),
+                                    note: 'Fixed assets requiring Chief decision forwarded to executive collection (Bulk).'
+                                }
+                            ]
+                        });
+
+                    } else {
+                        // Standard -> PTL
+                        batch.update(ref, {
+                            status: 'pending_procurement',
+                            currentApproverId: ptl.id,
+                            currentApproverName: ptl.name,
+                            currentApproverRole: 'procurement_team_leader',
+                            history: [
+                                ...req.history,
+                                {
+                                    status: 'pending_procurement',
+                                    user: user.uid,
+                                    timestamp: new Date().toISOString(),
+                                    note: 'Request approved by Academic Coordinator (Bulk). Forwarded to Procurement Team Leader.'
+                                }
+                            ]
+                        });
+                    }
+                    approvedCount++;
+
+                } else if (effectiveRole === 'managing_director') {
+                    // MD -> Procurement Team Leader
+                    batch.update(ref, {
+                        status: 'pending_procurement',
+                        currentApproverId: ptl.id,
+                        currentApproverName: ptl.name,
+                        currentApproverRole: 'procurement_team_leader',
+                        history: [
+                            ...req.history,
+                            {
+                                status: 'pending_procurement',
+                                user: user.uid,
+                                timestamp: new Date().toISOString(),
+                                note: 'Approved by Managing Director. Forwarded to Procurement Team Leader (Bulk).'
+                            }
+                        ]
+                    });
+                    approvedCount++;
+                }
+            }
+
+            if (approvedCount > 0) {
+                await batch.commit();
+                setSuccessMessage({ text: `Successfully processed ${approvedCount} requests`, type: 'general' });
+                setSelectedRequests([]);
+            } else {
+                setSuccessMessage({ text: `No eligible requests were processed`, type: 'general' });
+            }
+
+        } catch (error) {
+            console.error("Bulk approve error:", error);
+            alert("Failed to bulk approve.");
+        } finally {
+            setIsBulkProcessing(false);
+            setTimeout(() => setSuccessMessage(null), 5000);
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedRequests(prev =>
+            prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedRequests.length === filteredRequests.length) {
+            setSelectedRequests([]);
+        } else {
+            setSelectedRequests(filteredRequests.map(r => r.id));
         }
     };
 
@@ -730,17 +913,7 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
         }
     };
 
-    const filteredRequests = requests.filter(r => {
-        // Search term filter
-        const matchesSearch = r.requesterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.items.some(item => item.materialName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        // Material type filter (only show requests where ALL items match the filter type)
-        const matchesMaterialType = !materialTypeFilter ||
-            r.items.every(item => (item.materialType?.toLowerCase() || '') === materialTypeFilter.toLowerCase());
-
-        return matchesSearch && matchesMaterialType;
-    });
 
     if (loading) {
         return (
@@ -836,7 +1009,50 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                         className={`w-full pl-14 pr-6 py-5 bg-white border-2 border-slate-100 rounded-3xl focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300`}
                     />
                 </div>
+                {(effectiveRole === 'department_head' || effectiveRole === 'academic_coordinator' || effectiveRole === 'managing_director') && (
+                    <button
+                        onClick={toggleSelectAll}
+                        className="px-6 py-5 bg-white border-2 border-slate-100 text-blue-600 rounded-[2rem] font-black uppercase text-xs tracking-widest hover:bg-blue-50 transition-all flex items-center gap-2"
+                    >
+                        {selectedRequests.length === filteredRequests.length && filteredRequests.length > 0 ? (
+                            <>
+                                <FiCheckCircle className="text-xl" /> Deselect All
+                            </>
+                        ) : (
+                            <>
+                                <div className="w-5 h-5 rounded-md border-2 border-current"></div> Select All
+                            </>
+                        )}
+                    </button>
+                )}
             </div>
+
+            {/* Bulk Action Bar */}
+            {selectedRequests.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+                    <div className="bg-slate-900 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-8 border border-slate-700">
+                        <div className="flex items-center gap-3">
+                            <span className="bg-blue-600 text-white text-xs font-black px-2 py-1 rounded-md">{selectedRequests.length}</span>
+                            <span className="text-sm font-bold tracking-wide">Selected</span>
+                        </div>
+                        <div className="h-8 w-px bg-slate-700"></div>
+                        <button
+                            onClick={handleBulkApprove}
+                            disabled={isBulkProcessing}
+                            className="text-sm font-black uppercase tracking-widest hover:text-blue-400 transition-colors flex items-center gap-2"
+                        >
+                            {isBulkProcessing ? 'Processing...' : 'Approve All'}
+                            {!isBulkProcessing && <FiCheckCircle className="text-lg" />}
+                        </button>
+                        <button
+                            onClick={() => setSelectedRequests([])}
+                            className="text-slate-500 hover:text-white transition-colors"
+                        >
+                            <FiXCircle className="text-xl" />
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {filteredRequests.length === 0 ? (
                 <div className="bg-white border-2 border-dashed border-slate-200 rounded-[3rem] p-32 text-center space-y-6">
@@ -865,6 +1081,16 @@ export default function MaterialRequestView({ roleOverride, materialTypeFilter }
                             {/* Request Card Top Bar */}
                             <div className="px-8 py-6 bg-white border-b border-slate-100 flex items-center justify-between relative z-10">
                                 <div className="flex items-center gap-4">
+                                    {(effectiveRole === 'department_head' || effectiveRole === 'academic_coordinator' || effectiveRole === 'managing_director') && (
+                                        <div className="mr-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRequests.includes(request.id)}
+                                                onChange={() => toggleSelect(request.id)}
+                                                className="w-5 h-5 rounded-md border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            />
+                                        </div>
+                                    )}
                                     <div className={`w-14 h-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center transition-colors`}>
                                         <FiUser className={`text-2xl text-blue-600`} />
                                     </div>

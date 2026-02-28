@@ -5,82 +5,76 @@ import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import Link from 'next/link';
 import {
-    FiPackage, FiTruck, FiCheckCircle, FiClock, FiTrendingUp,
-    FiActivity, FiArrowRight, FiCalendar, FiBox,
-    FiDatabase, FiLayers, FiZap, FiTarget, FiRefreshCw,
-    FiClipboard, FiSearch, FiPlusCircle
+    FiClipboard, FiCheckCircle, FiClock, FiArrowRight,
+    FiCalendar, FiBox, FiDatabase, FiSearch,
+    FiPlusCircle, FiLayers, FiAlertCircle, FiBarChart2,
+    FiPackage, FiTruck
 } from 'react-icons/fi';
-import { Loader2 } from 'lucide-react';
 
 export default function WorkspacePage() {
     const { user } = useAuth();
+    const [userName, setUserName] = useState('');
     const [userRole, setUserRole] = useState<string | null>(null);
-    const [userName, setUserName] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         pendingRequests: 0,
+        totalInventory: 0,
+        lowStock: 0,
         processedToday: 0,
-        totalInventory: 256,
-        pendingReturns: 12
     });
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        const timer = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(timer);
     }, []);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) {
-                setLoading(false);
-                return;
-            }
+            if (!user || !db) { setLoading(false); return; }
 
             try {
-                if (!db) return;
-                const userDocRef = doc(db!, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-
+                const userDoc = await getDoc(doc(db!, 'users', user.uid));
                 if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setUserRole(userData.userRole);
-                    setUserName(userData.displayName || 'User');
+                    const d = userDoc.data();
+                    setUserRole(d.userRole);
+                    setUserName(d.displayName || 'User');
                 }
 
-                // Fetch statistics based on role
+                // Pending requests
                 const requestsRef = collection(db!, 'Request_materials');
-                const pendingQuery = query(requestsRef, where('status', 'in', ['forwarded_to_team_leader', 'approved_by_procurement_team_leader', 'approved_by_clerk']));
-                const pendingSnap = await getDocs(pendingQuery);
+                const pendingSnap = await getDocs(
+                    query(requestsRef, where('status', 'in', [
+                        'forwarded_to_team_leader',
+                        'approved_by_procurement_team_leader',
+                        'approved_by_clerk'
+                    ]))
+                );
 
-                setStats(prev => ({
-                    ...prev,
-                    pendingRequests: pendingSnap.size
-                }));
+                // Inventory stats
+                const materialsSnap = await getDocs(collection(db!, 'materials'));
+                let lowCount = 0;
+                materialsSnap.docs.forEach(doc => {
+                    const qty = Number(doc.data().quantity) || 0;
+                    if (qty <= 10) lowCount++;
+                });
 
+                setStats({
+                    pendingRequests: pendingSnap.size,
+                    totalInventory: materialsSnap.size,
+                    lowStock: lowCount,
+                    processedToday: 0,
+                });
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [user]);
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center p-12 min-h-[60vh]">
-                <div className="text-center space-y-4">
-                    <Loader2 className="w-12 h-12 text-teal-500 animate-spin mx-auto" />
-                    <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
-                        Loading Workspace...
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     const getRoleTitle = () => {
         if (!userRole) return 'Procurement';
@@ -90,243 +84,103 @@ export default function WorkspacePage() {
         return 'Procurement';
     };
 
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-400"></div>
+            </div>
+        );
+    }
+
+    const quickActions = [
+        { label: 'View Requests', desc: 'Process material requests', href: '/workspace/view-requests', icon: FiClipboard, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Full Inventory', desc: 'Browse all items', href: '/workspace/full-inventory', icon: FiLayers, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Low Stock', desc: 'Items needing restock', href: '/workspace/low-stock', icon: FiAlertCircle, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { label: 'Analytics', desc: 'Charts & reports', href: '/workspace/analytics', icon: FiBarChart2, color: 'text-sky-600', bg: 'bg-sky-50' },
+        { label: 'Search Material', desc: 'Find specific items', href: '/workspace/search-material', icon: FiSearch, color: 'text-violet-600', bg: 'bg-violet-50' },
+        { label: 'Receive Goods', desc: 'Log incoming shipments', href: '/workspace/receive-goods', icon: FiTruck, color: 'text-blue-500', bg: 'bg-blue-50' },
+    ];
+
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-slate-50">
-                <div className="relative z-10">
-                    {/* Hero Section */}
-                    <div className="px-8 py-10">
-                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 bg-teal-500 rounded-full" />
-                                    <span className="text-xs font-black text-teal-600 uppercase tracking-[0.3em]">
-                                        {getRoleTitle()} Control Center
-                                    </span>
-                                </div>
-                                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
-                                    Welcome, {userName.split(' ')[0]}
-                                </h1>
-                                <p className="text-slate-500 font-medium text-lg">
-                                    Manage inventory and process material requests
-                                </p>
-                            </div>
+            <div className="min-h-screen bg-white">
+                <div className="max-w-6xl mx-auto px-6 md:px-10 py-10 space-y-10">
 
-                            <div className="flex items-center gap-4">
-                                <div className="bg-white border border-slate-200 rounded-2xl px-6 py-4 shadow-sm">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center shadow-lg">
-                                            <FiCalendar className="text-2xl text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Today</p>
-                                            <p className="text-2xl font-black text-slate-900">
-                                                {currentTime.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
-                                            </p>
-                                            <p className="text-sm font-bold text-teal-600">
-                                                {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.25em] mb-2">
+                                {getRoleTitle()} &bull; {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                            </p>
+                            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                                Good {currentTime.getHours() < 12 ? 'Morning' : currentTime.getHours() < 17 ? 'Afternoon' : 'Evening'}, {userName.split(' ')[0]}
+                            </h1>
                         </div>
                     </div>
 
-                    <div className="px-8 pb-8 space-y-8">
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {/* Pending Requests */}
-                            <div className="relative bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg">
-                                            <FiClipboard className="text-2xl text-white" />
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 rounded-full">
-                                            <div className="w-2 h-2 bg-amber-500 rounded-full" />
-                                            <span className="text-xs font-black text-amber-600 uppercase">Live</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-4xl font-black text-slate-900">{stats.pendingRequests}</p>
-                                        <p className="text-sm font-bold text-slate-500">Pending Requests</p>
-                                    </div>
-                                    <div className="mt-4 flex items-center gap-2 text-amber-600">
-                                        <FiClock className="text-sm" />
-                                        <span className="text-xs font-bold">Needs Processing</span>
-                                    </div>
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                                    <FiClock className="text-lg text-amber-600" />
                                 </div>
+                                {stats.pendingRequests > 0 && (
+                                    <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+                                )}
                             </div>
-
-                            {/* Processed Today */}
-                            <div className="relative bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center shadow-lg">
-                                            <FiCheckCircle className="text-2xl text-white" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-4xl font-black text-slate-900">8</p>
-                                        <p className="text-sm font-bold text-slate-500">Processed Today</p>
-                                    </div>
-                                    <div className="mt-4 flex items-center gap-2 text-emerald-600">
-                                        <FiTrendingUp className="text-sm" />
-                                        <span className="text-xs font-bold">+23% efficiency</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Total Inventory */}
-                            <div className="relative bg-white rounded-3xl border border-slate-200 p-6 shadow-sm overflow-hidden">
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-cyan-500 flex items-center justify-center shadow-lg">
-                                            <FiDatabase className="text-2xl text-white" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-4xl font-black text-slate-900">{stats.totalInventory}</p>
-                                        <p className="text-sm font-bold text-slate-500">Total Items</p>
-                                    </div>
-                                    <div className="mt-4 flex items-center gap-2 text-cyan-600">
-                                        <FiBox className="text-sm" />
-                                        <span className="text-xs font-bold">In Stock</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Performance Card */}
-                            <div className="relative bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-hidden">
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center">
-                                            <FiTarget className="text-2xl text-white" />
-                                        </div>
-                                        <span className="px-3 py-1 bg-slate-100 text-slate-900 text-xs font-black rounded-full uppercase tracking-wider">
-                                            KPI
-                                        </span>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-4xl font-black text-slate-900">97%</p>
-                                        <p className="text-sm font-bold text-slate-500">Fulfillment Rate</p>
-                                    </div>
-                                    <div className="mt-4 flex items-center gap-2 text-teal-600">
-                                        <FiZap className="text-sm" />
-                                        <span className="text-xs font-bold">Excellent</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <p className="text-3xl font-black text-slate-900">{stats.pendingRequests}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Pending</p>
                         </div>
 
-                        {/* Main Content Grid */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Quick Actions */}
-                            <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h2 className="text-2xl font-black text-slate-900">Quick Actions</h2>
-                                        <p className="text-slate-500 font-medium">Frequently used operations</p>
-                                    </div>
-                                    <div className="w-12 h-12 rounded-2xl bg-teal-100 flex items-center justify-center">
-                                        <FiZap className="text-xl text-teal-600" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <a href="/workspace/view-requests" className="group flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-teal-500 transition-colors">
-                                        <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-                                            <FiClipboard className="text-xl text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">View Requests</h3>
-                                            <p className="text-sm text-slate-500">Process material requests</p>
-                                        </div>
-                                        <FiArrowRight className="text-xl text-teal-600 group-hover:translate-x-1 transition-transform" />
-                                    </a>
-
-                                    <a href="/workspace/add-items" className="group flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-500 transition-colors">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-                                            <FiPlusCircle className="text-xl text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Add Items</h3>
-                                            <p className="text-sm text-slate-500">Register new materials</p>
-                                        </div>
-                                        <FiArrowRight className="text-xl text-emerald-600 group-hover:translate-x-1 transition-transform" />
-                                    </a>
-
-                                    <a href="/workspace/materials-list" className="group flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-cyan-500 transition-colors">
-                                        <div className="w-12 h-12 rounded-xl bg-cyan-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-                                            <FiLayers className="text-xl text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">Materials List</h3>
-                                            <p className="text-sm text-slate-500">View all inventory</p>
-                                        </div>
-                                        <FiArrowRight className="text-xl text-cyan-600 group-hover:translate-x-1 transition-transform" />
-                                    </a>
-
-                                    <a href="/workspace/search-material" className="group flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-violet-500 transition-colors">
-                                        <div className="w-12 h-12 rounded-xl bg-violet-600 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-                                            <FiSearch className="text-xl text-white" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-slate-900 group-hover:text-violet-600 transition-colors">Search Material</h3>
-                                            <p className="text-sm text-slate-500">Find specific items</p>
-                                        </div>
-                                        <FiArrowRight className="text-xl text-violet-600 group-hover:translate-x-1 transition-transform" />
-                                    </a>
-                                </div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center mb-4">
+                                <FiDatabase className="text-lg text-slate-600" />
                             </div>
+                            <p className="text-3xl font-black text-slate-900">{stats.totalInventory}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Total Items</p>
+                        </div>
 
-                            {/* Inventory Overview */}
-                            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h2 className="text-xl font-black text-slate-900">Inventory</h2>
-                                        <p className="text-slate-500 font-medium text-sm">Stock levels</p>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                                        <FiPackage className="text-lg text-slate-600" />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {[
-                                        { name: 'Fixed Assets', count: 128, color: 'teal' },
-                                        { name: 'Consumables', count: 89, color: 'cyan' },
-                                        { name: 'Equipment', count: 34, color: 'emerald' },
-                                        { name: 'Supplies', count: 5, color: 'amber' }
-                                    ].map((item) => (
-                                        <div key={item.name} className="flex items-center gap-4">
-                                            <div className={`w-3 h-3 rounded-full bg-${item.color}-500`} />
-                                            <div className="flex-1">
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-sm font-bold text-slate-600">{item.name}</span>
-                                                    <span className="text-sm font-black text-slate-900">{item.count}</span>
-                                                </div>
-                                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div
-                                                        className={`h-full bg-${item.color}-500 rounded-full`}
-                                                        style={{ width: `${(item.count / 150) * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-6 pt-6 border-t border-slate-100">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-bold text-slate-500">Low Stock Alert</span>
-                                        <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-black rounded-full">3 Items</span>
-                                    </div>
-                                </div>
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center mb-4">
+                                <FiAlertCircle className="text-lg text-orange-600" />
                             </div>
+                            <p className="text-3xl font-black text-slate-900">{stats.lowStock}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Low Stock</p>
+                        </div>
+
+                        <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
+                                <FiCheckCircle className="text-lg text-blue-600" />
+                            </div>
+                            <p className="text-3xl font-black text-slate-900">{stats.processedToday}</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Processed Today</p>
                         </div>
                     </div>
+
+                    {/* Quick Actions */}
+                    <div>
+                        <h2 className="text-lg font-black text-slate-900 mb-5">Quick Actions</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {quickActions.map((action) => (
+                                <Link
+                                    key={action.href}
+                                    href={action.href}
+                                    className="group flex items-center gap-4 p-5 bg-white border border-slate-200 rounded-2xl hover:border-slate-300 hover:shadow-sm transition-all"
+                                >
+                                    <div className={`w-11 h-11 rounded-xl ${action.bg} flex items-center justify-center flex-shrink-0`}>
+                                        <action.icon className={`text-xl ${action.color}`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-slate-800 text-sm">{action.label}</h3>
+                                        <p className="text-xs text-slate-400 mt-0.5">{action.desc}</p>
+                                    </div>
+                                    <FiArrowRight className="text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all" />
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </ProtectedRoute>

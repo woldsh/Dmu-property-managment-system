@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Management System - Database Architecture</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Prism.js CSS for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        .mermaid-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+        }
+        .mermaid svg {
+            max-width: 100% !important;
+            height: auto;
+            font-family: 'Inter', sans-serif !important;
+        }
+        pre {
+            border-radius: 1rem !important;
+            margin: 0 !important;
+            border: 1px solid #334155 !important;
+        }
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+            font-size: 0.9rem !important;
+            line-height: 1.6 !important;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased p-6 md:p-12 lg:p-20 max-w-[1800px] mx-auto space-y-16">
+
+    <!-- Header Section -->
+    <header class="space-y-4 text-center max-w-4xl mx-auto">
+        <div class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-bold text-sm tracking-widest uppercase mb-4">
+            Architecture Documentation
+        </div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-slate-900">
+            Database Schema & Rules
+        </h1>
+        <p class="text-lg md:text-xl text-slate-500 font-medium leading-relaxed">
+            A comprehensive overview of the Firestore NoSQL database collections, document structures, and security rules for the Property Management System.
+        </p>
+    </header>
+
+    <!-- Schema Diagram Section -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">1. Entity-Relationship Diagram</h2>
+                <p class="text-slate-500 mt-2 font-medium">Detailed view of all collections, fields, and their logical relationships. You can zoom in on this page without losing quality for clear screenshots.</p>
+            </div>
+        </div>
+        
+        <div class="mermaid-container">
+            <div class="mermaid">
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#ffffff',
+    'primaryTextColor': '#0f172a',
+    'primaryBorderColor': '#cbd5e1',
+    'lineColor': '#3b82f6',
+    'secondaryColor': '#f8fafc',
+    'tertiaryColor': '#f1f5f9',
+    'fontSize': '16px',
+    'fontFamily': 'arial'
+  }
+}}%%
+erDiagram
+    users ||--o{ User-Report : "requests/receives"
+    users ||--o{ Material_transfers : "sends/receives"
+    users ||--o{ Request_materials : "requests/approves"
+    materials ||--o{ User-Report : "withdrawn as"
+    materials ||--o{ cycle_counts : "counted in"
+    Request_materials ||--|{ Send_to_Users : "generates"
+
+    users {
+        string uid PK
+        string displayName
+        string email
+        string userRole
+        string mainRole
+        string department
+        string status "active | inactive"
+        timestamp createdAt
+    }
+
+    materials {
+        string id PK
+        string materialName
+        string materialCode
+        string image
+        number quantity
+        string condition
+        string category
+        string unit
+        string materialType "fixed_asset | consumable_item"
+        string description
+        string remarks
+        string storeLocation
+        string tags
+        string shelfNumber
+        string serialNumber
+        number unitPrice
+        number totalPrice
+        string currency
+        string vendorName
+        timestamp purchaseDate
+        timestamp expiryDate
+        timestamp createdAt
+    }
+
+    Request_materials {
+        string id PK
+        string requesterId FK "Refers to users.uid"
+        string requesterName
+        string department
+        array items "Array of RequestItem objects"
+        string currentApproverId FK "Refers to users.uid"
+        string currentApproverName
+        string currentApproverRole
+        string status
+        timestamp createdAt
+        array history "Array of RequestHistory objects"
+        string headApproverName
+        string headSignature
+        string formType
+        string receiptNo
+        string signature
+    }
+
+    Send_to_Users {
+        string id PK
+        string request_id FK "Refers to Request_materials.id"
+        string requester_user_id FK "Refers to users.uid"
+        string requester_name
+        array material_details "Array of item details"
+        string verification_code
+        timestamp created_at
+        string status "ready_for_pickup"
+    }
+
+    User-Report {
+        string id PK
+        string requestId
+        string requesterId FK "Refers to users.uid"
+        string requesterName
+        string department
+        string materialId FK "Refers to materials.id"
+        string materialName
+        string materialCode
+        number quantity
+        string unit
+        string materialType
+        string condition
+        string image
+        timestamp withdrawalDate
+        string acceptedAt
+        timestamp approvedAt
+        string approvedBy FK "Refers to users.uid"
+        string approvedByName
+        timestamp createdAt
+        string status "pending | accepted | completed"
+        string processedBy
+        string processedByName
+        array history "Array of ReportHistory objects"
+    }
+
+    Material_transfers {
+        string id PK
+        string senderId FK "Refers to users.uid"
+        string senderName
+        string senderEmail
+        string receiverId FK "Refers to users.uid"
+        string receiverName
+        string receiverEmail
+        array materials "Array of transferred items"
+        string status "e.g., approved_by_receiver, completed"
+        string reason
+        timestamp createdAt
+        timestamp updatedAt
+        timestamp approvedByReceiverAt
+        timestamp completedAt
+    }
+
+    cycle_counts {
+        string id PK
+        string date "ISO String Date"
+        number totalDiscrepancy
+        array items "Array of checked items with variances"
+    }
+            </div>
+        </div>
+    </section>
+
+    <!-- Firebase Implementation Section -->
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-12">
+        <!-- Security Rules -->
+        <div class="space-y-6">
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <svg class="w-8 h-8 text-amber-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-2.93 8.9-7 10.02-4.07-1.12-7-5.35-7-10.02V6.3l7-3.12zm-1 5.82v4H9v-4h2zm4 0v4h-2v-4h2zm-4 5h2v2h-2v-2zm4 0h2v2h-2v-2z"></path></svg>
+                    2. Firestore Security Rules
+                </h2>
+                <p class="text-slate-500 mt-2 font-medium">In Firebase NoSQL, this file (<code>firestore.rules</code>) acts as your schema definition and access control matrix, replacing SQL <code>CREATE TABLE</code> statements.</p>
+            </div>
+            
+            <div class="shadow-xl rounded-2xl overflow-hidden ring-1 ring-slate-800">
+                <div class="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
+                    <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span class="ml-4 text-xs font-mono text-slate-400">firestore.rules</span>
+                </div>
+<pre><code class="language-javascript">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // USERS COLLECTION
+    match /users/{userId} {
+      // Anyone logged in can read users directories
+      allow read: if request.auth != null;
+      // Users can edit themselves, MDs can edit anyone
+      allow write: if request.auth != null && (
+        request.auth.uid == userId || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userRole == 'managing_director'
+      );
+    }
+
+    // MATERIALS INVENTORY COLLECTION
+    match /materials/{materialId} {
+      allow read: if request.auth != null;
+      // Only system admins and stock clerks can inject/modify base materials
+      allow write: if request.auth != null && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userRole in [
+          'managing_director', 
+          'fixed_asset_stock_clerk', 
+          'consumable_item_stock_clerk'
+        ]
+      );
+    }
+
+    // MATERIAL REQUESTS (Aggregate Workflow)
+    match /Request_materials/{requestId} {
+      allow read: if request.auth != null;
+      // Any authenticated user can spawn a request
+      allow create: if request.auth != null;
+      // Update cascades handled by approvers
+      allow update: if request.auth != null;
+    }
+
+    // USER REPORT (Actual Material Withdrawal Ledger)
+    match /User-Report/{reportId} {
+      // Requesters can see their own, admins/keepers see all
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // PICKUP VERIFICATIONS
+    match /Send_to_Users/{sendId} {
+      // Created by Store Keepers, read by Requesters
+      allow read, write: if request.auth != null;
+    }
+
+    // PEER-TO-PEER TRANSFERS
+    match /Material_transfers/{transferId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // INVENTORY AUDITS
+    match /cycle_counts/{countId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</code></pre>
+            </div>
+        </div>
+
+        <!-- Database Seeding Script -->
+        <div class="space-y-6">
+             <div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+                    3. Initialization Script (Seed)
+                </h2>
+                <p class="text-slate-500 mt-2 font-medium">To programmatically create your database structure and inject initial data (like MySQL <code>INSERT INTO</code>), run a Node.js script using the Firebase Admin SDK.</p>
+            </div>
+
+            <div class="shadow-xl rounded-2xl overflow-hidden ring-1 ring-slate-800">
+                <div class="bg-slate-800 px-4 py-3 flex items-center gap-2 border-b border-slate-700">
+                    <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span class="ml-4 text-xs font-mono text-slate-400">seed_database.js</span>
+                </div>
+<pre><code class="language-javascript">const admin = require('firebase-admin');
+
+// 1. Initialize Firebase Admin
+const serviceAccount = require('./serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+
+async function initializeDatabase() {
+  console.log("🚀 Bootstrapping Firestore Database Architecture...");
+
+  try {
+    // 2. Inject Primary Administrator Account
+    const adminRef = db.collection('users').doc('SYS_ADMIN_001');
+    await adminRef.set({
+      uid: 'SYS_ADMIN_001',
+      displayName: 'Master Administrator',
+      email: 'admin@pms-system.local',
+      userRole: 'managing_director',
+      mainRole: 'admin',
+      department: 'Executive',
+      status: 'active',
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log("✅ Collection [users] initialized with admin root node.");
+
+    // 3. Inject Initial Category Base Material
+    const materialRef = db.collection('materials').doc('MAT_TEST_001');
+    await materialRef.set({
+      materialName: 'Latitude 7420 Developer Machine',
+      materialCode: 'IT-DEV-LT-001',
+      quantity: 50,
+      condition: 'New',
+      category: 'IT Hardware',
+      unit: 'Units',
+      materialType: 'fixed_asset',
+      description: 'Standard issue developer laptop.',
+      storeLocation: 'Zone A-1',
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log("✅ Collection [materials] initialized with base inventory.");
+
+    console.log("🎉 Database structure successfully seeded!");
+    // Note: Request_materials, User-Report, etc., will auto-generate 
+    // dynamically when your application code executes addDoc().
+    
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Seeding failed: ", error);
+    process.exit(1);
+  }
+}
+
+initializeDatabase();</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mermaid Rendering Script -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+</body>
+</html>

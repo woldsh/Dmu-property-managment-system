@@ -23,6 +23,19 @@ const notoEthiopic = Noto_Sans_Ethiopic({
 export const metadata: Metadata = {
   title: "Property Management System | የንብረት አስተዳደር ስርዓት",
   description: "Advanced Property Management and Asset Tracking specifically optimized for the Debremarkos University Burie Campus ecosystem.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "PropertyMS",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -44,7 +57,21 @@ export default function RootLayout({
           async
           defer
         />
+        <Script id="register-sw" strategy="afterInteractive">
+          {`
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                  console.log('ServiceWorker registration failed: ', err);
+                });
+              });
+            }
+          `}
+        </Script>
       </body>
     </html>
   );
 }
+

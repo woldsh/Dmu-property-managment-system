@@ -44,6 +44,7 @@ interface Material {
     unitPrice: number;
     vendorName: string;
     warrantyDate: string;
+    expiryDate?: string;
 }
 
 interface MaterialListProps {
@@ -169,68 +170,84 @@ export default function MaterialList({ typeFilter }: MaterialListProps) {
                                 <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Type/Category</th>
                                 <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Quantity/Unit</th>
                                 <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Location</th>
-                                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Condition</th>
+                                <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest">Status</th>
                                 <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {filteredMaterials.map((m) => (
-                                <tr key={m.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 relative">
-                                                {m.image ? (
-                                                    <Image
-                                                        src={m.image}
-                                                        alt={m.materialName}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <FiBox className="m-auto text-slate-300 text-xl h-full" />
-                                                )}
+                            {filteredMaterials.map((m) => {
+                                // Expiry Logic
+                                const isExpiring = m.expiryDate && new Date(m.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                                const isExpired = m.expiryDate && new Date(m.expiryDate) < new Date();
+
+                                return (
+                                    <tr key={m.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 relative">
+                                                    {m.image ? (
+                                                        <Image
+                                                            src={m.image}
+                                                            alt={m.materialName}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <FiBox className="m-auto text-slate-300 text-xl h-full" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-800 text-sm">{m.materialName}</p>
+                                                    <p className="text-[10px] font-mono text-slate-500">{m.materialCode}</p>
+                                                    {isExpired ? (
+                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-100 text-red-600 text-[9px] font-black uppercase tracking-wider mt-1">Expired</span>
+                                                    ) : isExpiring ? (
+                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-600 text-[9px] font-black uppercase tracking-wider mt-1">Expiring Soon</span>
+                                                    ) : null}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm">{m.materialName}</p>
-                                                <p className="text-[10px] font-mono text-slate-500">{m.materialCode}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter mb-1 ${m.materialType === 'fixed_asset' ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
+                                                }`}>
+                                                {m.materialType === 'fixed_asset' ? 'Fixed Asset' : 'Consumable'}
+                                            </span>
+                                            <p className="text-xs font-medium text-slate-500">{m.category}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="font-black text-slate-800 text-sm">{m.quantity}</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">{m.unit}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
+                                                <FiMapPin className="text-slate-400" />
+                                                <span>Loc: {m.storeLocation} | Shelf: {m.shelfNumber}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter mb-1 ${m.materialType === 'fixed_asset' ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'
-                                            }`}>
-                                            {m.materialType === 'fixed_asset' ? 'Fixed Asset' : 'Consumable'}
-                                        </span>
-                                        <p className="text-xs font-medium text-slate-500">{m.category}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="font-black text-slate-800 text-sm">{m.quantity}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{m.unit}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2 text-slate-700 text-xs font-medium">
-                                            <FiMapPin className="text-slate-400" />
-                                            <span>Loc: {m.storeLocation} | Shelf: {m.shelfNumber}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${m.condition === 'New' ? 'bg-blue-100 text-blue-700' :
-                                            m.condition === 'Good' ? 'bg-emerald-100 text-emerald-700' :
-                                                'bg-amber-100 text-amber-700'
-                                            }`}>
-                                            {m.condition}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => setSelectedMaterial(m)}
-                                            className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                                        >
-                                            <FiEye className="text-lg" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${m.condition === 'New' ? 'bg-blue-100 text-blue-700' :
+                                                m.condition === 'Good' ? 'bg-emerald-100 text-emerald-700' :
+                                                    'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                {m.condition}
+                                            </span>
+                                            {m.expiryDate && (
+                                                <p className="text-[10px] font-mono text-slate-400 mt-1">
+                                                    Exp: {new Date(m.expiryDate).toLocaleDateString()}
+                                                </p>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button
+                                                onClick={() => setSelectedMaterial(m)}
+                                                className="p-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                            >
+                                                <FiEye className="text-lg" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                     {filteredMaterials.length === 0 && (

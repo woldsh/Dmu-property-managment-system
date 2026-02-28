@@ -60,120 +60,133 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // --- COMPONENTS ---
 
-export const RequestTrendChart = () => (
-    <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={requestTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                    <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                    </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                    dy={10}
-                />
-                <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
-                />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e2e8f0', strokeWidth: 2 }} />
-                <Area
-                    type="monotone"
-                    dataKey="requests"
-                    stroke="#2563eb"
-                    strokeWidth={4}
-                    fillOpacity={1}
-                    fill="url(#colorRequests)"
-                    animationDuration={2000}
-                />
-            </AreaChart>
-        </ResponsiveContainer>
-    </div>
-);
+interface DefaultChartProps {
+    data?: any[];
+}
 
-export const DepartmentPieChart = () => (
-    <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-                <Pie
-                    data={departmentData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={8}
-                    dataKey="value"
-                    stroke="none"
-                    animationBegin={500}
-                    animationDuration={1500}
-                >
-                    {departmentData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                </Pie>
-                <Tooltip
-                    content={({ payload }) => {
-                        if (payload && payload.length) {
-                            return (
-                                <div className="bg-white p-3 border border-slate-100 rounded-2xl shadow-xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{payload[0].name}</p>
-                                    <p className="text-lg font-black" style={{ color: payload[0].payload.color }}>{payload[0].value}% Distribution</p>
-                                </div>
-                            );
-                        }
-                        return null;
-                    }}
-                />
-            </PieChart>
-        </ResponsiveContainer>
-    </div>
-);
+export const RequestTrendChart = ({ data }: DefaultChartProps) => {
+    const chartData = data || requestTrendData;
+    return (
+        <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                        <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                        dy={10}
+                    />
+                    <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#e2e8f0', strokeWidth: 2 }} />
+                    <Area
+                        type="monotone"
+                        dataKey="requests"
+                        stroke="#2563eb"
+                        strokeWidth={4}
+                        fillOpacity={1}
+                        fill="url(#colorRequests)"
+                        animationDuration={2000}
+                    />
+                </AreaChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
 
-export const StatusBarChart = () => (
-    <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={statusData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 800 }}
-                    dy={10}
-                />
-                <YAxis hide />
-                <Tooltip
-                    cursor={{ fill: 'transparent' }}
-                    content={({ payload }) => {
-                        if (payload && payload.length) {
-                            return (
-                                <div className="bg-white p-3 border border-slate-100 rounded-2xl shadow-xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{payload[0].name}</p>
-                                    <p className="text-xl font-black" style={{ color: payload[0].payload.color }}>{payload[0].value}%</p>
-                                </div>
-                            );
-                        }
-                        return null;
-                    }}
-                />
-                <Bar
-                    dataKey="value"
-                    radius={[10, 10, 10, 10]}
-                    barSize={40}
-                    animationDuration={1500}
-                >
-                    {statusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                </Bar>
-            </BarChart>
-        </ResponsiveContainer>
-    </div>
-);
+export const DepartmentPieChart = ({ data }: DefaultChartProps) => {
+    const chartData = data || departmentData;
+    return (
+        <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                    <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={8}
+                        dataKey="value"
+                        stroke="none"
+                        animationBegin={500}
+                        animationDuration={1500}
+                    >
+                        {chartData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                    </Pie>
+                    <Tooltip
+                        content={({ payload }) => {
+                            if (payload && payload.length) {
+                                return (
+                                    <div className="bg-white p-3 border border-slate-100 rounded-2xl shadow-xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{payload[0].name}</p>
+                                        <p className="text-lg font-black" style={{ color: payload[0].payload.color }}>{payload[0].value}% Distribution</p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};
+
+export const StatusBarChart = ({ data }: DefaultChartProps) => {
+    const chartData = data || statusData;
+    return (
+        <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: '#64748b', fontSize: 12, fontWeight: 800 }}
+                        dy={10}
+                    />
+                    <YAxis hide />
+                    <Tooltip
+                        cursor={{ fill: 'transparent' }}
+                        content={({ payload }) => {
+                            if (payload && payload.length) {
+                                return (
+                                    <div className="bg-white p-3 border border-slate-100 rounded-2xl shadow-xl">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{payload[0].name}</p>
+                                        <p className="text-xl font-black" style={{ color: payload[0].payload.color }}>{payload[0].value}%</p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
+                    />
+                    <Bar
+                        dataKey="value"
+                        radius={[10, 10, 10, 10]}
+                        barSize={40}
+                        animationDuration={1500}
+                    >
+                        {chartData.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
+};

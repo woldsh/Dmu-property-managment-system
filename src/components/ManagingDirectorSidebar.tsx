@@ -8,7 +8,7 @@ import { useSidebar } from '../contexts/SidebarContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useRequestNotification } from '../hooks/useRequestNotification';
-import { FaChartPie, FaClipboardList, FaEnvelope, FaFileAlt, FaCog, FaVideo, FaTruckLoading, FaUndo, FaCar, FaShieldAlt, FaPlusCircle } from 'react-icons/fa';
+import { FaChartPie, FaClipboardList, FaEnvelope, FaFileAlt, FaCog, FaVideo, FaTruckLoading, FaUndo, FaCar, FaShieldAlt, FaPlusCircle, FaChartLine, FaLayerGroup } from 'react-icons/fa';
 import SidebarResizeHandle from './SidebarResizeHandle';
 
 export default function ManagingDirectorSidebar() {
@@ -24,6 +24,8 @@ export default function ManagingDirectorSidebar() {
     };
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: 'Analytics', href: `${basePath}/analytics`, icon: FaChartLine },
+        { label: 'Full Inventory', href: `${basePath}/full-inventory`, icon: FaLayerGroup },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
         { label: t('request_materials'), href: `${basePath}/request-material`, icon: FaPlusCircle },
         { label: t('receive_goods'), href: `${basePath}/receive-goods`, icon: FaTruckLoading },

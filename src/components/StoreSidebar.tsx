@@ -28,6 +28,7 @@ import {
     FaSearch,
     FaClipboardCheck
 } from 'react-icons/fa';
+import { FiAlertTriangle, FiGrid, FiClipboard } from 'react-icons/fi';
 
 interface StoreSidebarProps {
     storeType: 'fixed' | 'consumable';
@@ -63,6 +64,9 @@ export default function StoreSidebar({ storeType }: StoreSidebarProps) {
         { label: t('request_journey'), href: `${basePath}/request-journey`, icon: FaCar },
         { label: t('exchange_report'), href: `${basePath}/exchange-report`, icon: FaExchangeAlt },
         { label: t('clerk_report'), href: `${basePath}/clerk-report`, icon: FaFileAlt },
+        { label: 'Expiry Alerts', href: `${basePath}/expiry-alerts`, icon: FiAlertTriangle },
+        { label: 'Bin Management', href: `${basePath}/bin-management`, icon: FiGrid },
+        { label: 'Cycle Count', href: `${basePath}/cycle-count`, icon: FiClipboard },
     ];
 
     return (

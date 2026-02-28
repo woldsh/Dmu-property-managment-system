@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FiX, FiRefreshCw, FiCheck } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiCheck, FiPrinter } from 'react-icons/fi';
 import Image from 'next/image';
 
 interface RequestItem {
@@ -114,6 +114,10 @@ export default function ReadOnlyPaperForm20({ request, onClose, onApprove, onRej
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     };
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     const handleApproveWithSignature = () => {
         if (isDepartmentHead && !signatureData && !headSignature) {
             alert("Please sign the form before approving.");
@@ -171,7 +175,17 @@ export default function ReadOnlyPaperForm20({ request, onClose, onApprove, onRej
                 fontFamily: "'Noto Sans Ethiopic', 'Nyala', Arial, sans-serif",
                 position: 'relative',
                 borderRadius: 4
-            }} onClick={e => e.stopPropagation()}>
+            }} onClick={e => e.stopPropagation()} className="printable-form">
+
+                {/* Print Button */}
+                <button onClick={handlePrint} className="print-hide" style={{
+                    position: 'absolute', right: 72, top: 24,
+                    background: '#f1f5f9', border: 'none', borderRadius: '50%',
+                    width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: '#64748b', transition: 'all 0.2s'
+                }} title="Print / Download PDF">
+                    <FiPrinter size={20} />
+                </button>
 
                 {/* Close Button */}
                 <button onClick={onClose} style={{
@@ -378,6 +392,28 @@ export default function ReadOnlyPaperForm20({ request, onClose, onApprove, onRej
                 <style jsx global>{`
                     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@300;400;500;600;700&display=swap');
                     @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+                    @media print {
+                        body * {
+                            visibility: hidden;
+                        }
+                        .printable-form, .printable-form * {
+                            visibility: visible;
+                        }
+                        .printable-form {
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            margin: 0;
+                            padding: 0 !important;
+                            box-shadow: none !important;
+                            background: white !important;
+                        }
+                        .print-hide {
+                            display: none !important;
+                        }
+                    }
                 `}</style>
             </div>
         </div>

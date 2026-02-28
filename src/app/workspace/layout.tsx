@@ -42,7 +42,7 @@ export default function WorkspaceLayout({
         return (
             <div className="min-h-screen bg-[#020205] flex items-center justify-center">
                 <div className="text-center space-y-4">
-                    <Loader2 className="w-12 h-12 text-teal-500 animate-spin mx-auto" />
+                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
                     <p className="text-slate-400 text-sm font-bold tracking-widest uppercase">
                         Loading Workspace...
                     </p>

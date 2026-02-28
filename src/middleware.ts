@@ -13,7 +13,11 @@ export async function middleware(request: NextRequest) {
     const bypassGeoCheck = pathname.startsWith('/_next') ||
         pathname.startsWith('/api') ||
         pathname.includes('favicon.ico') ||
+        pathname === '/manifest.json' ||
+        pathname === '/sw.js' ||
+        pathname === '/logo.png' ||
         pathname === '/geo-blocked';
+
 
     if (!bypassGeoCheck) {
         // Check if we have a cached geolocation result
@@ -98,7 +102,7 @@ export async function middleware(request: NextRequest) {
     // ========================================
 
     // Public routes that don't require authentication
-    const publicRoutes = ['/', '/login'];
+    const publicRoutes = ['/', '/login', '/manifest.json', '/sw.js', '/logo.png'];
 
     // Check if the current path is public
     const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith('/_next') || pathname.startsWith('/api'));
@@ -113,7 +117,7 @@ export async function middleware(request: NextRequest) {
     // This middleware primarily blocks direct URL access attempts
 
     // Protected routes
-    const protectedRoutes = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel', '/admin', '/procurement-management'];
+    const protectedRoutes = ['/dashboard', '/portal', '/service', '/workspace', '/admin-panel', '/admin', '/procurement-management', '/admin-staff'];
 
     // Check if accessing a protected route
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
@@ -127,8 +131,7 @@ export async function middleware(request: NextRequest) {
     const blockedRoutes = [
         '/academic-staff',
         '/managing-director',
-        '/general-service',
-        '/admin-staff'
+        '/general-service'
     ];
 
     const isBlockedRoute = blockedRoutes.some(route => pathname.startsWith(route));

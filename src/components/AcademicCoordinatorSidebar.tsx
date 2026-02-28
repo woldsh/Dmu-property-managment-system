@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useLanguage } from '../contexts/LanguageContext';
-import { FaChartPie, FaClipboardList, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaGraduationCap, FaVideo, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaGavel, FaBell } from 'react-icons/fa';
+import { FaChartPie, FaClipboardList, FaUserTie, FaEnvelope, FaFileAlt, FaCog, FaGraduationCap, FaVideo, FaTruckLoading, FaUndo, FaCar, FaExchangeAlt, FaGavel, FaBell, FaChartLine, FaLayerGroup } from 'react-icons/fa';
 import { useRequestNotification } from '../hooks/useRequestNotification';
 import SidebarResizeHandle from './SidebarResizeHandle';
 
@@ -43,6 +43,8 @@ export default function AcademicCoordinatorSidebar() {
     };
     const menuItems = [
         { label: t('dashboard'), href: basePath, icon: FaChartPie },
+        { label: 'Analytics', href: `${basePath}/analytics`, icon: FaChartLine },
+        { label: 'Full Inventory', href: `${basePath}/full-inventory`, icon: FaLayerGroup },
         { label: t('view_requests'), href: `${basePath}/view-requests`, icon: FaClipboardList },
         { label: t('commission_review'), href: `${basePath}/commission-review`, icon: FaGavel },
         { label: t('join_meeting'), href: '/dashboard/meeting', icon: FaVideo },

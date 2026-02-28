@@ -323,21 +323,36 @@ export default function MaterialRequestForm() {
                 approverRole = leaderRole;
                 status = 'pending_department_leader';
             } else if (isMD) {
-                const clerkQuery = query(collection(db!, 'users'), where('userRole', '==', 'stock_clerk'));
-                const clerkSnapshot = await getDocs(clerkQuery);
-                approverId = clerkSnapshot.empty ? 'PENDING_CLERK_ASSIGNMENT' : clerkSnapshot.docs[0].id;
-                approverName = clerkSnapshot.empty ? 'Stock Clerk' : clerkSnapshot.docs[0].data().displayName;
-                approverRole = 'stock_clerk';
-                status = 'approved_by_md';
-                historyNote += ' (Auto-Approved)';
-            } else if (isAC || isTL) {
-                const mdQuery = query(collection(db!, 'users'), where('userRole', '==', 'managing_director'));
-                const mdSnapshot = await getDocs(mdQuery);
-                approverId = mdSnapshot.empty ? 'PENDING_MD_ASSIGNMENT' : mdSnapshot.docs[0].id;
-                approverName = mdSnapshot.empty ? 'Managing Director' : mdSnapshot.docs[0].data().displayName;
-                approverRole = 'managing_director';
-                status = 'approved_by_coordinator';
-                historyNote += ' (Auto-Approved)';
+                const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
+                const ptlSnapshot = await getDocs(ptlQuery);
+                approverId = ptlSnapshot.empty ? 'PENDING_PTL_ASSIGNMENT' : ptlSnapshot.docs[0].id;
+                approverName = ptlSnapshot.empty ? 'Procurement Team Leader' : ptlSnapshot.docs[0].data().displayName;
+                approverRole = 'procurement_team_leader';
+                status = 'pending_procurement';
+                historyNote += ' (Auto-Approved and Forwarded to PTL)';
+            } else if (isAC) {
+                const ptlQuery = query(collection(db!, 'users'), where('userRole', '==', 'procurement_team_leader'));
+                const ptlSnapshot = await getDocs(ptlQuery);
+                approverId = ptlSnapshot.empty ? 'PENDING_PTL_ASSIGNMENT' : ptlSnapshot.docs[0].id;
+                approverName = ptlSnapshot.empty ? 'Procurement Team Leader' : ptlSnapshot.docs[0].data().displayName;
+                approverRole = 'procurement_team_leader';
+                status = 'pending_procurement';
+                historyNote += ' (Auto-Approved and Forwarded to PTL)';
+            } else if (isTL) {
+                const isStudentServiceSubLeader = userData.userRole === 'student_service_dormitory_leader' ||
+                    userData.userRole === 'student_service_cafeteria_leader' ||
+                    userData.userRole === 'student_service_sport_leader';
+
+                const nextRole = isStudentServiceSubLeader ? 'student_service_leader' : 'managing_director';
+                const nextStatus = isStudentServiceSubLeader ? 'pending_student_service_leader' : 'approved_by_coordinator';
+
+                const nextQuery = query(collection(db!, 'users'), where('userRole', '==', nextRole));
+                const nextSnapshot = await getDocs(nextQuery);
+                approverId = nextSnapshot.empty ? `PENDING_${nextRole.toUpperCase()}_ASSIGNMENT` : nextSnapshot.docs[0].id;
+                approverName = nextSnapshot.empty ? nextRole.replace(/_/g, ' ') : nextSnapshot.docs[0].data().displayName;
+                approverRole = nextRole;
+                status = nextStatus;
+                historyNote += ` (Auto-Approved and Forwarded to ${approverName})`;
             } else if (isDeptHead) {
                 const acQuery = query(collection(db!, 'users'), where('userRole', '==', 'academic_coordinator'));
                 const acSnapshot = await getDocs(acQuery);
