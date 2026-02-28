@@ -60,6 +60,7 @@ export default function ReturnGoodsPage() {
         if (!user || !db) return;
 
         const fetchUserName = async () => {
+            if (!db) return;
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 setUserName(userDoc.data().displayName || '');
@@ -86,6 +87,7 @@ export default function ReturnGoodsPage() {
 
         // Fetch transfer history
         const fetchTransfers = async () => {
+            if (!db) return;
             const transfersRef = collection(db, 'Material_transfers');
             const tq = query(transfersRef, where('senderId', '==', user.uid), orderBy('createdAt', 'desc'));
             const tSnapshot = await getDocs(tq);

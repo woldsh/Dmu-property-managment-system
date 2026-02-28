@@ -116,7 +116,7 @@ export default function ExchangeReportPage() {
                                 <p className="text-2xl font-black text-slate-800">
                                     {completedTransfers.reduce((acc, curr) => acc + (curr.materials?.length || 0), 0)}
                                 </p>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('total_items', 'Total Items Exchanged')}</p>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Items Exchanged</p>
                             </div>
                         </div>
                     </div>

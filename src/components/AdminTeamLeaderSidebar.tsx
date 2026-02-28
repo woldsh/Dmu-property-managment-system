@@ -74,7 +74,7 @@ export default function AdminTeamLeaderSidebar() {
                             </div>
                             <div className="flex flex-col">
                                 <h1 className="text-xl font-black text-slate-800 tracking-tight leading-tight">
-                                    {isLeaderRole ? t(userRole || 'admin_lead') || getDisplayNameForRole(userRole || '') : t('admin_lead')}
+                                    {isLeaderRole ? t((userRole || 'admin_lead') as any) || getDisplayNameForRole(userRole || '') : t('admin_lead')}
                                 </h1>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="relative">

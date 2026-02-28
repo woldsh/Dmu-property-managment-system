@@ -23,6 +23,7 @@ export default function DepartmentHeadDashboardContent({ userName }: { userName:
         if (!user?.uid || !userRole || !db) return;
 
         const fetchData = async () => {
+            if (!db) return;
             try {
                 // 1. My Requests
                 const myRequestsQuery = query(

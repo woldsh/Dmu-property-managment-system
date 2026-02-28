@@ -92,6 +92,7 @@ export default function BinManagementContent() {
     };
 
     const handleBulkMove = async () => {
+        if (!db) return;
         if (!moveTarget.location || !moveTarget.shelf) {
             alert("Please specify both target Location and Shelf.");
             return;
@@ -100,7 +101,7 @@ export default function BinManagementContent() {
         setIsMoving(true);
         try {
             const updatePromises = selectedItems.map(id => {
-                const itemRef = doc(db, 'materials', id);
+                const itemRef = doc(db!, 'materials', id);
                 return updateDoc(itemRef, {
                     storeLocation: moveTarget.location,
                     shelfNumber: moveTarget.shelf
@@ -204,13 +205,13 @@ export default function BinManagementContent() {
                                                 key={item.id}
                                                 onClick={() => handleSelectItem(item.id)}
                                                 className={`flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all border ${selectedItems.includes(item.id)
-                                                        ? 'bg-blue-50 border-blue-200 shadow-inner'
-                                                        : 'hover:bg-slate-50 border-transparent hover:border-slate-100'
+                                                    ? 'bg-blue-50 border-blue-200 shadow-inner'
+                                                    : 'hover:bg-slate-50 border-transparent hover:border-slate-100'
                                                     }`}
                                             >
                                                 <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${selectedItems.includes(item.id)
-                                                        ? 'border-blue-500 bg-blue-500'
-                                                        : 'border-slate-300'
+                                                    ? 'border-blue-500 bg-blue-500'
+                                                    : 'border-slate-300'
                                                     }`}>
                                                     {selectedItems.includes(item.id) && <FiCheck className="text-white text-[8px]" />}
                                                 </div>

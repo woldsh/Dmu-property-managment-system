@@ -84,6 +84,7 @@ export default function CycleCountContent() {
     };
 
     const submitSession = async () => {
+        if (!db) return;
         if (!confirm("Are you sure you want to finalize this cycle count? This will record discrepancies.")) return;
 
         setLoading(true);
@@ -196,10 +197,10 @@ export default function CycleCountContent() {
                                                     min="0"
                                                     onChange={(e) => handleCountUpdate(item.id, parseInt(e.target.value) || 0)}
                                                     className={`w-full md:w-32 px-4 py-3 bg-white border-2 rounded-xl outline-none font-bold text-lg transition-all ${item.status === 'counted'
-                                                            ? item.difference === 0
-                                                                ? 'border-emerald-200 text-emerald-700 bg-emerald-50/30'
-                                                                : 'border-rose-200 text-rose-700 bg-rose-50/30'
-                                                            : 'border-slate-200 focus:border-blue-500'
+                                                        ? item.difference === 0
+                                                            ? 'border-emerald-200 text-emerald-700 bg-emerald-50/30'
+                                                            : 'border-rose-200 text-rose-700 bg-rose-50/30'
+                                                        : 'border-slate-200 focus:border-blue-500'
                                                         }`}
                                                     placeholder="Enter Qty"
                                                 />
