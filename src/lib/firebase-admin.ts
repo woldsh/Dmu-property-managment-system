@@ -14,71 +14,68 @@ export const initializeFirebaseAdmin = () => {
         try {
             // Check if Firebase Admin is already initialized
             if (admin.apps.length === 0) {
+                let credential = null;
 
                 // 1. Try Environment Variables (Best for Vercel/Production)
                 if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-                    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-                    admin.initializeApp({
-                        credential: admin.credential.cert(serviceAccount),
-                        projectId: projectId,
-                    });
-                    console.log('Firebase Admin initialized with FIREBASE_SERVICE_ACCOUNT_KEY env var');
-                    initialized = true;
-                    return admin;
+                    try {
+                        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+                        credential = admin.credential.cert(serviceAccount);
+                        console.log('Firebase Admin: Using FIREBASE_SERVICE_ACCOUNT_KEY env var');
+                    } catch (e) {
+                        console.error('Firebase Admin: Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY env var', e);
+                    }
                 }
 
-                // 2. Try Local File (Best for Local Dev)
-                // We use process.env.NODE_ENV check to avoid dynamic require in production builds
-                if (process.env.NODE_ENV === 'development') {
+                // 2. Try Local File (Best for Local Dev or if file is present)
+                if (!credential) {
                     const possiblePaths = [
                         path.join(process.cwd(), 'serviceAccountKey.json'),
                         path.join(process.cwd(), '..', 'serviceAccountKey.json'),
+                        // Add common locations if needed
                     ];
-
-                    let serviceAccountData = null;
 
                     for (const p of possiblePaths) {
                         if (fs.existsSync(p)) {
                             try {
-                                // Using eval('require') is a common hack to prevent bundlers like Webpack/Turbopack 
-                                // from trying to resolve the dependency at build time.
-                                const dynamicRequire = eval('require');
-                                serviceAccountData = dynamicRequire(p);
-                                console.log('Found service account key at:', p);
+                                // Using eval('require') or fs.readFileSync
+                                const fileContent = fs.readFileSync(p, 'utf8');
+                                const serviceAccountData = JSON.parse(fileContent);
+                                credential = admin.credential.cert(serviceAccountData);
+                                console.log('Firebase Admin: Using service account key file at:', p);
                                 break;
                             } catch (e) {
-                                console.error("Error reading service account from", p, e);
+                                console.error("Firebase Admin: Error reading service account from", p, e);
                             }
                         }
                     }
-
-                    if (serviceAccountData) {
-                        admin.initializeApp({
-                            credential: admin.credential.cert(serviceAccountData),
-                            projectId: projectId,
-                        });
-                        console.log('Firebase Admin initialized with service account key file');
-                        initialized = true;
-                        return admin;
-                    }
                 }
 
-                // 3. Fallback to ADC or Project ID
-                if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+                // 3. Last Resort: ADC or just Project ID (may fail if no credentials found)
+                if (credential) {
+                    admin.initializeApp({
+                        credential: credential,
+                        projectId: projectId,
+                    });
+                } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
                     admin.initializeApp({
                         projectId: projectId,
                     });
-                    console.log('Firebase Admin initialized with GOOGLE_APPLICATION_CREDENTIALS');
+                    console.log('Firebase Admin: Initialized with GOOGLE_APPLICATION_CREDENTIALS');
                 } else {
+                    // This is where it was failing with "Could not load the default credentials"
+                    // because it tries to fetch ADC if no credential property is provided.
+                    console.warn('Firebase Admin: No explicit credentials found. Attempting to initialize with project ID only (may fail).');
                     admin.initializeApp({
                         projectId: projectId,
                     });
-                    console.log('Firebase Admin initialized with project ID');
                 }
             }
             initialized = true;
         } catch (error) {
             console.error('Error initializing Firebase Admin:', error);
+            // Re-throw if it's a critical failure during the first initialization attempt
+            throw error;
         }
     }
     return admin;
